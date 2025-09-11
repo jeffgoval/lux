@@ -1,6 +1,7 @@
 import { CalendarDays, Users, Briefcase, Package, Wrench, DollarSign, MessageSquare, FileText, Home, Search, Settings, LogOut } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
+import { useClinica } from "@/hooks/useClinica"
 import { Database } from "@/integrations/supabase/types"
 
 type UserRole = Database['public']['Enums']['user_role_type']
@@ -82,6 +83,7 @@ export function AppSidebar() {
   const { state } = useSidebar()
   const collapsed = state === "collapsed"
   const { currentRole, signOut } = useAuth()
+  const { clinica } = useClinica()
   const location = useLocation()
   const currentPath = location.pathname
 
@@ -113,10 +115,14 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">AC</span>
+              <span className="text-primary-foreground font-bold text-sm">
+                {clinica?.nome ? clinica.nome.charAt(0).toUpperCase() : 'AC'}
+              </span>
             </div>
             <div>
-              <h2 className="text-sidebar-foreground font-semibold text-lg">AestheticCare</h2>
+              <h2 className="text-sidebar-foreground font-semibold text-lg">
+                {clinica?.nome || 'AestheticCare'}
+              </h2>
               <p className="text-sidebar-foreground/60 text-xs">Sistema Médico</p>
             </div>
           </div>
@@ -124,7 +130,9 @@ export function AppSidebar() {
         {collapsed && (
           <div className="flex justify-center">
             <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">AC</span>
+              <span className="text-primary-foreground font-bold text-sm">
+                {clinica?.nome ? clinica.nome.charAt(0).toUpperCase() : 'AC'}
+              </span>
             </div>
           </div>
         )}

@@ -97,7 +97,6 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           </div>
         </main>
       </div>
-      
     </SidebarProvider>
   )
 }
