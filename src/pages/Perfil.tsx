@@ -52,14 +52,12 @@ export default function Perfil() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          nome_completo: formData.nome_completo,
-          telefone: formData.telefone,
-          primeiro_acesso: false // Marcar que não é mais o primeiro acesso
-        })
-        .eq('user_id', user.id);
+      // Como os tipos ainda não estão atualizados, vou usar uma query SQL direta
+      const { error } = await supabase.rpc('update_user_profile', {
+        p_user_id: user.id,
+        p_nome_completo: formData.nome_completo,
+        p_telefone: formData.telefone
+      });
 
       if (error) {
         toast.error('Erro ao salvar perfil: ' + error.message);
