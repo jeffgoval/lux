@@ -30,6 +30,13 @@ interface OnboardingData {
   telefone: string;
   especialidade: string;
   
+  // Multiple clinics question
+  temMultiplasClinicas: boolean;
+  
+  // Rede de clínicas (only if multiple clinics)
+  nomeRede: string;
+  cnpjRede: string;
+  
   // Dados da clínica
   nomeClinica: string;
   cnpj: string;
@@ -78,6 +85,9 @@ export function OnboardingWizard() {
     nomeCompleto: '',
     telefone: '',
     especialidade: '',
+    temMultiplasClinicas: false,
+    nomeRede: '',
+    cnpjRede: '',
     nomeClinica: '',
     cnpj: '',
     enderecoRua: '',
@@ -122,7 +132,11 @@ export function OnboardingWizard() {
       case 1:
         return data.nomeCompleto && data.telefone && data.especialidade;
       case 2:
-        return data.nomeClinica && data.enderecoCidade && data.enderecoEstado;
+        const baseValidation = data.nomeClinica && data.enderecoCidade && data.enderecoEstado;
+        if (data.temMultiplasClinicas) {
+          return baseValidation && data.nomeRede;
+        }
+        return baseValidation;
       case 3:
         return data.souEuMesma || (data.nomeProfissional && data.especialidadeProfissional);
       case 4:
@@ -152,18 +166,22 @@ export function OnboardingWizard() {
 
       if (profileError) throw profileError;
 
-      // 2. Criar organização
-      const { data: orgData, error: orgError } = await supabase
-        .from('organizacoes')
-        .insert({
-          nome: data.nomeClinica,
-          cnpj: data.cnpj || null,
-          proprietaria_id: user.id
-        })
-        .select()
-        .single();
+      // 2. Criar organização (apenas se múltiplas clínicas)
+      let orgData = null;
+      if (data.temMultiplasClinicas) {
+        const { data: organizacao, error: orgError } = await supabase
+          .from('organizacoes')
+          .insert({
+            nome: data.nomeRede,
+            cnpj: data.cnpjRede || null,
+            proprietaria_id: user.id
+          })
+          .select()
+          .single();
 
-      if (orgError) throw orgError;
+        if (orgError) throw orgError;
+        orgData = organizacao;
+      }
 
       // 3. Criar clínica
       const horarioFuncionamento = {
@@ -190,7 +208,7 @@ export function OnboardingWizard() {
           endereco_cep: data.enderecoCep || null,
           telefone: data.telefoneClinica || null,
           email: data.emailClinica || null,
-          organizacao_id: orgData.id,
+          organizacao_id: orgData?.id || null,
           horario_funcionamento: horarioFuncionamento
         })
         .select()
@@ -239,7 +257,7 @@ export function OnboardingWizard() {
       const { error: roleError } = await supabase
         .from('user_roles')
         .update({
-          organizacao_id: orgData.id,
+          organizacao_id: orgData?.id || null,
           clinica_id: clinicaData.id
         })
         .eq('user_id', user.id);
@@ -314,120 +332,178 @@ export function OnboardingWizard() {
           <div className="space-y-6">
             <div className="text-center space-y-2">
               <Building2 className="w-12 h-12 text-primary mx-auto" />
-              <h2 className="text-2xl font-semibold">Dados da sua clínica</h2>
+              <h2 className="text-2xl font-semibold">Sobre sua clínica</h2>
               <p className="text-muted-foreground">
-                Agora vamos configurar os dados básicos da sua clínica.
+                Vamos começar entendendo sua estrutura clínica atual.
               </p>
             </div>
 
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nomeClinica">Nome da clínica *</Label>
-                <Input
-                  id="nomeClinica"
-                  value={data.nomeClinica}
-                  onChange={(e) => updateData('nomeClinica', e.target.value)}
-                  placeholder="Ex: Clínica Beleza & Saúde"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="cnpj">CNPJ</Label>
-                <Input
-                  id="cnpj"
-                  value={data.cnpj}
-                  onChange={(e) => updateData('cnpj', e.target.value)}
-                  placeholder="00.000.000/0000-00"
-                />
-              </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="enderecoRua">Rua</Label>
-                  <Input
-                    id="enderecoRua"
-                    value={data.enderecoRua}
-                    onChange={(e) => updateData('enderecoRua', e.target.value)}
-                    placeholder="Nome da rua"
-                  />
+            <div className="grid gap-6">
+              {/* Multiple Clinics Question */}
+              <Card className="p-4 bg-muted/50">
+                <div className="space-y-3">
+                  <h3 className="font-medium">Estrutura da sua prática</h3>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="temMultiplasClinicas"
+                      checked={data.temMultiplasClinicas}
+                      onCheckedChange={(checked) => updateData('temMultiplasClinicas', checked)}
+                    />
+                    <Label htmlFor="temMultiplasClinicas">
+                      Possuo ou planejo ter múltiplas clínicas/filiais
+                    </Label>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {data.temMultiplasClinicas 
+                      ? "Vamos configurar sua rede de clínicas" 
+                      : "Configuraremos apenas uma clínica"}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="enderecoNumero">Número</Label>
-                  <Input
-                    id="enderecoNumero"
-                    value={data.enderecoNumero}
-                    onChange={(e) => updateData('enderecoNumero', e.target.value)}
-                    placeholder="123"
-                  />
-                </div>
-              </div>
+              </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="enderecoBairro">Bairro</Label>
-                  <Input
-                    id="enderecoBairro"
-                    value={data.enderecoBairro}
-                    onChange={(e) => updateData('enderecoBairro', e.target.value)}
-                    placeholder="Nome do bairro"
-                  />
+              {/* Network/Organization Info - Only show if multiple clinics */}
+              {data.temMultiplasClinicas && (
+                <div className="space-y-4">
+                  <h3 className="font-medium text-primary">Dados da Rede de Clínicas</h3>
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nomeRede">Nome da rede/grupo *</Label>
+                      <Input
+                        id="nomeRede"
+                        value={data.nomeRede}
+                        onChange={(e) => updateData('nomeRede', e.target.value)}
+                        placeholder="Ex: Grupo Beleza & Saúde"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cnpjRede">CNPJ da rede</Label>
+                      <Input
+                        id="cnpjRede"
+                        value={data.cnpjRede}
+                        onChange={(e) => updateData('cnpjRede', e.target.value)}
+                        placeholder="00.000.000/0000-00"
+                      />
+                    </div>
+                  </div>
+                  <Separator />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="enderecoCep">CEP</Label>
-                  <Input
-                    id="enderecoCep"
-                    value={data.enderecoCep}
-                    onChange={(e) => updateData('enderecoCep', e.target.value)}
-                    placeholder="00000-000"
-                  />
-                </div>
-              </div>
+              )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="enderecoCidade">Cidade *</Label>
-                  <Input
-                    id="enderecoCidade"
-                    value={data.enderecoCidade}
-                    onChange={(e) => updateData('enderecoCidade', e.target.value)}
-                    placeholder="Nome da cidade"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="enderecoEstado">Estado *</Label>
-                  <Input
-                    id="enderecoEstado"
-                    value={data.enderecoEstado}
-                    onChange={(e) => updateData('enderecoEstado', e.target.value)}
-                    placeholder="SP"
-                    maxLength={2}
-                  />
-                </div>
-              </div>
+              {/* Primary Clinic Info */}
+              <div className="space-y-4">
+                <h3 className="font-medium text-primary">
+                  {data.temMultiplasClinicas ? "Clínica Principal" : "Dados da Clínica"}
+                </h3>
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nomeClinica">Nome da clínica *</Label>
+                    <Input
+                      id="nomeClinica"
+                      value={data.nomeClinica}
+                      onChange={(e) => updateData('nomeClinica', e.target.value)}
+                      placeholder="Ex: Clínica Beleza & Saúde - Unidade Centro"
+                    />
+                  </div>
 
-              <Separator />
+                  <div className="space-y-2">
+                    <Label htmlFor="cnpj">CNPJ da clínica</Label>
+                    <Input
+                      id="cnpj"
+                      value={data.cnpj}
+                      onChange={(e) => updateData('cnpj', e.target.value)}
+                      placeholder="00.000.000/0000-00"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="telefoneClinica">Telefone da clínica</Label>
-                  <Input
-                    id="telefoneClinica"
-                    value={data.telefoneClinica}
-                    onChange={(e) => updateData('telefoneClinica', e.target.value)}
-                    placeholder="(11) 3333-3333"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="emailClinica">E-mail da clínica</Label>
-                  <Input
-                    id="emailClinica"
-                    type="email"
-                    value={data.emailClinica}
-                    onChange={(e) => updateData('emailClinica', e.target.value)}
-                    placeholder="contato@clinica.com.br"
-                  />
+                  <Separator />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="enderecoRua">Rua</Label>
+                      <Input
+                        id="enderecoRua"
+                        value={data.enderecoRua}
+                        onChange={(e) => updateData('enderecoRua', e.target.value)}
+                        placeholder="Nome da rua"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="enderecoNumero">Número</Label>
+                      <Input
+                        id="enderecoNumero"
+                        value={data.enderecoNumero}
+                        onChange={(e) => updateData('enderecoNumero', e.target.value)}
+                        placeholder="123"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="enderecoBairro">Bairro</Label>
+                      <Input
+                        id="enderecoBairro"
+                        value={data.enderecoBairro}
+                        onChange={(e) => updateData('enderecoBairro', e.target.value)}
+                        placeholder="Nome do bairro"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="enderecoCep">CEP</Label>
+                      <Input
+                        id="enderecoCep"
+                        value={data.enderecoCep}
+                        onChange={(e) => updateData('enderecoCep', e.target.value)}
+                        placeholder="00000-000"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="enderecoCidade">Cidade *</Label>
+                      <Input
+                        id="enderecoCidade"
+                        value={data.enderecoCidade}
+                        onChange={(e) => updateData('enderecoCidade', e.target.value)}
+                        placeholder="Nome da cidade"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="enderecoEstado">Estado *</Label>
+                      <Input
+                        id="enderecoEstado"
+                        value={data.enderecoEstado}
+                        onChange={(e) => updateData('enderecoEstado', e.target.value)}
+                        placeholder="SP"
+                        maxLength={2}
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="telefoneClinica">Telefone da clínica</Label>
+                      <Input
+                        id="telefoneClinica"
+                        value={data.telefoneClinica}
+                        onChange={(e) => updateData('telefoneClinica', e.target.value)}
+                        placeholder="(11) 3333-3333"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="emailClinica">E-mail da clínica</Label>
+                      <Input
+                        id="emailClinica"
+                        type="email"
+                        value={data.emailClinica}
+                        onChange={(e) => updateData('emailClinica', e.target.value)}
+                        placeholder="contato@clinica.com.br"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

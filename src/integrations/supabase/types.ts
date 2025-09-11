@@ -127,7 +127,7 @@ export type Database = {
           horario_funcionamento: Json | null
           id: string
           nome: string
-          organizacao_id: string
+          organizacao_id: string | null
           site: string | null
           telefone: string | null
         }
@@ -148,7 +148,7 @@ export type Database = {
           horario_funcionamento?: Json | null
           id?: string
           nome: string
-          organizacao_id: string
+          organizacao_id?: string | null
           site?: string | null
           telefone?: string | null
         }
@@ -169,7 +169,7 @@ export type Database = {
           horario_funcionamento?: Json | null
           id?: string
           nome?: string
-          organizacao_id?: string
+          organizacao_id?: string | null
           site?: string | null
           telefone?: string | null
         }
