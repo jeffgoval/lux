@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Database } from '@/integrations/supabase/types';
@@ -20,6 +20,19 @@ export function AuthGuard({
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [waited, setWaited] = useState(false);
+
+  // Grace period to hydrate profile/roles after auth events
+  useEffect(() => {
+    if (isAuthenticated && !profile && !currentRole) {
+      setWaited(false);
+      const t = setTimeout(() => setWaited(true), 1200);
+      return () => clearTimeout(t);
+    } else {
+      setWaited(true);
+    }
+  }, [isAuthenticated, profile, currentRole]);
+
   useEffect(() => {
     if (isLoading) return;
 
@@ -38,20 +51,20 @@ export function AuthGuard({
       return;
     }
 
-    // Give some time for roles to load after authentication (especially during signup)
-    if (isAuthenticated && !profile) {
-      return; // Still loading profile
-    }
-
-    // If specific roles are required, check if user has any of them
+    // Role checks with small grace period for hydration
     if (requiredRoles.length > 0) {
-      if (!currentRole || !requiredRoles.includes(currentRole)) {
+      if (!currentRole) {
+        if (!waited) return; // wait briefly for roles
+        navigate('/unauthorized', { replace: true });
+        return;
+      }
+      if (!requiredRoles.includes(currentRole)) {
         navigate('/unauthorized', { replace: true });
         return;
       }
     } else {
-      // For routes without required roles (except onboarding), user must have a role
       if (location.pathname !== '/onboarding' && !currentRole) {
+        if (!waited) return; // wait briefly for roles
         navigate('/unauthorized', { replace: true });
         return;
       }
@@ -66,9 +79,17 @@ export function AuthGuard({
       </div>
     );
   }
+  // During hydration, show spinner to avoid flashing dashboard without menus
+  if (isAuthenticated && !currentRole && location.pathname !== '/onboarding' && !waited) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // Show nothing while redirecting
-  if (!isAuthenticated || (requiredRoles.length > 0 && !requiredRoles.includes(currentRole!))) {
+  if (!isAuthenticated || (requiredRoles.length > 0 && (!currentRole || !requiredRoles.includes(currentRole)))) {
     return null;
   }
 
