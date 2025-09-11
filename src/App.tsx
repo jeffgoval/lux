@@ -17,6 +17,7 @@ import Financeiro from "./pages/Financeiro";
 import Comunicacao from "./pages/Comunicacao";
 import Prontuarios from "./pages/Prontuarios";
 import Auth from "./pages/Auth";
+import Perfil from "./pages/Perfil";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,14 @@ const App = () => (
             <Route path="/unauthorized" element={<Unauthorized />} />
             
             {/* Protected routes */}
+            <Route 
+              path="/perfil" 
+              element={
+                <AuthGuard>
+                  <Perfil />
+                </AuthGuard>
+              } 
+            />
             <Route 
               path="/" 
               element={

@@ -88,11 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching roles:', error);
-        // Fallback: atribuir role cliente se não conseguir buscar
+        // Fallback: atribuir role visitante se não conseguir buscar
         setRoles([{
           id: crypto.randomUUID(),
           user_id: userId,
-          role: 'cliente' as UserRole,
+          role: 'visitante' as UserRole,
           ativo: true,
           criado_em: new Date().toISOString(),
           criado_por: userId,
@@ -105,14 +105,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data && data.length > 0) {
         setRoles(data);
       } else {
-        // Se não tem roles, criar um role cliente padrão
-        console.log('No roles found, creating default cliente role');
+        // Se não tem roles, criar um role visitante padrão
+        console.log('No roles found, creating default visitante role');
         try {
           const { error: insertError } = await supabase
             .from('user_roles')
             .insert({
               user_id: userId,
-              role: 'cliente',
+              role: 'visitante',
               ativo: true,
               criado_por: userId
             });
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setRoles([{
               id: crypto.randomUUID(),
               user_id: userId,
-              role: 'cliente' as UserRole,
+              role: 'visitante' as UserRole,
               ativo: true,
               criado_em: new Date().toISOString(),
               criado_por: userId,
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRoles([{
             id: crypto.randomUUID(),
             user_id: userId,
-            role: 'cliente' as UserRole,
+            role: 'visitante' as UserRole,
             ativo: true,
             criado_em: new Date().toISOString(),
             criado_por: userId,
@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles([{
         id: crypto.randomUUID(),
         user_id: userId,
-        role: 'cliente' as UserRole,
+        role: 'visitante' as UserRole,
         ativo: true,
         criado_em: new Date().toISOString(),
         criado_por: userId,
@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Sign up function
   const signUp = async (email: string, password: string, metadata?: any) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `${window.location.origin}/perfil`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -213,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       'gerente',
       'profissionais',
       'recepcionistas',
+      'visitante',
       'cliente'
     ];
 

@@ -65,7 +65,7 @@ export default function Auth() {
           setError(error.message);
         } else {
           setError('');
-          alert('Conta criada com sucesso! Verifique seu email para confirmar o cadastro.');
+          alert('Conta criada com sucesso! Você será redirecionado para completar seu perfil.');
         }
       }
     } catch (err: any) {
