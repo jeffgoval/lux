@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   User, 
   Building2, 
@@ -56,7 +57,6 @@ interface OnboardingData {
   // Configurações básicas
   horarioInicio: string;
   horarioFim: string;
-  intervaloConsultas: number;
 }
 
 const STEPS = [
@@ -70,6 +70,9 @@ const STEPS = [
 export function OnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const { user, refreshProfile } = useAuth();
+  const navigate = useNavigate();
+  
   const [data, setData] = useState<OnboardingData>({
     telefone: '',
     especialidade: '',
@@ -94,11 +97,7 @@ export function OnboardingWizard() {
     descricaoServico: '',
     horarioInicio: '08:00',
     horarioFim: '18:00',
-    intervaloConsultas: 15
   });
-
-  const { user, profile } = useAuth();
-  const navigate = useNavigate();
 
   const updateData = (field: keyof OnboardingData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -121,29 +120,31 @@ export function OnboardingWizard() {
       case 1:
         return data.telefone && data.especialidade;
       case 2:
-        return data.nomeClinica && data.enderecoRua && data.enderecoCidade;
+        return data.nomeClinica && data.enderecoCidade && data.enderecoEstado;
       case 3:
-        return data.souEuMesma || (data.nomeProfissional && data.emailProfissional);
+        return data.souEuMesma || (data.nomeProfissional && data.especialidadeProfissional);
       case 4:
-        return data.nomeServico && data.duracaoServico && data.precoServico;
+        return data.nomeServico && data.duracaoServico > 0 && data.precoServico;
       case 5:
         return data.horarioInicio && data.horarioFim;
       default:
-        return true;
+        return false;
     }
   };
 
   const finishOnboarding = async () => {
-    if (!user) return;
+    if (!user || !validateCurrentStep()) return;
 
     setLoading(true);
     try {
       // 1. Atualizar profile
-      const { error: profileError } = await supabase.rpc('update_user_profile', {
-        p_user_id: user.id,
-        p_nome_completo: profile?.nome_completo || '',
-        p_telefone: data.telefone
-      });
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          telefone: data.telefone,
+          primeiro_acesso: false
+        })
+        .eq('user_id', user.id);
 
       if (profileError) throw profileError;
 
@@ -161,26 +162,32 @@ export function OnboardingWizard() {
       if (orgError) throw orgError;
 
       // 3. Criar clínica
+      const horarioFuncionamento = {
+        segunda: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: true },
+        terca: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: true },
+        quarta: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: true },
+        quinta: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: true },
+        sexta: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: true },
+        sabado: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: false },
+        domingo: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: false }
+      };
+
       const { data: clinicaData, error: clinicaError } = await supabase
         .from('clinicas')
         .insert({
-          organizacao_id: orgData.id,
           nome: data.nomeClinica,
           cnpj: data.cnpj || null,
-          endereco_rua: data.enderecoRua,
-          endereco_numero: data.enderecoNumero,
-          endereco_complemento: data.enderecoComplemento,
-          endereco_bairro: data.enderecoBairro,
-          endereco_cidade: data.enderecoCidade,
-          endereco_estado: data.enderecoEstado,
-          endereco_cep: data.enderecoCep,
-          telefone: data.telefoneClinica,
-          email: data.emailClinica,
-          horario_funcionamento: {
-            inicio: data.horarioInicio,
-            fim: data.horarioFim,
-            intervalo: data.intervaloConsultas
-          }
+          endereco_rua: data.enderecoRua || null,
+          endereco_numero: data.enderecoNumero || null,
+          endereco_complemento: data.enderecoComplemento || null,
+          endereco_bairro: data.enderecoBairro || null,
+          endereco_cidade: data.enderecoCidade || null,
+          endereco_estado: data.enderecoEstado || null,
+          endereco_cep: data.enderecoCep || null,
+          telefone: data.telefoneClinica || null,
+          email: data.emailClinica || null,
+          organizacao_id: orgData.id,
+          horario_funcionamento: horarioFuncionamento
         })
         .select()
         .single();
@@ -188,28 +195,38 @@ export function OnboardingWizard() {
       if (clinicaError) throw clinicaError;
 
       // 4. Criar profissional
-      const { error: profError } = await supabase
+      const profissionalData = data.souEuMesma ? {
+        nome: user.user_metadata?.nome_completo || user.email?.split('@')[0] || 'Profissional',
+        email: user.email,
+        especialidade: data.especialidade,
+        user_id: user.id
+      } : {
+        nome: data.nomeProfissional,
+        email: data.emailProfissional || null,
+        especialidade: data.especialidadeProfissional,
+        user_id: null
+      };
+
+      const { error: profissionalError } = await supabase
         .from('profissionais')
         .insert({
-          user_id: data.souEuMesma ? user.id : null,
-          clinica_id: clinicaData.id,
-          nome: data.souEuMesma ? (profile?.nome_completo || '') : data.nomeProfissional,
-          email: data.souEuMesma ? (profile?.email || '') : data.emailProfissional,
-          telefone: data.souEuMesma ? data.telefone : '',
-          especialidade: data.souEuMesma ? data.especialidade : data.especialidadeProfissional
+          ...profissionalData,
+          clinica_id: clinicaData.id
         });
 
-      if (profError) throw profError;
+      if (profissionalError) throw profissionalError;
 
-      // 5. Criar primeiro serviço
+      // 5. Criar serviço
+      const precoNumerico = parseFloat(data.precoServico.replace(/[^\d,]/g, '').replace(',', '.'));
+      
       const { error: servicoError } = await supabase
         .from('servicos')
         .insert({
-          clinica_id: clinicaData.id,
           nome: data.nomeServico,
-          descricao: data.descricaoServico,
+          descricao: data.descricaoServico || null,
           duracao_minutos: data.duracaoServico,
-          preco: parseFloat(data.precoServico)
+          preco: precoNumerico || null,
+          clinica_id: clinicaData.id
         });
 
       if (servicoError) throw servicoError;
@@ -225,10 +242,11 @@ export function OnboardingWizard() {
 
       if (roleError) throw roleError;
 
-      toast.success('Configuração concluída com sucesso!', {
-        description: 'Sua clínica está pronta para uso. Bem-vinda ao sistema!'
-      });
-
+      toast.success('Configuração inicial concluída com sucesso!');
+      
+      // Atualizar o profile context
+      await refreshProfile();
+      
       navigate('/');
     } catch (error: any) {
       console.error('Erro no onboarding:', error);
@@ -249,39 +267,28 @@ export function OnboardingWizard() {
               <User className="w-12 h-12 text-primary mx-auto" />
               <h2 className="text-2xl font-semibold">Seus dados pessoais</h2>
               <p className="text-muted-foreground">
-                Vamos completar algumas informações básicas sobre você
+                Vamos começar coletando algumas informações básicas sobre você.
               </p>
             </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="nome">Nome Completo</Label>
-                  <Input
-                    id="nome"
-                    value={profile?.nome_completo || ''}
-                    disabled
-                    className="bg-muted"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="telefone">Telefone *</Label>
-                  <Input
-                    id="telefone"
-                    value={data.telefone}
-                    onChange={(e) => updateData('telefone', e.target.value)}
-                    placeholder="(11) 99999-9999"
-                  />
-                </div>
+
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="telefone">Telefone *</Label>
+                <Input
+                  id="telefone"
+                  value={data.telefone}
+                  onChange={(e) => updateData('telefone', e.target.value)}
+                  placeholder="(11) 99999-9999"
+                />
               </div>
-              
-              <div>
-                <Label htmlFor="especialidade">Sua especialidade/formação *</Label>
+
+              <div className="space-y-2">
+                <Label htmlFor="especialidade">Especialidade *</Label>
                 <Input
                   id="especialidade"
                   value={data.especialidade}
                   onChange={(e) => updateData('especialidade', e.target.value)}
-                  placeholder="Ex: Dermatologia, Fisioterapia, Estética..."
+                  placeholder="Ex: Dermatologia, Estética, Fisioterapia"
                 />
               </div>
             </div>
@@ -295,46 +302,44 @@ export function OnboardingWizard() {
               <Building2 className="w-12 h-12 text-primary mx-auto" />
               <h2 className="text-2xl font-semibold">Dados da sua clínica</h2>
               <p className="text-muted-foreground">
-                Agora vamos configurar as informações da sua clínica
+                Agora vamos configurar os dados básicos da sua clínica.
               </p>
             </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="nomeClinica">Nome da Clínica *</Label>
-                  <Input
-                    id="nomeClinica"
-                    value={data.nomeClinica}
-                    onChange={(e) => updateData('nomeClinica', e.target.value)}
-                    placeholder="Clínica de Estética Avançada"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="cnpj">CNPJ (opcional)</Label>
-                  <Input
-                    id="cnpj"
-                    value={data.cnpj}
-                    onChange={(e) => updateData('cnpj', e.target.value)}
-                    placeholder="00.000.000/0001-00"
-                  />
-                </div>
+
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nomeClinica">Nome da clínica *</Label>
+                <Input
+                  id="nomeClinica"
+                  value={data.nomeClinica}
+                  onChange={(e) => updateData('nomeClinica', e.target.value)}
+                  placeholder="Ex: Clínica Beleza & Saúde"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cnpj">CNPJ</Label>
+                <Input
+                  id="cnpj"
+                  value={data.cnpj}
+                  onChange={(e) => updateData('cnpj', e.target.value)}
+                  placeholder="00.000.000/0000-00"
+                />
               </div>
 
               <Separator />
-              <h3 className="font-medium text-lg">Endereço</h3>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                  <Label htmlFor="enderecoRua">Rua/Avenida *</Label>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="enderecoRua">Rua</Label>
                   <Input
                     id="enderecoRua"
                     value={data.enderecoRua}
                     onChange={(e) => updateData('enderecoRua', e.target.value)}
-                    placeholder="Rua das Flores"
+                    placeholder="Nome da rua"
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="enderecoNumero">Número</Label>
                   <Input
                     id="enderecoNumero"
@@ -345,53 +350,69 @@ export function OnboardingWizard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="enderecoBairro">Bairro</Label>
                   <Input
                     id="enderecoBairro"
                     value={data.enderecoBairro}
                     onChange={(e) => updateData('enderecoBairro', e.target.value)}
-                    placeholder="Centro"
+                    placeholder="Nome do bairro"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="enderecoCidade">Cidade *</Label>
-                  <Input
-                    id="enderecoCidade"
-                    value={data.enderecoCidade}
-                    onChange={(e) => updateData('enderecoCidade', e.target.value)}
-                    placeholder="São Paulo"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="enderecoEstado">Estado</Label>
-                  <Input
-                    id="enderecoEstado"
-                    value={data.enderecoEstado}
-                    onChange={(e) => updateData('enderecoEstado', e.target.value)}
-                    placeholder="SP"
-                  />
-                </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="enderecoCep">CEP</Label>
                   <Input
                     id="enderecoCep"
                     value={data.enderecoCep}
                     onChange={(e) => updateData('enderecoCep', e.target.value)}
-                    placeholder="01234-567"
+                    placeholder="00000-000"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="telefoneClinica">Telefone</Label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="enderecoCidade">Cidade *</Label>
+                  <Input
+                    id="enderecoCidade"
+                    value={data.enderecoCidade}
+                    onChange={(e) => updateData('enderecoCidade', e.target.value)}
+                    placeholder="Nome da cidade"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="enderecoEstado">Estado *</Label>
+                  <Input
+                    id="enderecoEstado"
+                    value={data.enderecoEstado}
+                    onChange={(e) => updateData('enderecoEstado', e.target.value)}
+                    placeholder="SP"
+                    maxLength={2}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="telefoneClinica">Telefone da clínica</Label>
                   <Input
                     id="telefoneClinica"
                     value={data.telefoneClinica}
                     onChange={(e) => updateData('telefoneClinica', e.target.value)}
-                    placeholder="(11) 3333-4444"
+                    placeholder="(11) 3333-3333"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="emailClinica">E-mail da clínica</Label>
+                  <Input
+                    id="emailClinica"
+                    type="email"
+                    value={data.emailClinica}
+                    onChange={(e) => updateData('emailClinica', e.target.value)}
+                    placeholder="contato@clinica.com.br"
                   />
                 </div>
               </div>
@@ -406,77 +427,69 @@ export function OnboardingWizard() {
               <Users className="w-12 h-12 text-primary mx-auto" />
               <h2 className="text-2xl font-semibold">Primeiro profissional</h2>
               <p className="text-muted-foreground">
-                Quem será o primeiro profissional da sua clínica?
+                Vamos cadastrar o primeiro profissional da clínica.
               </p>
             </div>
-            
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <Button
-                  variant={data.souEuMesma ? 'default' : 'outline'}
-                  onClick={() => updateData('souEuMesma', true)}
-                  className="flex-1"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Sou eu mesma
-                </Button>
-                <Button
-                  variant={!data.souEuMesma ? 'default' : 'outline'}
-                  onClick={() => updateData('souEuMesma', false)}
-                  className="flex-1"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Outro profissional
-                </Button>
+
+            <div className="grid gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="souEuMesma"
+                  checked={data.souEuMesma}
+                  onCheckedChange={(checked) => updateData('souEuMesma', checked)}
+                />
+                <Label htmlFor="souEuMesma">Sou eu mesma</Label>
               </div>
 
-              {data.souEuMesma ? (
-                <Card className="bg-muted/50">
+              {!data.souEuMesma && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="nomeProfissional">Nome do profissional *</Label>
+                    <Input
+                      id="nomeProfissional"
+                      value={data.nomeProfissional}
+                      onChange={(e) => updateData('nomeProfissional', e.target.value)}
+                      placeholder="Nome completo"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="emailProfissional">E-mail do profissional</Label>
+                    <Input
+                      id="emailProfissional"
+                      type="email"
+                      value={data.emailProfissional}
+                      onChange={(e) => updateData('emailProfissional', e.target.value)}
+                      placeholder="profissional@email.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="especialidadeProfissional">Especialidade *</Label>
+                    <Input
+                      id="especialidadeProfissional"
+                      value={data.especialidadeProfissional}
+                      onChange={(e) => updateData('especialidadeProfissional', e.target.value)}
+                      placeholder="Ex: Dermatologia, Estética"
+                    />
+                  </div>
+                </>
+              )}
+
+              {data.souEuMesma && (
+                <Card className="bg-primary/5 border-primary/20">
                   <CardContent className="pt-6">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-success" />
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
                       <div>
-                        <p className="font-medium">Você será cadastrada como profissional</p>
-                        <p className="text-sm text-muted-foreground">
-                          Nome: {profile?.nome_completo} • Especialidade: {data.especialidade}
+                        <p className="font-medium text-primary">Perfeito!</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Seus dados pessoais serão utilizados como o primeiro profissional da clínica.
                         </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="nomeProfissional">Nome do Profissional *</Label>
-                      <Input
-                        id="nomeProfissional"
-                        value={data.nomeProfissional}
-                        onChange={(e) => updateData('nomeProfissional', e.target.value)}
-                        placeholder="Nome completo"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="emailProfissional">Email *</Label>
-                      <Input
-                        id="emailProfissional"
-                        type="email"
-                        value={data.emailProfissional}
-                        onChange={(e) => updateData('emailProfissional', e.target.value)}
-                        placeholder="email@exemplo.com"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="especialidadeProfissional">Especialidade</Label>
-                    <Input
-                      id="especialidadeProfissional"
-                      value={data.especialidadeProfissional}
-                      onChange={(e) => updateData('especialidadeProfissional', e.target.value)}
-                      placeholder="Ex: Fisioterapeuta, Esteticista..."
-                    />
-                  </div>
-                </div>
               )}
             </div>
           </div>
@@ -489,51 +502,53 @@ export function OnboardingWizard() {
               <Star className="w-12 h-12 text-primary mx-auto" />
               <h2 className="text-2xl font-semibold">Primeiro serviço</h2>
               <p className="text-muted-foreground">
-                Vamos cadastrar o primeiro serviço da sua clínica
+                Vamos cadastrar o primeiro serviço oferecido pela clínica.
               </p>
             </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="nomeServico">Nome do Serviço *</Label>
+
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nomeServico">Nome do serviço *</Label>
                 <Input
                   id="nomeServico"
                   value={data.nomeServico}
                   onChange={(e) => updateData('nomeServico', e.target.value)}
-                  placeholder="Ex: Limpeza de Pele, Drenagem Linfática..."
+                  placeholder="Ex: Botox, Preenchimento, Limpeza de Pele"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="duracaoServico">Duração (minutos) *</Label>
                   <Input
                     id="duracaoServico"
                     type="number"
+                    min="15"
+                    max="480"
                     value={data.duracaoServico}
                     onChange={(e) => updateData('duracaoServico', parseInt(e.target.value) || 60)}
                     placeholder="60"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="precoServico">Preço (R$) *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="precoServico">Preço *</Label>
                   <Input
                     id="precoServico"
                     value={data.precoServico}
                     onChange={(e) => updateData('precoServico', e.target.value)}
-                    placeholder="150.00"
+                    placeholder="R$ 150,00"
                   />
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="descricaoServico">Descrição</Label>
+              <div className="space-y-2">
+                <Label htmlFor="descricaoServico">Descrição do serviço</Label>
                 <Textarea
                   id="descricaoServico"
                   value={data.descricaoServico}
                   onChange={(e) => updateData('descricaoServico', e.target.value)}
-                  placeholder="Descreva brevemente o serviço..."
-                  rows={3}
+                  placeholder="Breve descrição do serviço oferecido..."
+                  className="min-h-[100px]"
                 />
               </div>
             </div>
@@ -545,15 +560,14 @@ export function OnboardingWizard() {
           <div className="space-y-6">
             <div className="text-center space-y-2">
               <Clock className="w-12 h-12 text-primary mx-auto" />
-              <h2 className="text-2xl font-semibold">Configurações básicas</h2>
+              <h2 className="text-2xl font-semibold">Configurações iniciais</h2>
               <p className="text-muted-foreground">
-                Últimos ajustes para deixar tudo pronto!
+                Por último, vamos definir os horários de funcionamento da clínica.
               </p>
             </div>
-            
-            <div className="space-y-4">
-              <h3 className="font-medium">Horário de funcionamento</h3>
-              <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="horarioInicio">Horário de abertura *</Label>
                   <Input
@@ -572,17 +586,6 @@ export function OnboardingWizard() {
                     onChange={(e) => updateData('horarioFim', e.target.value)}
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="intervaloConsultas">Intervalo entre consultas (minutos)</Label>
-                <Input
-                  id="intervaloConsultas"
-                  type="number"
-                  value={data.intervaloConsultas}
-                  onChange={(e) => updateData('intervaloConsultas', parseInt(e.target.value) || 15)}
-                  placeholder="15"
-                />
               </div>
 
               <Card className="bg-success/5 border-success/20">
@@ -611,43 +614,35 @@ export function OnboardingWizard() {
   const progress = (currentStep / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Configuração da sua clínica
+        <div className="text-center mb-8 space-y-4">
+          <h1 className="text-3xl font-bold heading-premium">
+            Configuração Inicial
           </h1>
           <p className="text-muted-foreground">
-            Vamos configurar tudo em poucos passos para você começar a usar o sistema
+            Vamos configurar sua clínica em apenas 5 passos simples
           </p>
-        </div>
-
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
+          
+          {/* Steps */}
+          <div className="flex justify-center space-x-2 mb-4">
             {STEPS.map((step) => {
               const Icon = step.icon;
               const isActive = step.id === currentStep;
               const isCompleted = step.id < currentStep;
               
               return (
-                <div key={step.id} className="flex flex-col items-center">
-                  <div className={`
-                    w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-colors
-                    ${isActive ? 'bg-primary text-primary-foreground' : ''}
-                    ${isCompleted ? 'bg-success text-success-foreground' : ''}
-                    ${!isActive && !isCompleted ? 'bg-muted text-muted-foreground' : ''}
-                  `}>
-                    {isCompleted ? (
-                      <CheckCircle className="w-6 h-6" />
-                    ) : (
-                      <Icon className="w-6 h-6" />
-                    )}
-                  </div>
-                  <Badge variant={isActive ? 'default' : 'secondary'} className="text-xs">
-                    {step.title}
+                <div key={step.id} className="flex items-center">
+                  <Badge
+                    variant={isActive ? "default" : isCompleted ? "secondary" : "outline"}
+                    className="h-10 w-10 rounded-full p-0 flex items-center justify-center"
+                  >
+                    <Icon className="w-4 h-4" />
                   </Badge>
+                  {step.id < STEPS.length && (
+                    <div className="w-8 h-px bg-border mx-2" />
+                  )}
                 </div>
               );
             })}

@@ -16,7 +16,7 @@ export function AuthGuard({
   requiredRoles = [], 
   redirectTo = '/auth' 
 }: AuthGuardProps) {
-  const { isAuthenticated, currentRole, isLoading } = useAuth();
+  const { isAuthenticated, currentRole, isLoading, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -32,6 +32,12 @@ export function AuthGuard({
       return;
     }
 
+    // If user is on first access, redirect to onboarding
+    if (profile?.primeiro_acesso && location.pathname !== '/onboarding') {
+      navigate('/onboarding', { replace: true });
+      return;
+    }
+
     // If specific roles are required, check if user has any of them
     if (requiredRoles.length > 0 && currentRole) {
       const hasRequiredRole = requiredRoles.includes(currentRole);
@@ -40,7 +46,7 @@ export function AuthGuard({
         return;
       }
     }
-  }, [isAuthenticated, currentRole, isLoading, navigate, location.pathname, redirectTo, requiredRoles]);
+  }, [isAuthenticated, currentRole, isLoading, profile, navigate, location.pathname, redirectTo, requiredRoles]);
 
   // Show loading state while checking auth
   if (isLoading) {

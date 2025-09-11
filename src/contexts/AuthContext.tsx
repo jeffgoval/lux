@@ -41,6 +41,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
   getCurrentRole: () => UserRole | null;
+  refreshProfile: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -170,10 +171,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           // Fetch additional user data
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchRoles(session.user.id);
-          }, 100); // Pequeno delay para evitar conflitos
+          fetchProfile(session.user.id);
+          fetchRoles(session.user.id);
         } else {
           setProfile(null);
           setRoles([]);
@@ -199,6 +198,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Function to refresh profile after onboarding
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+      await fetchRoles(user.id);
+    }
+  };
+
   const value = {
     user,
     session,
@@ -211,6 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     hasRole,
     getCurrentRole,
+    refreshProfile,
     isAuthenticated
   };
 

@@ -6,15 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 export default function Dashboard() {
-  const { currentRole, profile, isLoading } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirecionar para onboarding se primeiro acesso
-  useEffect(() => {
-    if (!isLoading && profile?.primeiro_acesso) {
-      navigate('/onboarding');
-    }
-  }, [profile, isLoading, navigate]);
+  const { currentRole, isLoading } = useAuth();
 
   if (isLoading) {
     return (
