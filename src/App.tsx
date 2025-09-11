@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthGuard } from "./components/AuthGuard";
 import { AppLayout } from "./components/AppLayout";
+import Dashboard from "./pages/Dashboard";
 import Index from "./pages/Index";
 import Clientes from "./pages/Clientes";
 import ClienteDetalhes from "./pages/ClienteDetalhes";
@@ -38,16 +39,14 @@ const App = () => (
               path="/" 
               element={
                 <AuthGuard>
-                  <AppLayout>
-                    <Index />
-                  </AppLayout>
+                  <Dashboard />
                 </AuthGuard>
               } 
             />
             <Route 
               path="/agendamento" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'recepcionistas']}>
+                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas']}>
                   <AppLayout>
                     <Index />
                   </AppLayout>
