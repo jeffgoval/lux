@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Fetch user roles
+  // Fetch user roles - simplificado para role único
   const fetchRoles = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -88,86 +88,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching roles:', error);
-        // Fallback: atribuir role visitante se não conseguir buscar
-        setRoles([{
-          id: crypto.randomUUID(),
-          user_id: userId,
-          role: 'visitante' as UserRole,
-          ativo: true,
-          criado_em: new Date().toISOString(),
-          criado_por: userId,
-          organizacao_id: null,
-          clinica_id: null
-        }]);
         return;
       }
 
       if (data && data.length > 0) {
         setRoles(data);
-      } else {
-        // Se não tem roles, criar um role visitante padrão
-        console.log('No roles found, creating default visitante role');
-        try {
-          const { error: insertError } = await supabase
-            .from('user_roles')
-            .insert({
-              user_id: userId,
-              role: 'visitante',
-              ativo: true,
-              criado_por: userId
-            });
-          
-          if (!insertError) {
-            // Buscar novamente após inserir
-            fetchRoles(userId);
-          } else {
-            console.error('Error creating default role:', insertError);
-            // Fallback local
-            setRoles([{
-              id: crypto.randomUUID(),
-              user_id: userId,
-              role: 'visitante' as UserRole,
-              ativo: true,
-              criado_em: new Date().toISOString(),
-              criado_por: userId,
-              organizacao_id: null,
-              clinica_id: null
-            }]);
-          }
-        } catch (createError) {
-          console.error('Error creating default role:', createError);
-          // Fallback local
-          setRoles([{
-            id: crypto.randomUUID(),
-            user_id: userId,
-            role: 'visitante' as UserRole,
-            ativo: true,
-            criado_em: new Date().toISOString(),
-            criado_por: userId,
-            organizacao_id: null,
-            clinica_id: null
-          }]);
-        }
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
-      // Fallback final
-      setRoles([{
-        id: crypto.randomUUID(),
-        user_id: userId,
-        role: 'visitante' as UserRole,
-        ativo: true,
-        criado_em: new Date().toISOString(),
-        criado_por: userId,
-        organizacao_id: null,
-        clinica_id: null
-      }]);
     }
   };
 
-  // Sign up function
+  // Sign up function - redireciona para onboarding
   const signUp = async (email: string, password: string, metadata?: any) => {
-    const redirectUrl = `${window.location.origin}/perfil`;
+    const redirectUrl = `${window.location.origin}/onboarding`;
     
     const { error } = await supabase.auth.signUp({
       email,

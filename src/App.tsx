@@ -20,6 +20,7 @@ import Auth from "./pages/Auth";
 import Perfil from "./pages/Perfil";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import { OnboardingWizard } from "./components/OnboardingWizard";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,14 @@ const App = () => (
             <Route path="/unauthorized" element={<Unauthorized />} />
             
             {/* Protected routes */}
+            <Route 
+              path="/onboarding" 
+              element={
+                <AuthGuard>
+                  <OnboardingWizard />
+                </AuthGuard>
+              } 
+            />
             <Route 
               path="/perfil" 
               element={
@@ -55,7 +64,7 @@ const App = () => (
             <Route 
               path="/agendamento" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas']}>
+                <AuthGuard requiredRoles={['proprietaria']}>
                   <AppLayout>
                     <Index />
                   </AppLayout>

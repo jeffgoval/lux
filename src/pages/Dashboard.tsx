@@ -1,11 +1,20 @@
 import { AppLayout } from "@/components/AppLayout";
-import { OnboardingGuide } from "@/components/OnboardingGuide";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, FileText, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Dashboard() {
   const { currentRole, profile, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirecionar para onboarding se primeiro acesso
+  useEffect(() => {
+    if (!isLoading && profile?.primeiro_acesso) {
+      navigate('/onboarding');
+    }
+  }, [profile, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -13,15 +22,6 @@ export default function Dashboard() {
         <div className="flex items-center justify-center min-h-96">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </AppLayout>
-    );
-  }
-
-  // Mostrar onboarding se for cliente em primeiro acesso
-  if (currentRole === 'cliente' && profile?.primeiro_acesso) {
-    return (
-      <AppLayout title="Bem-vindo">
-        <OnboardingGuide />
       </AppLayout>
     );
   }
