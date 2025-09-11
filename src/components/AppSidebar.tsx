@@ -1,5 +1,9 @@
 import { CalendarDays, Users, Briefcase, Package, Wrench, DollarSign, MessageSquare, FileText, Home, Search, Settings, LogOut } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
+import { Database } from "@/integrations/supabase/types"
+
+type UserRole = Database['public']['Enums']['user_role_type']
 import {
   Sidebar,
   SidebarContent,
@@ -16,59 +20,79 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-const mainNavItems = [
+// Navigation items with role permissions
+const allNavItems = [
   {
     title: "Dashboard",
     url: "/",
     icon: Home,
+    roles: ['super_admin', 'proprietaria', 'gerente', 'recepcionistas', 'profissionais', 'cliente'] as UserRole[]
   },
   {
-    title: "Agendamento",
+    title: "Agendamento", 
     url: "/agendamento",
     icon: CalendarDays,
+    roles: ['super_admin', 'proprietaria', 'gerente', 'recepcionistas'] as UserRole[]
   },
   {
     title: "Clientes",
     url: "/clientes",
     icon: Users,
+    roles: ['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas'] as UserRole[]
   },
   {
     title: "Serviços",
     url: "/servicos",
     icon: Briefcase,
+    roles: ['super_admin', 'proprietaria', 'gerente', 'profissionais'] as UserRole[]
   },
   {
     title: "Produtos",
     url: "/produtos",
     icon: Package,
+    roles: ['super_admin', 'proprietaria', 'gerente'] as UserRole[]
   },
   {
     title: "Equipamentos",
     url: "/equipamentos",
     icon: Wrench,
+    roles: ['super_admin', 'proprietaria', 'gerente'] as UserRole[]
   },
   {
     title: "Financeiro",
     url: "/financeiro",
     icon: DollarSign,
+    roles: ['super_admin', 'proprietaria', 'gerente'] as UserRole[]
   },
   {
     title: "Comunicação",
     url: "/comunicacao",
     icon: MessageSquare,
+    roles: ['super_admin', 'proprietaria', 'gerente', 'recepcionistas'] as UserRole[]
   },
   {
     title: "Prontuários",
     url: "/prontuarios",
     icon: FileText,
+    roles: ['super_admin', 'proprietaria', 'gerente', 'profissionais'] as UserRole[]
   },
 ]
 
 export function AppSidebar() {
   const { state } = useSidebar()
   const collapsed = state === "collapsed"
+  const { currentRole, signOut } = useAuth()
   const location = useLocation()
   const currentPath = location.pathname
+
+  // Filter navigation items based on user role
+  const mainNavItems = allNavItems.filter(item => 
+    currentRole && item.roles.includes(currentRole)
+  )
+
+  const handleSignOut = async () => {
+    await signOut()
+  }
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -162,6 +186,7 @@ export function AppSidebar() {
             size={collapsed ? "icon" : "sm"}
             className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             title={collapsed ? "Sair" : undefined}
+            onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4" />
             {!collapsed && <span className="ml-2">Sair</span>}
