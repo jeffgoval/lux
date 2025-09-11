@@ -45,8 +45,8 @@ export function AuthGuard({
       return;
     }
 
-    // If user is on first access, redirect to onboarding
-    if (profile?.primeiro_acesso && location.pathname !== '/onboarding') {
+    // If user is on first access or has no profile yet, redirect to onboarding
+    if ((profile?.primeiro_acesso || (!profile && isAuthenticated)) && location.pathname !== '/onboarding') {
       navigate('/onboarding', { replace: true });
       return;
     }

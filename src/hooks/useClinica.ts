@@ -13,7 +13,7 @@ export function useClinica() {
 
   useEffect(() => {
     const fetchClinica = async () => {
-      // Use user.id if profile is not yet hydrated
+      // Use user.id as fallback if profile is not loaded yet
       const userId = profile?.user_id || user?.id;
       
       if (!userId) {
@@ -24,7 +24,7 @@ export function useClinica() {
       try {
         setLoading(true);
         
-        // First, try to get clinic through user_roles (most direct approach)
+        // First, try to get clinica_id from user_roles (most direct approach)
         const { data: userRole, error: roleError } = await supabase
           .from('user_roles')
           .select('clinica_id, organizacao_id')
@@ -32,21 +32,27 @@ export function useClinica() {
           .eq('ativo', true)
           .maybeSingle();
 
-        if (!roleError && userRole?.clinica_id) {
-          // Get clinic data directly
+        if (roleError) {
+          console.warn('Error fetching user roles:', roleError);
+        }
+
+        // If we have a direct clinica_id from user_roles, use it
+        if (userRole?.clinica_id) {
           const { data: clinicaData, error: clinicaError } = await supabase
             .from('clinicas')
             .select('*')
             .eq('id', userRole.clinica_id)
             .maybeSingle();
 
-          if (!clinicaError && clinicaData) {
+          if (clinicaError) {
+            setError('Erro ao carregar dados da clínica');
+          } else if (clinicaData) {
             setClinica(clinicaData);
             setLoading(false);
             return;
           }
         }
-        
+
         // Fallback: get the organization owned by the user
         const { data: organizacao, error: orgError } = await supabase
           .from('organizacoes')
@@ -105,8 +111,7 @@ export function useClinica() {
               setError('Clínica não encontrada');
             }
           } else {
-            // No clinic found through any method - this is expected for new users
-            setError(null);
+            setError('Nenhuma clínica encontrada');
           }
         }
       } catch (err) {
