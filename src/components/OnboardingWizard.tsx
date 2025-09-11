@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 
 interface OnboardingData {
   // Dados pessoais
+  nomeCompleto: string;
   telefone: string;
   especialidade: string;
   
@@ -74,6 +75,7 @@ export function OnboardingWizard() {
   const navigate = useNavigate();
   
   const [data, setData] = useState<OnboardingData>({
+    nomeCompleto: '',
     telefone: '',
     especialidade: '',
     nomeClinica: '',
@@ -118,7 +120,7 @@ export function OnboardingWizard() {
   const validateCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return data.telefone && data.especialidade;
+        return data.nomeCompleto && data.telefone && data.especialidade;
       case 2:
         return data.nomeClinica && data.enderecoCidade && data.enderecoEstado;
       case 3:
@@ -141,6 +143,7 @@ export function OnboardingWizard() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
+          nome_completo: data.nomeCompleto,
           telefone: data.telefone,
           primeiro_acesso: false
         })
@@ -196,7 +199,7 @@ export function OnboardingWizard() {
 
       // 4. Criar profissional
       const profissionalData = data.souEuMesma ? {
-        nome: user.user_metadata?.nome_completo || user.email?.split('@')[0] || 'Profissional',
+        nome: data.nomeCompleto,
         email: user.email,
         especialidade: data.especialidade,
         user_id: user.id
@@ -272,6 +275,16 @@ export function OnboardingWizard() {
             </div>
 
             <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nomeCompleto">Nome completo *</Label>
+                <Input
+                  id="nomeCompleto"
+                  value={data.nomeCompleto}
+                  onChange={(e) => updateData('nomeCompleto', e.target.value)}
+                  placeholder="Seu nome completo"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="telefone">Telefone *</Label>
                 <Input

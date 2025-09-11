@@ -13,8 +13,6 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [nomeCompleto, setNomeCompleto] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,22 +42,12 @@ export default function Auth() {
         }
       } else {
         // Validate signup form
-        if (password !== confirmPassword) {
-          setError('As senhas não coincidem');
-          return;
-        }
         if (password.length < 6) {
           setError('A senha deve ter pelo menos 6 caracteres');
           return;
         }
-        if (!nomeCompleto.trim()) {
-          setError('Nome completo é obrigatório');
-          return;
-        }
 
-        const { error } = await signUp(email, password, {
-          nome_completo: nomeCompleto
-        });
+        const { error } = await signUp(email, password);
         
         if (error) {
           setError(error.message);
@@ -78,8 +66,6 @@ export default function Auth() {
   const resetForm = () => {
     setEmail('');
     setPassword('');
-    setConfirmPassword('');
-    setNomeCompleto('');
     setError('');
   };
 
@@ -186,18 +172,6 @@ export default function Auth() {
               <TabsContent value="signup">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="nome">Nome Completo</Label>
-                    <Input
-                      id="nome"
-                      type="text"
-                      value={nomeCompleto}
-                      onChange={(e) => setNomeCompleto(e.target.value)}
-                      placeholder="Seu nome completo"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
                     <Input
                       id="signup-email"
@@ -231,18 +205,6 @@ export default function Auth() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Senha</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Digite a senha novamente"
-                      required
-                    />
                   </div>
 
                   {error && (
