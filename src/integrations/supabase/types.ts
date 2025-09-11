@@ -14,16 +14,560 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      acessos_prontuario: {
+        Row: {
+          autorizado_por: string | null
+          campos_visualizados: string[] | null
+          data_acesso: string
+          dispositivo: string | null
+          id: string
+          ip_acesso: unknown | null
+          localizacao: string | null
+          motivo_acesso: string | null
+          navegador: string | null
+          nivel_urgencia: string | null
+          prontuario_id: string
+          secoes_acessadas: string[] | null
+          tempo_sessao_minutos: number | null
+          tipo_acesso: Database["public"]["Enums"]["tipo_acesso"]
+          usuario_id: string
+        }
+        Insert: {
+          autorizado_por?: string | null
+          campos_visualizados?: string[] | null
+          data_acesso?: string
+          dispositivo?: string | null
+          id?: string
+          ip_acesso?: unknown | null
+          localizacao?: string | null
+          motivo_acesso?: string | null
+          navegador?: string | null
+          nivel_urgencia?: string | null
+          prontuario_id: string
+          secoes_acessadas?: string[] | null
+          tempo_sessao_minutos?: number | null
+          tipo_acesso: Database["public"]["Enums"]["tipo_acesso"]
+          usuario_id: string
+        }
+        Update: {
+          autorizado_por?: string | null
+          campos_visualizados?: string[] | null
+          data_acesso?: string
+          dispositivo?: string | null
+          id?: string
+          ip_acesso?: unknown | null
+          localizacao?: string | null
+          motivo_acesso?: string | null
+          navegador?: string | null
+          nivel_urgencia?: string | null
+          prontuario_id?: string
+          secoes_acessadas?: string[] | null
+          tempo_sessao_minutos?: number | null
+          tipo_acesso?: Database["public"]["Enums"]["tipo_acesso"]
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "acessos_prontuario_prontuario_id_fkey"
+            columns: ["prontuario_id"]
+            isOneToOne: false
+            referencedRelation: "prontuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auditoria_medica: {
+        Row: {
+          campos_modificados: string[] | null
+          contexto_operacao: string | null
+          dados_anteriores: Json | null
+          dados_novos: Json | null
+          duracao_operacao_ms: number | null
+          gdpr_compliant: boolean
+          hipaa_compliant: boolean
+          id: string
+          ip_origem: unknown | null
+          justificativa: string | null
+          lgpd_compliant: boolean
+          nivel_criticidade: string
+          operacao: string
+          prontuario_id: string | null
+          registro_id: string | null
+          sessao_id: string | null
+          tabela_afetada: string
+          timestamp_operacao: string
+          user_agent: string | null
+          usuario_id: string
+          usuario_nome: string | null
+          usuario_role: string | null
+        }
+        Insert: {
+          campos_modificados?: string[] | null
+          contexto_operacao?: string | null
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          duracao_operacao_ms?: number | null
+          gdpr_compliant?: boolean
+          hipaa_compliant?: boolean
+          id?: string
+          ip_origem?: unknown | null
+          justificativa?: string | null
+          lgpd_compliant?: boolean
+          nivel_criticidade?: string
+          operacao: string
+          prontuario_id?: string | null
+          registro_id?: string | null
+          sessao_id?: string | null
+          tabela_afetada: string
+          timestamp_operacao?: string
+          user_agent?: string | null
+          usuario_id: string
+          usuario_nome?: string | null
+          usuario_role?: string | null
+        }
+        Update: {
+          campos_modificados?: string[] | null
+          contexto_operacao?: string | null
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          duracao_operacao_ms?: number | null
+          gdpr_compliant?: boolean
+          hipaa_compliant?: boolean
+          id?: string
+          ip_origem?: unknown | null
+          justificativa?: string | null
+          lgpd_compliant?: boolean
+          nivel_criticidade?: string
+          operacao?: string
+          prontuario_id?: string | null
+          registro_id?: string | null
+          sessao_id?: string | null
+          tabela_afetada?: string
+          timestamp_operacao?: string
+          user_agent?: string | null
+          usuario_id?: string
+          usuario_nome?: string | null
+          usuario_role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auditoria_medica_prontuario_id_fkey"
+            columns: ["prontuario_id"]
+            isOneToOne: false
+            referencedRelation: "prontuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consentimentos_digitais: {
+        Row: {
+          assinatura_digital: string | null
+          ativo: boolean
+          conteudo: string
+          criado_em: string
+          criado_por: string
+          data_assinatura: string | null
+          data_expiracao: string | null
+          dispositivo_assinatura: string | null
+          id: string
+          ip_assinatura: unknown | null
+          prontuario_id: string
+          testemunha_assinatura: string | null
+          testemunha_documento: string | null
+          testemunha_nome: string | null
+          tipo_consentimento: Database["public"]["Enums"]["tipo_consentimento"]
+          titulo: string
+          versao_documento: string
+        }
+        Insert: {
+          assinatura_digital?: string | null
+          ativo?: boolean
+          conteudo: string
+          criado_em?: string
+          criado_por: string
+          data_assinatura?: string | null
+          data_expiracao?: string | null
+          dispositivo_assinatura?: string | null
+          id?: string
+          ip_assinatura?: unknown | null
+          prontuario_id: string
+          testemunha_assinatura?: string | null
+          testemunha_documento?: string | null
+          testemunha_nome?: string | null
+          tipo_consentimento: Database["public"]["Enums"]["tipo_consentimento"]
+          titulo: string
+          versao_documento: string
+        }
+        Update: {
+          assinatura_digital?: string | null
+          ativo?: boolean
+          conteudo?: string
+          criado_em?: string
+          criado_por?: string
+          data_assinatura?: string | null
+          data_expiracao?: string | null
+          dispositivo_assinatura?: string | null
+          id?: string
+          ip_assinatura?: unknown | null
+          prontuario_id?: string
+          testemunha_assinatura?: string | null
+          testemunha_documento?: string | null
+          testemunha_nome?: string | null
+          tipo_consentimento?: Database["public"]["Enums"]["tipo_consentimento"]
+          titulo?: string
+          versao_documento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consentimentos_digitais_prontuario_id_fkey"
+            columns: ["prontuario_id"]
+            isOneToOne: false
+            referencedRelation: "prontuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imagens_medicas: {
+        Row: {
+          caminho_storage: string
+          configuracoes_camera: Json | null
+          consentimento_id: string | null
+          consentimento_uso: boolean
+          criado_em: string
+          criado_por: string
+          criptografada: boolean
+          data_captura: string
+          dimensoes: string | null
+          equipamento_utilizado: string | null
+          hash_arquivo: string | null
+          id: string
+          nome_arquivo: string
+          procedimento_relacionado:
+            | Database["public"]["Enums"]["tipo_procedimento"]
+            | null
+          prontuario_id: string
+          regiao_anatomica: string | null
+          sessao_id: string | null
+          tamanho_bytes: number | null
+          tipo_imagem: Database["public"]["Enums"]["tipo_imagem"]
+          url_publica: string | null
+          watermark_aplicado: boolean
+        }
+        Insert: {
+          caminho_storage: string
+          configuracoes_camera?: Json | null
+          consentimento_id?: string | null
+          consentimento_uso?: boolean
+          criado_em?: string
+          criado_por: string
+          criptografada?: boolean
+          data_captura?: string
+          dimensoes?: string | null
+          equipamento_utilizado?: string | null
+          hash_arquivo?: string | null
+          id?: string
+          nome_arquivo: string
+          procedimento_relacionado?:
+            | Database["public"]["Enums"]["tipo_procedimento"]
+            | null
+          prontuario_id: string
+          regiao_anatomica?: string | null
+          sessao_id?: string | null
+          tamanho_bytes?: number | null
+          tipo_imagem: Database["public"]["Enums"]["tipo_imagem"]
+          url_publica?: string | null
+          watermark_aplicado?: boolean
+        }
+        Update: {
+          caminho_storage?: string
+          configuracoes_camera?: Json | null
+          consentimento_id?: string | null
+          consentimento_uso?: boolean
+          criado_em?: string
+          criado_por?: string
+          criptografada?: boolean
+          data_captura?: string
+          dimensoes?: string | null
+          equipamento_utilizado?: string | null
+          hash_arquivo?: string | null
+          id?: string
+          nome_arquivo?: string
+          procedimento_relacionado?:
+            | Database["public"]["Enums"]["tipo_procedimento"]
+            | null
+          prontuario_id?: string
+          regiao_anatomica?: string | null
+          sessao_id?: string | null
+          tamanho_bytes?: number | null
+          tipo_imagem?: Database["public"]["Enums"]["tipo_imagem"]
+          url_publica?: string | null
+          watermark_aplicado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imagens_medicas_prontuario_id_fkey"
+            columns: ["prontuario_id"]
+            isOneToOne: false
+            referencedRelation: "prontuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imagens_medicas_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "sessoes_atendimento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prontuarios: {
+        Row: {
+          alergias: string | null
+          anamnese: string | null
+          atualizado_em: string
+          atualizado_por: string | null
+          contraindicacoes: string | null
+          cpf_encrypted: string | null
+          criado_em: string
+          criado_por: string
+          data_nascimento_encrypted: string | null
+          email_encrypted: string | null
+          endereco_encrypted: string | null
+          hash_integridade: string | null
+          historico_medico: string | null
+          id: string
+          medicamentos_atuais: string | null
+          medico_responsavel_id: string
+          nivel_confidencialidade: Database["public"]["Enums"]["nivel_acesso_medico"]
+          nome_completo: string
+          numero_prontuario: string
+          paciente_id: string
+          rg_encrypted: string | null
+          status: Database["public"]["Enums"]["status_prontuario"]
+          telefone_encrypted: string | null
+          ultimo_backup: string | null
+          versao: number
+        }
+        Insert: {
+          alergias?: string | null
+          anamnese?: string | null
+          atualizado_em?: string
+          atualizado_por?: string | null
+          contraindicacoes?: string | null
+          cpf_encrypted?: string | null
+          criado_em?: string
+          criado_por: string
+          data_nascimento_encrypted?: string | null
+          email_encrypted?: string | null
+          endereco_encrypted?: string | null
+          hash_integridade?: string | null
+          historico_medico?: string | null
+          id?: string
+          medicamentos_atuais?: string | null
+          medico_responsavel_id: string
+          nivel_confidencialidade?: Database["public"]["Enums"]["nivel_acesso_medico"]
+          nome_completo: string
+          numero_prontuario: string
+          paciente_id: string
+          rg_encrypted?: string | null
+          status?: Database["public"]["Enums"]["status_prontuario"]
+          telefone_encrypted?: string | null
+          ultimo_backup?: string | null
+          versao?: number
+        }
+        Update: {
+          alergias?: string | null
+          anamnese?: string | null
+          atualizado_em?: string
+          atualizado_por?: string | null
+          contraindicacoes?: string | null
+          cpf_encrypted?: string | null
+          criado_em?: string
+          criado_por?: string
+          data_nascimento_encrypted?: string | null
+          email_encrypted?: string | null
+          endereco_encrypted?: string | null
+          hash_integridade?: string | null
+          historico_medico?: string | null
+          id?: string
+          medicamentos_atuais?: string | null
+          medico_responsavel_id?: string
+          nivel_confidencialidade?: Database["public"]["Enums"]["nivel_acesso_medico"]
+          nome_completo?: string
+          numero_prontuario?: string
+          paciente_id?: string
+          rg_encrypted?: string | null
+          status?: Database["public"]["Enums"]["status_prontuario"]
+          telefone_encrypted?: string | null
+          ultimo_backup?: string | null
+          versao?: number
+        }
+        Relationships: []
+      }
+      sessoes_atendimento: {
+        Row: {
+          atualizado_em: string
+          complicacoes: string | null
+          criado_em: string
+          criado_por: string
+          data_sessao: string
+          desconto_aplicado: number | null
+          detalhes_procedimento: Json | null
+          duracao_minutos: number | null
+          id: string
+          intervalo_recomendado_dias: number | null
+          observacoes: string | null
+          produtos_utilizados: Json | null
+          profissional_id: string
+          prontuario_id: string
+          proxima_sessao_recomendada: string | null
+          resultados: string | null
+          tipo_procedimento: Database["public"]["Enums"]["tipo_procedimento"]
+          valor_final: number | null
+          valor_procedimento: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          complicacoes?: string | null
+          criado_em?: string
+          criado_por: string
+          data_sessao: string
+          desconto_aplicado?: number | null
+          detalhes_procedimento?: Json | null
+          duracao_minutos?: number | null
+          id?: string
+          intervalo_recomendado_dias?: number | null
+          observacoes?: string | null
+          produtos_utilizados?: Json | null
+          profissional_id: string
+          prontuario_id: string
+          proxima_sessao_recomendada?: string | null
+          resultados?: string | null
+          tipo_procedimento: Database["public"]["Enums"]["tipo_procedimento"]
+          valor_final?: number | null
+          valor_procedimento?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          complicacoes?: string | null
+          criado_em?: string
+          criado_por?: string
+          data_sessao?: string
+          desconto_aplicado?: number | null
+          detalhes_procedimento?: Json | null
+          duracao_minutos?: number | null
+          id?: string
+          intervalo_recomendado_dias?: number | null
+          observacoes?: string | null
+          produtos_utilizados?: Json | null
+          profissional_id?: string
+          prontuario_id?: string
+          proxima_sessao_recomendada?: string | null
+          resultados?: string | null
+          tipo_procedimento?: Database["public"]["Enums"]["tipo_procedimento"]
+          valor_final?: number | null
+          valor_procedimento?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessoes_atendimento_prontuario_id_fkey"
+            columns: ["prontuario_id"]
+            isOneToOne: false
+            referencedRelation: "prontuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      templates_procedimentos: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          campos_obrigatorios: Json
+          campos_opcionais: Json | null
+          categoria: string | null
+          criado_em: string
+          criado_por: string
+          descricao: string | null
+          id: string
+          nome_template: string
+          ordem_exibicao: number | null
+          tipo_procedimento: Database["public"]["Enums"]["tipo_procedimento"]
+          validacoes: Json | null
+          valores_padrao: Json | null
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          campos_obrigatorios: Json
+          campos_opcionais?: Json | null
+          categoria?: string | null
+          criado_em?: string
+          criado_por: string
+          descricao?: string | null
+          id?: string
+          nome_template: string
+          ordem_exibicao?: number | null
+          tipo_procedimento: Database["public"]["Enums"]["tipo_procedimento"]
+          validacoes?: Json | null
+          valores_padrao?: Json | null
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          campos_obrigatorios?: Json
+          campos_opcionais?: Json | null
+          categoria?: string | null
+          criado_em?: string
+          criado_por?: string
+          descricao?: string | null
+          id?: string
+          nome_template?: string
+          ordem_exibicao?: number | null
+          tipo_procedimento?: Database["public"]["Enums"]["tipo_procedimento"]
+          validacoes?: Json | null
+          valores_padrao?: Json | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      gerar_numero_prontuario: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      nivel_acesso_medico:
+        | "medico_responsavel"
+        | "medico_assistente"
+        | "enfermeiro"
+        | "esteticista"
+        | "administrador"
+      status_prontuario: "ativo" | "inativo" | "arquivado" | "transferido"
+      tipo_acesso:
+        | "visualizacao"
+        | "edicao"
+        | "criacao"
+        | "exclusao"
+        | "download"
+      tipo_consentimento:
+        | "termo_responsabilidade"
+        | "autorizacao_imagem"
+        | "consentimento_procedimento"
+        | "termo_privacidade"
+      tipo_imagem: "antes" | "durante" | "depois" | "complicacao" | "documento"
+      tipo_procedimento:
+        | "botox_toxina"
+        | "preenchimento"
+        | "harmonizacao_facial"
+        | "laser_ipl"
+        | "peeling"
+        | "tratamento_corporal"
+        | "consulta"
+        | "avaliacao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +694,39 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      nivel_acesso_medico: [
+        "medico_responsavel",
+        "medico_assistente",
+        "enfermeiro",
+        "esteticista",
+        "administrador",
+      ],
+      status_prontuario: ["ativo", "inativo", "arquivado", "transferido"],
+      tipo_acesso: [
+        "visualizacao",
+        "edicao",
+        "criacao",
+        "exclusao",
+        "download",
+      ],
+      tipo_consentimento: [
+        "termo_responsabilidade",
+        "autorizacao_imagem",
+        "consentimento_procedimento",
+        "termo_privacidade",
+      ],
+      tipo_imagem: ["antes", "durante", "depois", "complicacao", "documento"],
+      tipo_procedimento: [
+        "botox_toxina",
+        "preenchimento",
+        "harmonizacao_facial",
+        "laser_ipl",
+        "peeling",
+        "tratamento_corporal",
+        "consulta",
+        "avaliacao",
+      ],
+    },
   },
 } as const
