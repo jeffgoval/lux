@@ -531,6 +531,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_active_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          ativo: boolean
+          atualizado_em: string
+          color_class: string
+          criado_em: string
+          description: string
+          display_name: string
+          hierarchy_level: number
+          id: string
+          permissions: Json
+          role_name: Database["public"]["Enums"]["user_role_type"]
+        }[]
+      }
       update_user_profile: {
         Args: { p_nome_completo: string; p_telefone: string; p_user_id: string }
         Returns: undefined
