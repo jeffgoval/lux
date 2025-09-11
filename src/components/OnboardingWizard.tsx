@@ -89,7 +89,7 @@ export function OnboardingWizard() {
     enderecoCep: '',
     telefoneClinica: '',
     emailClinica: '',
-    souEuMesma: true,
+    souEuMesma: false,
     nomeProfissional: '',
     emailProfissional: '',
     especialidadeProfissional: '',
