@@ -296,6 +296,45 @@ export type Database = {
         }
         Relationships: []
       }
+      roles: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          color_class: string | null
+          criado_em: string
+          description: string | null
+          display_name: string
+          hierarchy_level: number
+          id: string
+          permissions: Json
+          role_name: Database["public"]["Enums"]["user_role_type"]
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          color_class?: string | null
+          criado_em?: string
+          description?: string | null
+          display_name: string
+          hierarchy_level: number
+          id?: string
+          permissions?: Json
+          role_name: Database["public"]["Enums"]["user_role_type"]
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          color_class?: string | null
+          criado_em?: string
+          description?: string | null
+          display_name?: string
+          hierarchy_level?: number
+          id?: string
+          permissions?: Json
+          role_name?: Database["public"]["Enums"]["user_role_type"]
+        }
+        Relationships: []
+      }
       sessoes_atendimento: {
         Row: {
           criado_em: string
@@ -444,6 +483,14 @@ export type Database = {
         | "tratamento_corporal"
         | "skincare_avancado"
         | "outro"
+      user_role_type:
+        | "super_admin"
+        | "proprietaria"
+        | "gerente"
+        | "profissionais"
+        | "recepcionistas"
+        | "visitante"
+        | "cliente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -594,6 +641,15 @@ export const Constants = {
         "tratamento_corporal",
         "skincare_avancado",
         "outro",
+      ],
+      user_role_type: [
+        "super_admin",
+        "proprietaria",
+        "gerente",
+        "profissionais",
+        "recepcionistas",
+        "visitante",
+        "cliente",
       ],
     },
   },

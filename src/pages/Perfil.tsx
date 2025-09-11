@@ -12,10 +12,12 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { User, Mail, Phone, Calendar, Shield, Building2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useSystemRoles } from '@/hooks/useSystemRoles';
 import { toast } from 'sonner';
 
 export default function Perfil() {
   const { user, profile, roles, currentRole, isLoading } = useAuth();
+  const { getRoleDisplayName, getRoleColor } = useSystemRoles();
   const navigate = useNavigate();
   
   const [editMode, setEditMode] = useState(false);
@@ -75,29 +77,11 @@ export default function Perfil() {
   };
 
   const getRoleLabel = (role: string) => {
-    const labels = {
-      'super_admin': 'Super Administrador',
-      'proprietaria': 'Proprietária',
-      'gerente': 'Gerente',
-      'profissionais': 'Profissional',
-      'recepcionistas': 'Recepcionista',
-      'visitante': 'Visitante',
-      'cliente': 'Cliente'
-    };
-    return labels[role as keyof typeof labels] || role;
+    return getRoleDisplayName(role);
   };
 
-  const getRoleColor = (role: string) => {
-    const colors = {
-      'super_admin': 'bg-purple-100 text-purple-800',
-      'proprietaria': 'bg-red-100 text-red-800',
-      'gerente': 'bg-blue-100 text-blue-800',
-      'profissionais': 'bg-green-100 text-green-800',
-      'recepcionistas': 'bg-yellow-100 text-yellow-800',
-      'visitante': 'bg-gray-100 text-gray-800',
-      'cliente': 'bg-orange-100 text-orange-800'
-    };
-    return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  const getRoleColorClass = (role: string) => {
+    return getRoleColor(role);
   };
 
   return (
@@ -115,7 +99,7 @@ export default function Perfil() {
             <h1 className="text-2xl font-bold text-foreground">{profile.nome_completo}</h1>
             <p className="text-muted-foreground">{user.email}</p>
             {currentRole && (
-              <Badge className={`mt-1 ${getRoleColor(currentRole)}`}>
+              <Badge className={getRoleColorClass(currentRole)}>
                 {getRoleLabel(currentRole)}
               </Badge>
             )}
@@ -226,7 +210,7 @@ export default function Perfil() {
                   {roles.map((role, index) => (
                     <div key={role.id} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Badge className={getRoleColor(role.role)}>
+                        <Badge className={getRoleColorClass(role.role)}>
                           {getRoleLabel(role.role)}
                         </Badge>
                         {role.ativo ? (
