@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Users, Sparkles } from "lucide-react";
+import { Users, Sparkles, Package, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { CalendarFilters } from "@/components/CalendarFilters";
@@ -119,6 +119,18 @@ const Index = () => {
                 <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
                   <Sparkles className="w-4 h-4 mr-2" />
                   Serviços
+                </Button>
+              </Link>
+              <Link to="/produtos">
+                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
+                  <Package className="w-4 h-4 mr-2" />
+                  Produtos
+                </Button>
+              </Link>
+              <Link to="/equipamentos">
+                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
+                  <Wrench className="w-4 h-4 mr-2" />
+                  Equipamentos
                 </Button>
               </Link>
             </div>
