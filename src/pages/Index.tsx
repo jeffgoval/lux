@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Users, Sparkles, Package, Wrench } from "lucide-react";
+import { Users, Sparkles, Package, Wrench, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { CalendarFilters } from "@/components/CalendarFilters";
@@ -131,6 +131,12 @@ const Index = () => {
                 <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
                   <Wrench className="w-4 h-4 mr-2" />
                   Equipamentos
+                </Button>
+              </Link>
+              <Link to="/financeiro">
+                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Financeiro
                 </Button>
               </Link>
             </div>
