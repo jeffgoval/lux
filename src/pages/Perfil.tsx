@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { AppLayout } from '@/components/AppLayout';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,23 +29,19 @@ export default function Perfil() {
 
   if (isLoading) {
     return (
-      <AppLayout title="Perfil">
-        <div className="flex items-center justify-center min-h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
   if (!user || !profile) {
     return (
-      <AppLayout title="Perfil">
-        <Alert>
-          <AlertDescription>
-            Erro ao carregar dados do perfil. Tente fazer login novamente.
-          </AlertDescription>
-        </Alert>
-      </AppLayout>
+      <Alert>
+        <AlertDescription>
+          Erro ao carregar dados do perfil. Tente fazer login novamente.
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -71,8 +67,7 @@ export default function Perfil() {
   };
 
   return (
-    <AppLayout title="Meu Perfil">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16">
@@ -245,6 +240,5 @@ export default function Perfil() {
           </Button>
         </div>
       </div>
-    </AppLayout>
   );
 }

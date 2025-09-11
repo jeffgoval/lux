@@ -121,7 +121,7 @@ export function AppSidebar() {
             </div>
             <div>
               <h2 className="text-sidebar-foreground font-semibold text-lg">
-                {clinica?.nome || 'AestheticCare'}
+                {clinica?.nome || 'Sua Clínica'}
               </h2>
               <p className="text-sidebar-foreground/60 text-xs">Sistema Médico</p>
             </div>

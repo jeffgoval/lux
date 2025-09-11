@@ -26,35 +26,60 @@ export function useClinica() {
           .from('organizacoes')
           .select('id')
           .eq('proprietaria_id', profile.user_id)
-          .single();
+          .maybeSingle();
 
-        if (orgError || !organizacao) {
-          // If user doesn't own an organization, try to find clinic through profissionais table
-          const { data: profissional, error: profError } = await supabase
-            .from('profissionais')
-            .select('clinica_id, clinicas(*)')
-            .eq('user_id', profile.user_id)
-            .single();
+        if (orgError) {
+          setError('Erro ao carregar organização');
+          setLoading(false);
+          return;
+        }
 
-          if (profError || !profissional?.clinicas) {
-            setError('Nenhuma clínica encontrada');
-            setLoading(false);
-            return;
-          }
-
-          setClinica(profissional.clinicas as Clinica);
-        } else {
+        if (organizacao) {
           // Get clinic from the organization
           const { data: clinicaData, error: clinicaError } = await supabase
             .from('clinicas')
             .select('*')
             .eq('organizacao_id', organizacao.id)
-            .single();
+            .maybeSingle();
 
           if (clinicaError) {
             setError('Erro ao carregar dados da clínica');
-          } else {
+          } else if (clinicaData) {
             setClinica(clinicaData);
+          } else {
+            setError('Nenhuma clínica encontrada');
+          }
+        } else {
+          // If user doesn't own an organization, try to find clinic through profissionais table
+          const { data: profissional, error: profError } = await supabase
+            .from('profissionais')
+            .select('clinica_id')
+            .eq('user_id', profile.user_id)
+            .maybeSingle();
+
+          if (profError) {
+            setError('Erro ao carregar dados do profissional');
+            setLoading(false);
+            return;
+          }
+
+          if (profissional?.clinica_id) {
+            // Get clinic data separately to avoid join issues
+            const { data: clinicaData, error: clinicaError } = await supabase
+              .from('clinicas')
+              .select('*')
+              .eq('id', profissional.clinica_id)
+              .maybeSingle();
+
+            if (clinicaError) {
+              setError('Erro ao carregar dados da clínica');
+            } else if (clinicaData) {
+              setClinica(clinicaData);
+            } else {
+              setError('Clínica não encontrada');
+            }
+          } else {
+            setError('Nenhuma clínica encontrada');
           }
         }
       } catch (err) {
