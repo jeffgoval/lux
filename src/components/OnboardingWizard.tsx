@@ -30,13 +30,6 @@ interface OnboardingData {
   telefone: string;
   especialidade: string;
   
-  // Multiple clinics question
-  temMultiplasClinicas: boolean;
-  
-  // Rede de clínicas (only if multiple clinics)
-  nomeRede: string;
-  cnpjRede: string;
-  
   // Dados da clínica
   nomeClinica: string;
   cnpj: string;
@@ -85,9 +78,6 @@ export function OnboardingWizard() {
     nomeCompleto: '',
     telefone: '',
     especialidade: '',
-    temMultiplasClinicas: false,
-    nomeRede: '',
-    cnpjRede: '',
     nomeClinica: '',
     cnpj: '',
     enderecoRua: '',
@@ -132,11 +122,7 @@ export function OnboardingWizard() {
       case 1:
         return data.nomeCompleto && data.telefone && data.especialidade;
       case 2:
-        const baseValidation = data.nomeClinica && data.enderecoCidade && data.enderecoEstado;
-        if (data.temMultiplasClinicas) {
-          return baseValidation && data.nomeRede;
-        }
-        return baseValidation;
+        return data.nomeClinica && data.enderecoCidade && data.enderecoEstado;
       case 3:
         return data.souEuMesma || (data.nomeProfissional && data.especialidadeProfissional);
       case 4:
@@ -163,24 +149,7 @@ export function OnboardingWizard() {
 
       if (profileError) throw profileError;
 
-      // 2. Criar organização (apenas se múltiplas clínicas)
-      let orgData = null;
-      if (data.temMultiplasClinicas) {
-        const { data: organizacao, error: orgError } = await supabase
-          .from('organizacoes')
-          .insert({
-            nome: data.nomeRede,
-            cnpj: data.cnpjRede || null,
-            proprietaria_id: user.id
-          })
-          .select()
-          .single();
-
-        if (orgError) throw orgError;
-        orgData = organizacao;
-      }
-
-      // 3. Criar clínica
+      // 2. Criar clínica
       const horarioFuncionamento = {
         segunda: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: true },
         terca: { inicio: data.horarioInicio, fim: data.horarioFim, ativo: true },
@@ -205,7 +174,6 @@ export function OnboardingWizard() {
           endereco_cep: data.enderecoCep || null,
           telefone: data.telefoneClinica || null,
           email: data.emailClinica || null,
-          organizacao_id: orgData?.id || null,
           horario_funcionamento: horarioFuncionamento
         })
         .select()
@@ -213,12 +181,11 @@ export function OnboardingWizard() {
 
       if (clinicaError) throw clinicaError;
 
-      // 3.1. Atualizar user_roles com clinica_id imediatamente após criar a clínica
+      // 3. Atualizar user_roles com clinica_id imediatamente após criar a clínica
       const { error: updateRoleError } = await supabase
         .from('user_roles')
         .update({
-          clinica_id: clinicaData.id,
-          organizacao_id: orgData?.id || null
+          clinica_id: clinicaData.id
         })
         .eq('user_id', user.id)
         .eq('role', 'proprietaria');
@@ -356,61 +323,9 @@ export function OnboardingWizard() {
             </div>
 
             <div className="grid gap-6">
-              {/* Multiple Clinics Question */}
-              <Card className="p-4 bg-muted/50">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Estrutura da sua prática</h3>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="temMultiplasClinicas"
-                      checked={data.temMultiplasClinicas}
-                      onCheckedChange={(checked) => updateData('temMultiplasClinicas', checked)}
-                    />
-                    <Label htmlFor="temMultiplasClinicas">
-                      Possuo ou planejo ter múltiplas clínicas/filiais
-                    </Label>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {data.temMultiplasClinicas 
-                      ? "Vamos configurar sua rede de clínicas" 
-                      : "Configuraremos apenas uma clínica"}
-                  </p>
-                </div>
-              </Card>
-
-              {/* Network/Organization Info - Only show if multiple clinics */}
-              {data.temMultiplasClinicas && (
-                <div className="space-y-4">
-                  <h3 className="font-medium text-primary">Dados da Rede de Clínicas</h3>
-                  <div className="grid gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nomeRede">Nome da rede/grupo *</Label>
-                      <Input
-                        id="nomeRede"
-                        value={data.nomeRede}
-                        onChange={(e) => updateData('nomeRede', e.target.value)}
-                        placeholder="Ex: Grupo Beleza & Saúde"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cnpjRede">CNPJ da rede</Label>
-                      <Input
-                        id="cnpjRede"
-                        value={data.cnpjRede}
-                        onChange={(e) => updateData('cnpjRede', e.target.value)}
-                        placeholder="00.000.000/0000-00"
-                      />
-                    </div>
-                  </div>
-                  <Separator />
-                </div>
-              )}
-
-              {/* Primary Clinic Info */}
+              {/* Clinic Info */}
               <div className="space-y-4">
-                <h3 className="font-medium text-primary">
-                  {data.temMultiplasClinicas ? "Clínica Principal" : "Dados da Clínica"}
-                </h3>
+                <h3 className="font-medium text-primary">Dados da Clínica</h3>
                 <div className="grid gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="nomeClinica">Nome da clínica *</Label>
@@ -418,7 +333,7 @@ export function OnboardingWizard() {
                       id="nomeClinica"
                       value={data.nomeClinica}
                       onChange={(e) => updateData('nomeClinica', e.target.value)}
-                      placeholder="Ex: Clínica Beleza & Saúde - Unidade Centro"
+                      placeholder="Ex: Clínica Beleza & Saúde"
                     />
                   </div>
 
