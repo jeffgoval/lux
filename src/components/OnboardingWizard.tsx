@@ -139,15 +139,16 @@ export function OnboardingWizard() {
 
     setLoading(true);
     try {
-      // 1. Atualizar profile
+      // 1. Atualizar/criar profile
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          user_id: user.id,
           nome_completo: data.nomeCompleto,
           telefone: data.telefone,
+          email: user.email,
           primeiro_acesso: false
-        })
-        .eq('user_id', user.id);
+        });
 
       if (profileError) throw profileError;
 

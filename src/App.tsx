@@ -66,7 +66,7 @@ const App = () => (
             <Route 
               path="/agendamento" 
               element={
-                <AuthGuard requiredRoles={['proprietaria']}>
+                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'recepcionistas']}>
                   <AppLayout>
                     <Index />
                   </AppLayout>
