@@ -159,6 +159,56 @@ export type Database = {
           },
         ]
       }
+      clinicas: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          configuracoes: Json | null
+          criado_em: string
+          criado_por: string
+          email: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          organizacao_id: string
+          telefone: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          configuracoes?: Json | null
+          criado_em?: string
+          criado_por: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          organizacao_id: string
+          telefone?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          configuracoes?: Json | null
+          criado_em?: string
+          criado_por?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          organizacao_id?: string
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinicas_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consentimentos_digitais: {
         Row: {
           assinatura_digital: string | null
@@ -223,6 +273,66 @@ export type Database = {
             columns: ["prontuario_id"]
             isOneToOne: false
             referencedRelation: "prontuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      convites: {
+        Row: {
+          aceito_em: string | null
+          aceito_por: string | null
+          clinica_id: string | null
+          criado_em: string
+          criado_por: string
+          email: string
+          expires_at: string
+          id: string
+          organizacao_id: string | null
+          role: Database["public"]["Enums"]["user_role_type"]
+          status: Database["public"]["Enums"]["status_convite"]
+          token: string
+        }
+        Insert: {
+          aceito_em?: string | null
+          aceito_por?: string | null
+          clinica_id?: string | null
+          criado_em?: string
+          criado_por: string
+          email: string
+          expires_at: string
+          id?: string
+          organizacao_id?: string | null
+          role: Database["public"]["Enums"]["user_role_type"]
+          status?: Database["public"]["Enums"]["status_convite"]
+          token: string
+        }
+        Update: {
+          aceito_em?: string | null
+          aceito_por?: string | null
+          clinica_id?: string | null
+          criado_em?: string
+          criado_por?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          organizacao_id?: string | null
+          role?: Database["public"]["Enums"]["user_role_type"]
+          status?: Database["public"]["Enums"]["status_convite"]
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convites_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "convites_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
             referencedColumns: ["id"]
           },
         ]
@@ -319,6 +429,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      organizacoes: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          cnpj: string | null
+          configuracoes: Json | null
+          criado_em: string
+          criado_por: string
+          id: string
+          nome: string
+          plano: Database["public"]["Enums"]["plano_type"]
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          cnpj?: string | null
+          configuracoes?: Json | null
+          criado_em?: string
+          criado_por: string
+          id?: string
+          nome: string
+          plano?: Database["public"]["Enums"]["plano_type"]
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          cnpj?: string | null
+          configuracoes?: Json | null
+          criado_em?: string
+          criado_por?: string
+          id?: string
+          nome?: string
+          plano?: Database["public"]["Enums"]["plano_type"]
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          avatar_url: string | null
+          criado_em: string
+          email: string
+          id: string
+          nome_completo: string
+          primeiro_acesso: boolean
+          telefone: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          avatar_url?: string | null
+          criado_em?: string
+          email: string
+          id?: string
+          nome_completo: string
+          primeiro_acesso?: boolean
+          telefone?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          avatar_url?: string | null
+          criado_em?: string
+          email?: string
+          id?: string
+          nome_completo?: string
+          primeiro_acesso?: boolean
+          telefone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profissionais_especialidades: {
+        Row: {
+          ativo: boolean
+          certificacao: string | null
+          criado_em: string
+          especialidade: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          certificacao?: string | null
+          criado_em?: string
+          especialidade: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          certificacao?: string | null
+          criado_em?: string
+          especialidade?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       prontuarios: {
         Row: {
@@ -529,6 +741,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          ativo: boolean
+          clinica_id: string | null
+          criado_em: string
+          criado_por: string
+          id: string
+          organizacao_id: string | null
+          role: Database["public"]["Enums"]["user_role_type"]
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          clinica_id?: string | null
+          criado_em?: string
+          criado_por: string
+          id?: string
+          organizacao_id?: string | null
+          role: Database["public"]["Enums"]["user_role_type"]
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          clinica_id?: string | null
+          criado_em?: string
+          criado_por?: string
+          id?: string
+          organizacao_id?: string | null
+          role?: Database["public"]["Enums"]["user_role_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_clinica_id_fkey"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_organizacao_id_fkey"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -538,6 +798,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_role_in_context: {
+        Args: { clinic_id?: string; org_id?: string; user_uuid: string }
+        Returns: Database["public"]["Enums"]["user_role_type"]
+      }
+      user_has_role: {
+        Args: {
+          required_role: Database["public"]["Enums"]["user_role_type"]
+          user_uuid: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       nivel_acesso_medico:
@@ -546,6 +817,8 @@ export type Database = {
         | "enfermeiro"
         | "esteticista"
         | "administrador"
+      plano_type: "basico" | "premium" | "enterprise"
+      status_convite: "pendente" | "aceito" | "expirado" | "cancelado"
       status_prontuario: "ativo" | "inativo" | "arquivado" | "transferido"
       tipo_acesso:
         | "visualizacao"
@@ -568,6 +841,13 @@ export type Database = {
         | "tratamento_corporal"
         | "consulta"
         | "avaliacao"
+      user_role_type:
+        | "super_admin"
+        | "proprietaria"
+        | "gerente"
+        | "profissionais"
+        | "recepcionistas"
+        | "cliente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -702,6 +982,8 @@ export const Constants = {
         "esteticista",
         "administrador",
       ],
+      plano_type: ["basico", "premium", "enterprise"],
+      status_convite: ["pendente", "aceito", "expirado", "cancelado"],
       status_prontuario: ["ativo", "inativo", "arquivado", "transferido"],
       tipo_acesso: [
         "visualizacao",
@@ -726,6 +1008,14 @@ export const Constants = {
         "tratamento_corporal",
         "consulta",
         "avaliacao",
+      ],
+      user_role_type: [
+        "super_admin",
+        "proprietaria",
+        "gerente",
+        "profissionais",
+        "recepcionistas",
+        "cliente",
       ],
     },
   },
