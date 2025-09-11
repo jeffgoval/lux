@@ -239,6 +239,45 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          avatar_url: string | null
+          criado_em: string
+          email: string | null
+          id: string
+          nome_completo: string | null
+          primeiro_acesso: boolean
+          telefone: string | null
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          avatar_url?: string | null
+          criado_em?: string
+          email?: string | null
+          id?: string
+          nome_completo?: string | null
+          primeiro_acesso?: boolean
+          telefone?: string | null
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          avatar_url?: string | null
+          criado_em?: string
+          email?: string | null
+          id?: string
+          nome_completo?: string | null
+          primeiro_acesso?: boolean
+          telefone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       prontuarios: {
         Row: {
           alergias_criptografado: string | null
@@ -451,6 +490,39 @@ export type Database = {
           tipo_procedimento?: Database["public"]["Enums"]["tipo_procedimento"]
           validacoes?: Json | null
           valores_padrao?: Json | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          ativo: boolean
+          clinica_id: string | null
+          criado_em: string
+          criado_por: string | null
+          id: string
+          organizacao_id: string | null
+          role: Database["public"]["Enums"]["user_role_type"]
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          clinica_id?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          id?: string
+          organizacao_id?: string | null
+          role: Database["public"]["Enums"]["user_role_type"]
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          clinica_id?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          id?: string
+          organizacao_id?: string | null
+          role?: Database["public"]["Enums"]["user_role_type"]
+          user_id?: string
         }
         Relationships: []
       }
