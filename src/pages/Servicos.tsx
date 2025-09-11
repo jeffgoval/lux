@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { servicosMock, servicosMetricas, categorias } from '@/data/servicosMock';
 import { FiltrosServico } from '@/types/servico';
 import ServicoCard from '@/components/ServicoCard';
-import ServicoFilters from '@/components/ServicoFilters';
 import { Link } from 'react-router-dom';
 
 export default function Servicos() {
@@ -160,121 +159,109 @@ export default function Servicos() {
           </Card>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filtros Laterais */}
-          <div className="w-full lg:w-80 space-y-6">
-            <ServicoFilters 
-              filtros={filtros} 
-              onFiltrosChange={setFiltros}
-              categorias={categoriasComContadores}
-            />
-          </div>
-
-          {/* Conteúdo Principal */}
-          <div className="flex-1">
-            {/* Controles de Visualização */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="flex-1">
-                <Input
-                  placeholder="Buscar serviços..."
-                  value={filtros.busca || ''}
-                  onChange={(e) => setFiltros(prev => ({ ...prev, busca: e.target.value }))}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Select value={ordenacao} onValueChange={(value: any) => setOrdenacao(value)}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Ordenar por" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="popularidade">Popularidade</SelectItem>
-                    <SelectItem value="preco">Preço</SelectItem>
-                    <SelectItem value="nome">Nome</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <div className="flex border rounded-md">
-                  <Button
-                    variant={visualizacao === 'grid' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setVisualizacao('grid')}
-                    className="rounded-r-none"
-                  >
-                    <Grid3X3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={visualizacao === 'lista' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setVisualizacao('lista')}
-                    className="rounded-l-none"
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+        <div className="space-y-6">
+          {/* Controles de Visualização */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder="Buscar serviços..."
+                value={filtros.busca || ''}
+                onChange={(e) => setFiltros(prev => ({ ...prev, busca: e.target.value }))}
+                className="w-full"
+              />
             </div>
 
-            {/* Tabs por Categoria */}
-            <Tabs defaultValue="todos" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
-                <TabsTrigger value="todos">Todos</TabsTrigger>
-                {categoriasComContadores.map(categoria => (
-                  <TabsTrigger key={categoria.id} value={categoria.id}>
-                    <span className="hidden lg:inline">{categoria.nome}</span>
-                    <span className="lg:hidden">{categoria.icone}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+            <div className="flex gap-2">
+              <Select value={ordenacao} onValueChange={(value: any) => setOrdenacao(value)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popularidade">Popularidade</SelectItem>
+                  <SelectItem value="preco">Preço</SelectItem>
+                  <SelectItem value="nome">Nome</SelectItem>
+                </SelectContent>
+              </Select>
 
-              <TabsContent value="todos" className="space-y-6">
+              <div className="flex border rounded-md">
+                <Button
+                  variant={visualizacao === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setVisualizacao('grid')}
+                  className="rounded-r-none"
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={visualizacao === 'lista' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setVisualizacao('lista')}
+                  className="rounded-l-none"
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs por Categoria */}
+          <Tabs defaultValue="todos" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
+              <TabsTrigger value="todos">Todos</TabsTrigger>
+              {categoriasComContadores.map(categoria => (
+                <TabsTrigger key={categoria.id} value={categoria.id}>
+                  <span className="hidden lg:inline">{categoria.nome}</span>
+                  <span className="lg:hidden">{categoria.icone}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <TabsContent value="todos" className="space-y-6">
+              {visualizacao === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                  {servicosFiltrados.map(servico => (
+                    <ServicoCard key={servico.id} servico={servico} />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {servicosFiltrados.map(servico => (
+                    <ServicoCard key={servico.id} servico={servico} variant="lista" />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {categoriasComContadores.map(categoria => (
+              <TabsContent key={categoria.id} value={categoria.id} className="space-y-6">
                 {visualizacao === 'grid' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {servicosFiltrados.map(servico => (
-                      <ServicoCard key={servico.id} servico={servico} />
-                    ))}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                    {servicosFiltrados
+                      .filter(s => s.categoria === categoria.id)
+                      .map(servico => (
+                        <ServicoCard key={servico.id} servico={servico} />
+                      ))}
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {servicosFiltrados.map(servico => (
-                      <ServicoCard key={servico.id} servico={servico} variant="lista" />
-                    ))}
+                    {servicosFiltrados
+                      .filter(s => s.categoria === categoria.id)
+                      .map(servico => (
+                        <ServicoCard key={servico.id} servico={servico} variant="lista" />
+                      ))}
                   </div>
                 )}
               </TabsContent>
+            ))}
+          </Tabs>
 
-              {categoriasComContadores.map(categoria => (
-                <TabsContent key={categoria.id} value={categoria.id} className="space-y-6">
-                  {visualizacao === 'grid' ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                      {servicosFiltrados
-                        .filter(s => s.categoria === categoria.id)
-                        .map(servico => (
-                          <ServicoCard key={servico.id} servico={servico} />
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {servicosFiltrados
-                        .filter(s => s.categoria === categoria.id)
-                        .map(servico => (
-                          <ServicoCard key={servico.id} servico={servico} variant="lista" />
-                        ))}
-                    </div>
-                  )}
-                </TabsContent>
-              ))}
-            </Tabs>
-
-            {servicosFiltrados.length === 0 && (
-              <Card className="p-12 text-center">
-                <p className="text-muted-foreground">
-                  Nenhum serviço encontrado com os filtros aplicados.
-                </p>
-              </Card>
-            )}
-          </div>
+          {servicosFiltrados.length === 0 && (
+            <Card className="p-12 text-center">
+              <p className="text-muted-foreground">
+                Nenhum serviço encontrado com os filtros aplicados.
+              </p>
+            </Card>
+          )}
         </div>
       </div>
     </div>
