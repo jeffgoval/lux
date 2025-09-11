@@ -189,7 +189,7 @@ export function GaleriaImagens() {
           </Card>
 
           {/* Grid de Imagens */}
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-8">
               <div className="text-muted-foreground">Carregando galeria...</div>
             </div>
