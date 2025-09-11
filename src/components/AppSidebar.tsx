@@ -26,7 +26,7 @@ const allNavItems = [
     title: "Dashboard",
     url: "/",
     icon: Home,
-    roles: ['super_admin', 'proprietaria', 'gerente', 'recepcionistas', 'profissionais', 'cliente'] as UserRole[]
+    roles: ['super_admin', 'proprietaria', 'gerente', 'recepcionistas', 'profissionais', 'visitante'] as UserRole[]
   },
   {
     title: "Agendamento", 

@@ -9,7 +9,7 @@ export function useRoles() {
   const isGerente = () => hasRole('gerente');
   const isProfissional = () => hasRole('profissionais');
   const isRecepcionista = () => hasRole('recepcionistas');
-  const isCliente = () => hasRole('cliente');
+  const isVisitante = () => hasRole('visitante');
 
   const canManageUsers = () => {
     if (!currentRole) return false;
@@ -47,7 +47,7 @@ export function useRoles() {
       'gerente',
       'profissionais',
       'recepcionistas',
-      'cliente'
+      'visitante'
     ];
 
     for (const role of roleHierarchy) {
@@ -66,7 +66,7 @@ export function useRoles() {
     isGerente,
     isProfissional,
     isRecepcionista,
-    isCliente,
+    isVisitante,
     canManageUsers,
     canManageClinics,
     canAccessAllData,

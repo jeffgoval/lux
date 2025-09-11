@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "./AppSidebar"
 import { Bell, User, LogOut } from "lucide-react"
@@ -7,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/AuthContext"
-import { OnboardingModal } from './OnboardingModal';
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -15,15 +13,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, title }: AppLayoutProps) {
-  const { profile, currentRole, signOut, isLoading } = useAuth();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-
-  useEffect(() => {
-    // Mostrar onboarding se é primeiro acesso e não está carregando
-    if (!isLoading && profile?.primeiro_acesso && currentRole === 'cliente') {
-      setShowOnboarding(true);
-    }
-  }, [isLoading, profile, currentRole]);
+  const { profile, currentRole, signOut } = useAuth();
 
   const getRoleLabel = (role: string) => {
     const roleLabels = {
@@ -32,7 +22,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
       'gerente': 'Gerente',
       'profissionais': 'Profissional',
       'recepcionistas': 'Recepcionista',
-      'cliente': 'Cliente'
+      'visitante': 'Visitante'
     };
     return roleLabels[role as keyof typeof roleLabels] || role;
   };
@@ -108,10 +98,6 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         </main>
       </div>
       
-      <OnboardingModal 
-        isOpen={showOnboarding} 
-        onClose={() => setShowOnboarding(false)} 
-      />
     </SidebarProvider>
   )
 }

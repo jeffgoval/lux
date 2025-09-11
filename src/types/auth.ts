@@ -120,8 +120,8 @@ export const ROLE_PERMISSIONS = {
     canAccessAllData: false,
     canManageSystem: false
   },
-  cliente: {
-    label: 'Cliente',
+  visitante: {
+    label: 'Visitante',
     canManageOrganizations: false,
     canManageClinics: false,
     canManageUsers: false,
