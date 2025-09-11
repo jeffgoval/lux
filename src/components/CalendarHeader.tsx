@@ -114,28 +114,6 @@ export const CalendarHeader = ({
               </Button>
             ))}
           </div>
-          
-          <Button
-            variant={filtersActive ? "premium" : "elegant"}
-            size="sm"
-            onClick={onToggleFilters}
-            className="relative"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filtros
-            {filtersActive && (
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
-            )}
-          </Button>
-          
-          <Button
-            variant="premium"
-            onClick={onNewAppointment}
-            className="shadow-elegant hover:shadow-premium"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Agendamento
-          </Button>
         </div>
       </div>
     </div>
