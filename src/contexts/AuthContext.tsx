@@ -237,22 +237,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
           
-          // Fetch additional user data with retry logic
-          const profileSuccess = await fetchProfile(session.user.id);
-          const rolesSuccess = await fetchRoles(session.user.id);
-          
-          // If either failed, log for debugging
-          if (!profileSuccess || !rolesSuccess) {
-            console.warn('Failed to fetch complete user data:', {
-              profileSuccess,
-              rolesSuccess,
-              userId: session.user.id
+          // Fetch additional user data with retry logic and timeout
+          try {
+            const profilePromise = fetchProfile(session.user.id);
+            const rolesPromise = fetchRoles(session.user.id);
+            
+            // Add timeout to prevent hanging
+            const timeoutPromise = new Promise<boolean>((resolve) => {
+              setTimeout(() => {
+                console.warn('Auth data fetch timeout reached');
+                resolve(false);
+              }, 5000); // 5 second timeout
             });
             
-            // Generate debug report in development
-            if (process.env.NODE_ENV === 'development') {
-              generateAuthDebugReport(session.user).then(logAuthDebugReport);
+            const [profileSuccess, rolesSuccess] = await Promise.race([
+              Promise.all([profilePromise, rolesPromise]),
+              timeoutPromise.then(() => [false, false])
+            ]);
+            
+            // If either failed, log for debugging
+            if (!profileSuccess || !rolesSuccess) {
+              console.warn('Failed to fetch complete user data:', {
+                profileSuccess,
+                rolesSuccess,
+                userId: session.user.id
+              });
+              
+              // Generate debug report in development
+              if (process.env.NODE_ENV === 'development') {
+                generateAuthDebugReport(session.user).then(logAuthDebugReport);
+              }
             }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
           }
         } else {
           setProfile(null);

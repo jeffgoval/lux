@@ -33,6 +33,18 @@ export function AuthGuard({
     }
   }, [isAuthenticated, profile, currentRole]);
 
+  // Additional timeout to prevent infinite loading
+  useEffect(() => {
+    if (isAuthenticated && !waited) {
+      const fallbackTimeout = setTimeout(() => {
+        console.warn('AuthGuard: Fallback timeout reached, forcing waited to true');
+        setWaited(true);
+      }, 3000); // 3 seconds fallback
+      
+      return () => clearTimeout(fallbackTimeout);
+    }
+  }, [isAuthenticated, waited]);
+
   useEffect(() => {
     if (isLoading) return;
 
@@ -77,12 +89,25 @@ export function AuthGuard({
     );
   }
   // During hydration, show spinner to avoid flashing dashboard without menus
+  // But only for a limited time to prevent infinite loading
   if (isAuthenticated && !currentRole && location.pathname !== '/onboarding' && !waited) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // If we've waited long enough but still no role, and user is not on onboarding, 
+  // redirect to onboarding or show unauthorized
+  if (isAuthenticated && !currentRole && location.pathname !== '/onboarding' && waited) {
+    if (profile?.primeiro_acesso || !profile) {
+      navigate('/onboarding', { replace: true });
+      return null;
+    } else {
+      navigate('/unauthorized', { replace: true });
+      return null;
+    }
   }
 
   // Show nothing while redirecting
