@@ -127,7 +127,6 @@ export type Database = {
           horario_funcionamento: Json | null
           id: string
           nome: string
-          organizacao_id: string | null
           site: string | null
           telefone: string | null
         }
@@ -148,7 +147,6 @@ export type Database = {
           horario_funcionamento?: Json | null
           id?: string
           nome: string
-          organizacao_id?: string | null
           site?: string | null
           telefone?: string | null
         }
@@ -169,19 +167,10 @@ export type Database = {
           horario_funcionamento?: Json | null
           id?: string
           nome?: string
-          organizacao_id?: string | null
           site?: string | null
           telefone?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_clinicas_organizacao"
-            columns: ["organizacao_id"]
-            isOneToOne: false
-            referencedRelation: "organizacoes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       consentimentos_digitais: {
         Row: {
@@ -312,39 +301,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      organizacoes: {
-        Row: {
-          ativo: boolean
-          atualizado_em: string
-          cnpj: string | null
-          criado_em: string
-          descricao: string | null
-          id: string
-          nome: string
-          proprietaria_id: string
-        }
-        Insert: {
-          ativo?: boolean
-          atualizado_em?: string
-          cnpj?: string | null
-          criado_em?: string
-          descricao?: string | null
-          id?: string
-          nome: string
-          proprietaria_id: string
-        }
-        Update: {
-          ativo?: boolean
-          atualizado_em?: string
-          cnpj?: string | null
-          criado_em?: string
-          descricao?: string | null
-          id?: string
-          nome?: string
-          proprietaria_id?: string
-        }
-        Relationships: []
       }
       profiles: {
         Row: {
@@ -710,7 +666,6 @@ export type Database = {
           criado_em: string
           criado_por: string | null
           id: string
-          organizacao_id: string | null
           role: Database["public"]["Enums"]["user_role_type"]
           user_id: string
         }
@@ -720,7 +675,6 @@ export type Database = {
           criado_em?: string
           criado_por?: string | null
           id?: string
-          organizacao_id?: string | null
           role: Database["public"]["Enums"]["user_role_type"]
           user_id: string
         }
@@ -730,7 +684,6 @@ export type Database = {
           criado_em?: string
           criado_por?: string | null
           id?: string
-          organizacao_id?: string | null
           role?: Database["public"]["Enums"]["user_role_type"]
           user_id?: string
         }

@@ -24,10 +24,10 @@ export function useClinica() {
       try {
         setLoading(true);
         
-        // First, try to get clinica_id from user_roles (most direct approach)
+        // Get clinica_id from user_roles (simplified: 1 proprietária = 1 clínica)
         const { data: userRole, error: roleError } = await supabase
           .from('user_roles')
-          .select('clinica_id, organizacao_id')
+          .select('clinica_id')
           .eq('user_id', userId)
           .eq('ativo', true)
           .maybeSingle();
@@ -36,7 +36,7 @@ export function useClinica() {
           console.warn('Error fetching user roles:', roleError);
         }
 
-        // Priority 1: Direct clinica_id from user_roles (most common case)
+        // If user has a clinic assigned, fetch it
         if (userRole?.clinica_id) {
           const { data: clinicaData, error: clinicaError } = await supabase
             .from('clinicas')
@@ -54,45 +54,7 @@ export function useClinica() {
           }
         }
 
-        // Priority 2: Organization-based lookup (for multiple clinics)
-        if (userRole?.organizacao_id) {
-          const { data: clinicaData, error: clinicaError } = await supabase
-            .from('clinicas')
-            .select('*')
-            .eq('organizacao_id', userRole.organizacao_id)
-            .maybeSingle();
-
-          if (clinicaError) {
-            console.error('Error fetching clinic by organization:', clinicaError);
-          } else if (clinicaData) {
-            setClinica(clinicaData);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Priority 3: Fallback - user owns an organization directly
-        const { data: organizacao, error: orgError } = await supabase
-          .from('organizacoes')
-          .select('id')
-          .eq('proprietaria_id', userId)
-          .maybeSingle();
-
-        if (!orgError && organizacao) {
-          const { data: clinicaData, error: clinicaError } = await supabase
-            .from('clinicas')
-            .select('*')
-            .eq('organizacao_id', organizacao.id)
-            .maybeSingle();
-
-          if (!clinicaError && clinicaData) {
-            setClinica(clinicaData);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Priority 4: User is registered as a professional
+        // Fallback: User is registered as a professional
         const { data: profissional, error: profError } = await supabase
           .from('profissionais')
           .select('clinica_id')
