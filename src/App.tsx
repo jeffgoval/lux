@@ -11,6 +11,7 @@ import Produtos from "./pages/Produtos";
 import Equipamentos from "./pages/Equipamentos";
 import Financeiro from "./pages/Financeiro";
 import Comunicacao from "./pages/Comunicacao";
+import Prontuarios from "./pages/Prontuarios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
