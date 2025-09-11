@@ -1053,7 +1053,7 @@ export type Database = {
           ativo: boolean
           certificacao: string | null
           criado_em: string
-          especialidade: string
+          especialidade: Database["public"]["Enums"]["especialidade_estetica"]
           id: string
           user_id: string
         }
@@ -1061,7 +1061,7 @@ export type Database = {
           ativo?: boolean
           certificacao?: string | null
           criado_em?: string
-          especialidade: string
+          especialidade?: Database["public"]["Enums"]["especialidade_estetica"]
           id?: string
           user_id: string
         }
@@ -1069,7 +1069,7 @@ export type Database = {
           ativo?: boolean
           certificacao?: string | null
           criado_em?: string
-          especialidade?: string
+          especialidade?: Database["public"]["Enums"]["especialidade_estetica"]
           id?: string
           user_id?: string
         }
@@ -1410,20 +1410,19 @@ export type Database = {
         | "terapia_capilar"
         | "intradermoterapia"
         | "anestesicos_topicos"
-      especialidade_medica:
-        | "medico_dermatologista"
-        | "medico_cirurgiao_plastico"
-        | "biomedico_esteta"
-        | "enfermeiro_esteta"
-        | "fisioterapeuta_dermato_funcional"
-        | "nutricionista"
-        | "esteticista_cosmetologo"
-        | "tricologista"
-        | "dentista_harmonizacao"
-        | "farmaceutico_esteta"
-        | "terapeuta_capilar"
-        | "massoterapeuta"
-        | "maquiador_profissional"
+      especialidade_estetica:
+        | "esteticista"
+        | "micropigmentacao"
+        | "design_sobrancelhas"
+        | "extensao_cilios"
+        | "massoterapia"
+        | "depilacao"
+        | "podologia"
+        | "cosmetologia"
+        | "harmonizacao_orofacial"
+        | "limpeza_pele"
+        | "drenagem_linfatica"
+      especialidade_medica: "dermatologia" | "cirurgia_plastica"
       nivel_acesso_medico:
         | "medico_responsavel"
         | "medico_assistente"
@@ -1632,21 +1631,20 @@ export const Constants = {
         "intradermoterapia",
         "anestesicos_topicos",
       ],
-      especialidade_medica: [
-        "medico_dermatologista",
-        "medico_cirurgiao_plastico",
-        "biomedico_esteta",
-        "enfermeiro_esteta",
-        "fisioterapeuta_dermato_funcional",
-        "nutricionista",
-        "esteticista_cosmetologo",
-        "tricologista",
-        "dentista_harmonizacao",
-        "farmaceutico_esteta",
-        "terapeuta_capilar",
-        "massoterapeuta",
-        "maquiador_profissional",
+      especialidade_estetica: [
+        "esteticista",
+        "micropigmentacao",
+        "design_sobrancelhas",
+        "extensao_cilios",
+        "massoterapia",
+        "depilacao",
+        "podologia",
+        "cosmetologia",
+        "harmonizacao_orofacial",
+        "limpeza_pele",
+        "drenagem_linfatica",
       ],
+      especialidade_medica: ["dermatologia", "cirurgia_plastica"],
       nivel_acesso_medico: [
         "medico_responsavel",
         "medico_assistente",
