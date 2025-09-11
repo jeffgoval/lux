@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { toast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -39,6 +40,11 @@ export default function Auth() {
         const { error } = await signIn(email, password);
         if (error) {
           setError(error.message);
+        } else {
+          toast({
+            title: "Login realizado com sucesso!",
+            description: "Bem-vindo de volta ao sistema.",
+          });
         }
       } else {
         // Validate signup form
@@ -53,7 +59,10 @@ export default function Auth() {
           setError(error.message);
         } else {
           setError('');
-          alert('Conta criada com sucesso! Você será redirecionado para completar seu perfil.');
+          toast({
+            title: "Conta criada com sucesso!",
+            description: "Bem-vindo! Complete seu perfil para começar a usar o sistema.",
+          });
         }
       }
     } catch (err: any) {
