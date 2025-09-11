@@ -109,6 +109,80 @@ export type Database = {
         }
         Relationships: []
       }
+      clinicas: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          cnpj: string | null
+          configuracoes: Json | null
+          criado_em: string
+          email: string | null
+          endereco_bairro: string | null
+          endereco_cep: string | null
+          endereco_cidade: string | null
+          endereco_complemento: string | null
+          endereco_estado: string | null
+          endereco_numero: string | null
+          endereco_rua: string | null
+          horario_funcionamento: Json | null
+          id: string
+          nome: string
+          organizacao_id: string
+          site: string | null
+          telefone: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          cnpj?: string | null
+          configuracoes?: Json | null
+          criado_em?: string
+          email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          horario_funcionamento?: Json | null
+          id?: string
+          nome: string
+          organizacao_id: string
+          site?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          cnpj?: string | null
+          configuracoes?: Json | null
+          criado_em?: string
+          email?: string | null
+          endereco_bairro?: string | null
+          endereco_cep?: string | null
+          endereco_cidade?: string | null
+          endereco_complemento?: string | null
+          endereco_estado?: string | null
+          endereco_numero?: string | null
+          endereco_rua?: string | null
+          horario_funcionamento?: Json | null
+          id?: string
+          nome?: string
+          organizacao_id?: string
+          site?: string | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_clinicas_organizacao"
+            columns: ["organizacao_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consentimentos_digitais: {
         Row: {
           assinatura_digital: string
@@ -239,6 +313,39 @@ export type Database = {
           },
         ]
       }
+      organizacoes: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          cnpj: string | null
+          criado_em: string
+          descricao: string | null
+          id: string
+          nome: string
+          proprietaria_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          cnpj?: string | null
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          proprietaria_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          cnpj?: string | null
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          proprietaria_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ativo: boolean
@@ -277,6 +384,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      profissionais: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          clinica_id: string
+          configuracoes: Json | null
+          criado_em: string
+          email: string | null
+          especialidade: string | null
+          id: string
+          nome: string
+          registro_profissional: string | null
+          telefone: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          clinica_id: string
+          configuracoes?: Json | null
+          criado_em?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome: string
+          registro_profissional?: string | null
+          telefone?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          clinica_id?: string
+          configuracoes?: Json | null
+          criado_em?: string
+          email?: string | null
+          especialidade?: string | null
+          id?: string
+          nome?: string
+          registro_profissional?: string | null
+          telefone?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_profissionais_clinica"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prontuarios: {
         Row: {
@@ -373,6 +533,56 @@ export type Database = {
           role_name?: Database["public"]["Enums"]["user_role_type"]
         }
         Relationships: []
+      }
+      servicos: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          categoria: string | null
+          clinica_id: string
+          configuracoes: Json | null
+          criado_em: string
+          descricao: string | null
+          duracao_minutos: number
+          id: string
+          nome: string
+          preco: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          categoria?: string | null
+          clinica_id: string
+          configuracoes?: Json | null
+          criado_em?: string
+          descricao?: string | null
+          duracao_minutos?: number
+          id?: string
+          nome: string
+          preco?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          categoria?: string | null
+          clinica_id?: string
+          configuracoes?: Json | null
+          criado_em?: string
+          descricao?: string | null
+          duracao_minutos?: number
+          id?: string
+          nome?: string
+          preco?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_servicos_clinica"
+            columns: ["clinica_id"]
+            isOneToOne: false
+            referencedRelation: "clinicas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sessoes_atendimento: {
         Row: {
