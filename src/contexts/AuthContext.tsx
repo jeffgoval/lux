@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { generateAuthDebugReport, logAuthDebugReport } from '@/utils/authDebugger';
 
 type UserRole = Database['public']['Enums']['user_role_type'];
 
@@ -43,6 +44,8 @@ interface AuthContextType {
   getCurrentRole: () => UserRole | null;
   refreshProfile: () => Promise<void>;
   isAuthenticated: boolean;
+  isOnboardingComplete: boolean;
+  fixMissingUserData: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,8 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<UserRoleContext[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch user profile
-  const fetchProfile = async (userId: string) => {
+  // Fetch user profile with retry logic
+  const fetchProfile = async (userId: string, retryCount = 0): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -65,21 +68,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        return;
+        
+        // If profile doesn't exist and we haven't retried too many times, try to fix it
+        if (error.code === 'PGRST116' && retryCount < 2) {
+          console.log('Profile not found, attempting to fix missing data...');
+          const fixed = await fixMissingUserData();
+          if (fixed && retryCount < 1) {
+            return fetchProfile(userId, retryCount + 1);
+          }
+        }
+        return false;
       }
 
       if (data) {
         setProfile(data);
+        return true;
       } else {
         console.log('Profile not found for user:', userId);
+        
+        // Try to fix missing profile if we haven't retried
+        if (retryCount < 2) {
+          console.log('Attempting to fix missing profile...');
+          const fixed = await fixMissingUserData();
+          if (fixed && retryCount < 1) {
+            return fetchProfile(userId, retryCount + 1);
+          }
+        }
+        return false;
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      return false;
     }
   };
 
-  // Fetch user roles - simplificado para role único
-  const fetchRoles = async (userId: string) => {
+  // Fetch user roles with retry logic
+  const fetchRoles = async (userId: string, retryCount = 0): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -89,26 +113,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching roles:', error);
-        return;
+        return false;
       }
 
       if (data && data.length > 0) {
         setRoles(data);
+        return true;
+      } else {
+        console.log('No roles found for user:', userId);
+        
+        // Try to fix missing roles if we haven't retried
+        if (retryCount < 2) {
+          console.log('Attempting to fix missing roles...');
+          const fixed = await fixMissingUserData();
+          if (fixed && retryCount < 1) {
+            return fetchRoles(userId, retryCount + 1);
+          }
+        }
+        return false;
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
+      return false;
     }
   };
 
   // Sign up function - redireciona para onboarding
   const signUp = async (email: string, password: string, metadata?: any) => {
-    const redirectUrl = `${window.location.origin}/onboarding`;
-    
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: metadata
       }
     });
@@ -161,18 +196,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const currentRole = getCurrentRole();
   const isAuthenticated = !!user;
+  const isOnboardingComplete = profile ? !profile.primeiro_acesso : false;
+
+  // Function to fix missing user data
+  const fixMissingUserData = async (): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      // Import the recovery utility
+      const { comprehensiveUserDataRecovery } = await import('@/utils/userDataRecovery');
+      
+      const result = await comprehensiveUserDataRecovery(user);
+      
+      if (result.success) {
+        console.log('Successfully fixed missing user data:', result);
+        return true;
+      } else {
+        console.error('Failed to fix missing user data:', result.error);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error calling comprehensive recovery:', error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch additional user data
-          fetchProfile(session.user.id);
-          fetchRoles(session.user.id);
+          // For new signups, wait a bit for the trigger to complete
+          if (event === 'SIGNED_UP') {
+            console.log('New user signed up, waiting for profile creation...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
+          // Fetch additional user data with retry logic
+          const profileSuccess = await fetchProfile(session.user.id);
+          const rolesSuccess = await fetchRoles(session.user.id);
+          
+          // If either failed, log for debugging
+          if (!profileSuccess || !rolesSuccess) {
+            console.warn('Failed to fetch complete user data:', {
+              profileSuccess,
+              rolesSuccess,
+              userId: session.user.id
+            });
+            
+            // Generate debug report in development
+            if (process.env.NODE_ENV === 'development') {
+              generateAuthDebugReport(session.user).then(logAuthDebugReport);
+            }
+          }
         } else {
           setProfile(null);
           setRoles([]);
@@ -183,13 +264,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchRoles(session.user.id);
+        await fetchProfile(session.user.id);
+        await fetchRoles(session.user.id);
       }
       
       setIsLoading(false);
@@ -201,8 +282,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Function to refresh profile after onboarding
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
-      await fetchRoles(user.id);
+      console.log('Refreshing profile and roles for user:', user.email);
+      const profileSuccess = await fetchProfile(user.id);
+      const rolesSuccess = await fetchRoles(user.id);
+      
+      if (!profileSuccess || !rolesSuccess) {
+        console.warn('Failed to refresh complete user data, attempting fix...');
+        await fixMissingUserData();
+        // Try once more after fixing
+        await fetchProfile(user.id);
+        await fetchRoles(user.id);
+      }
     }
   };
 
@@ -219,7 +309,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasRole,
     getCurrentRole,
     refreshProfile,
-    isAuthenticated
+    isAuthenticated,
+    isOnboardingComplete,
+    fixMissingUserData
   };
 
   return (

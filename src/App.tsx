@@ -21,7 +21,6 @@ import Perfil from "./pages/Perfil";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import { OnboardingWizard } from "./components/OnboardingWizard";
-
 const queryClient = new QueryClient();
 
 const App = () => (
