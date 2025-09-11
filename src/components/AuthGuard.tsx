@@ -38,6 +38,11 @@ export function AuthGuard({
       return;
     }
 
+    // Give some time for roles to load after authentication (especially during signup)
+    if (isAuthenticated && !profile) {
+      return; // Still loading profile
+    }
+
     // If specific roles are required, check if user has any of them
     if (requiredRoles.length > 0) {
       if (!currentRole || !requiredRoles.includes(currentRole)) {
