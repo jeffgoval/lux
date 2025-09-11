@@ -57,7 +57,9 @@ const App = () => (
               path="/" 
               element={
                 <AuthGuard>
-                  <Dashboard />
+                  <AppLayout>
+                    <Dashboard />
+                  </AppLayout>
                 </AuthGuard>
               } 
             />

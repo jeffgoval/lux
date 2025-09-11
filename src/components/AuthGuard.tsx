@@ -39,9 +39,14 @@ export function AuthGuard({
     }
 
     // If specific roles are required, check if user has any of them
-    if (requiredRoles.length > 0 && currentRole) {
-      const hasRequiredRole = requiredRoles.includes(currentRole);
-      if (!hasRequiredRole) {
+    if (requiredRoles.length > 0) {
+      if (!currentRole || !requiredRoles.includes(currentRole)) {
+        navigate('/unauthorized', { replace: true });
+        return;
+      }
+    } else {
+      // For routes without required roles (except onboarding), user must have a role
+      if (location.pathname !== '/onboarding' && !currentRole) {
         navigate('/unauthorized', { replace: true });
         return;
       }
