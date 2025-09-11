@@ -21,7 +21,6 @@ import Perfil from "./pages/Perfil";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import { OnboardingWizard } from "./components/OnboardingWizard";
-import { AuthDebugInfo } from "./components/AuthDebugInfo";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -31,7 +30,6 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AuthDebugInfo />
           <Routes>
             {/* Public routes */}
             <Route path="/auth" element={<Auth />} />

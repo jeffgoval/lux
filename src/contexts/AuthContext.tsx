@@ -81,11 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
-        console.log('Profile loaded successfully:', { 
-          id: data.id, 
-          primeiro_acesso: data.primeiro_acesso,
-          nome_completo: data.nome_completo 
-        });
         setProfile(data);
         return true;
       } else {
@@ -250,7 +245,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Add timeout to prevent hanging
             const timeoutPromise = new Promise<boolean>((resolve) => {
               setTimeout(() => {
-                console.warn('Auth data fetch timeout reached');
                 resolve(false);
               }, 5000); // 5 second timeout
             });

@@ -37,7 +37,6 @@ export function AuthGuard({
   useEffect(() => {
     if (isAuthenticated && !waited) {
       const fallbackTimeout = setTimeout(() => {
-        console.warn('AuthGuard: Fallback timeout reached, forcing waited to true');
         setWaited(true);
       }, 3000); // 3 seconds fallback
       
@@ -59,12 +58,6 @@ export function AuthGuard({
 
     // If user is on first access or has no profile yet, redirect to onboarding
     if ((profile?.primeiro_acesso || (!profile && isAuthenticated)) && location.pathname !== '/onboarding') {
-      console.log('AuthGuard: Redirecting to onboarding', {
-        profile: profile ? { id: profile.id, primeiro_acesso: profile.primeiro_acesso } : null,
-        isAuthenticated,
-        currentRole,
-        location: location.pathname
-      });
       navigate('/onboarding', { replace: true });
       return;
     }
