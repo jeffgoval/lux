@@ -153,15 +153,12 @@ export function OnboardingWizard() {
 
     setLoading(true);
     try {
-      // 1. Atualizar/criar profile
+      // 1. Atualizar profile usando a função do banco
       const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          nome_completo: data.nomeCompleto,
-          telefone: data.telefone,
-          email: user.email,
-          primeiro_acesso: false
+        .rpc('update_user_profile', {
+          p_user_id: user.id,
+          p_nome_completo: data.nomeCompleto,
+          p_telefone: data.telefone
         });
 
       if (profileError) throw profileError;
@@ -272,8 +269,22 @@ export function OnboardingWizard() {
       navigate('/');
     } catch (error: any) {
       console.error('Erro no onboarding:', error);
-      toast.error('Erro ao finalizar configuração', {
-        description: error.message || 'Tente novamente.'
+      
+      let errorMessage = 'Erro ao finalizar configuração';
+      let errorDescription = 'Tente novamente.';
+      
+      if (error.code === '23505') {
+        errorMessage = 'Configuração já existe';
+        errorDescription = 'Alguns dados já foram configurados. Tente fazer login novamente.';
+      } else if (error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
+        errorMessage = 'Dados duplicados';
+        errorDescription = 'Alguns dados já existem no sistema. Tente novamente.';
+      } else if (error.message) {
+        errorDescription = error.message;
+      }
+      
+      toast.error(errorMessage, {
+        description: errorDescription
       });
     } finally {
       setLoading(false);
