@@ -237,7 +237,7 @@ export function AuditoriaTimeline() {
       </Card>
 
       {/* Timeline */}
-        {isLoading ? (
+        {loading ? (
         <div className="text-center py-8">
           <div className="text-muted-foreground">Carregando auditoria...</div>
         </div>
