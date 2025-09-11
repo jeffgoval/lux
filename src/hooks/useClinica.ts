@@ -13,7 +13,9 @@ export function useClinica() {
 
   useEffect(() => {
     const fetchClinica = async () => {
-      const userId = user?.id || profile?.user_id;
+      // Use user.id if profile is not yet hydrated
+      const userId = profile?.user_id || user?.id;
+      
       if (!userId) {
         setLoading(false);
         return;
@@ -22,7 +24,7 @@ export function useClinica() {
       try {
         setLoading(true);
         
-        // Priority 1: Check user_roles for direct clinica_id
+        // First, try to get clinic through user_roles (most direct approach)
         const { data: userRole, error: roleError } = await supabase
           .from('user_roles')
           .select('clinica_id, organizacao_id')
@@ -30,28 +32,22 @@ export function useClinica() {
           .eq('ativo', true)
           .maybeSingle();
 
-        if (roleError) {
-          console.error('Error fetching user roles:', roleError);
-        }
-
-        if (userRole?.clinica_id) {
-          // Get clinic data directly from user role
+        if (!roleError && userRole?.clinica_id) {
+          // Get clinic data directly
           const { data: clinicaData, error: clinicaError } = await supabase
             .from('clinicas')
             .select('*')
             .eq('id', userRole.clinica_id)
             .maybeSingle();
 
-          if (clinicaError) {
-            setError('Erro ao carregar dados da clínica');
-          } else if (clinicaData) {
+          if (!clinicaError && clinicaData) {
             setClinica(clinicaData);
             setLoading(false);
             return;
           }
         }
-
-        // Priority 2: Check organization owned by user
+        
+        // Fallback: get the organization owned by the user
         const { data: organizacao, error: orgError } = await supabase
           .from('organizacoes')
           .select('id')
@@ -59,7 +55,9 @@ export function useClinica() {
           .maybeSingle();
 
         if (orgError) {
-          console.error('Error fetching organization:', orgError);
+          setError('Erro ao carregar organização');
+          setLoading(false);
+          return;
         }
 
         if (organizacao) {
@@ -74,42 +72,44 @@ export function useClinica() {
             setError('Erro ao carregar dados da clínica');
           } else if (clinicaData) {
             setClinica(clinicaData);
+          } else {
+            setError('Nenhuma clínica encontrada');
+          }
+        } else {
+          // If user doesn't own an organization, try to find clinic through profissionais table
+          const { data: profissional, error: profError } = await supabase
+            .from('profissionais')
+            .select('clinica_id')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+          if (profError) {
+            setError('Erro ao carregar dados do profissional');
             setLoading(false);
             return;
           }
-        }
 
-        // Priority 3: Check through profissionais table
-        const { data: profissional, error: profError } = await supabase
-          .from('profissionais')
-          .select('clinica_id')
-          .eq('user_id', userId)
-          .maybeSingle();
+          if (profissional?.clinica_id) {
+            // Get clinic data separately to avoid join issues
+            const { data: clinicaData, error: clinicaError } = await supabase
+              .from('clinicas')
+              .select('*')
+              .eq('id', profissional.clinica_id)
+              .maybeSingle();
 
-        if (profError) {
-          console.error('Error fetching professional:', profError);
-        }
-
-        if (profissional?.clinica_id) {
-          // Get clinic data
-          const { data: clinicaData, error: clinicaError } = await supabase
-            .from('clinicas')
-            .select('*')
-            .eq('id', profissional.clinica_id)
-            .maybeSingle();
-
-          if (clinicaError) {
-            setError('Erro ao carregar dados da clínica');
-          } else if (clinicaData) {
-            setClinica(clinicaData);
+            if (clinicaError) {
+              setError('Erro ao carregar dados da clínica');
+            } else if (clinicaData) {
+              setClinica(clinicaData);
+            } else {
+              setError('Clínica não encontrada');
+            }
           } else {
-            setError('Clínica não encontrada');
+            // No clinic found through any method - this is expected for new users
+            setError(null);
           }
-        } else {
-          setError('Nenhuma clínica encontrada');
         }
       } catch (err) {
-        console.error('Erro inesperado ao carregar clínica:', err);
         setError('Erro ao carregar dados da clínica');
       } finally {
         setLoading(false);
@@ -117,7 +117,7 @@ export function useClinica() {
     };
 
     fetchClinica();
-  }, [user?.id, profile?.user_id]);
+  }, [profile?.user_id, user?.id]);
 
   return {
     clinica,
