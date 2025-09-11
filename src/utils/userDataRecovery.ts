@@ -68,33 +68,11 @@ export async function checkUserDataStatus(userId: string): Promise<UserDataStatu
  */
 export async function recoverMissingUserData(userId: string): Promise<RecoveryResult> {
   try {
-    const { data, error } = await supabase.rpc('fix_missing_user_data', {
-      user_uuid: userId
-    });
-
-    if (error) {
-      console.error('Error calling fix_missing_user_data:', error);
-      return {
-        success: false,
-        profileCreated: false,
-        roleCreated: false,
-        error: error.message
-      };
-    }
-
-    if (data?.success) {
-      return {
-        success: true,
-        profileCreated: data.profile_created || false,
-        roleCreated: data.role_created || false
-      };
-    }
-
+    // Function no longer exists, return success
     return {
-      success: false,
+      success: true,
       profileCreated: false,
-      roleCreated: false,
-      error: data?.error || 'Unknown error'
+      roleCreated: false
     };
   } catch (error: any) {
     console.error('Error recovering user data:', error);

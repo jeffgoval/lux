@@ -216,15 +216,12 @@ async function checkClinicAccess(userId: string) {
 
 async function checkOrganizationAccess(userId: string) {
   try {
-    const { data, error } = await supabase
-      .from('organizacoes')
-      .select('*');
-
+    // Organizations table no longer exists
     return {
-      hasAccess: !!(data && data.length > 0),
-      count: data?.length || 0,
-      data,
-      error: error?.message
+      hasAccess: false,
+      count: 0,
+      data: null,
+      error: null
     };
   } catch (error: any) {
     return {

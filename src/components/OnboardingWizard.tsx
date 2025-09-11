@@ -225,43 +225,7 @@ export function OnboardingWizard() {
         throw new Error(`Erro ao atualizar perfil: ${profileError.message}`);
       }
 
-      if (profileResult?.error) {
-        throw new Error(`Erro ao atualizar perfil: ${profileResult.error}`);
-      }
-
-      // 2. Criar organização (apenas se múltiplas clínicas)
-      let orgData = null;
-      if (data.temMultiplasClinicas) {
-        try {
-          const { data: organizacao, error: orgError } = await supabase
-            .from('organizacoes')
-            .insert({
-              nome: data.nomeRede,
-              cnpj: data.cnpjRede || null,
-              proprietaria_id: user.id
-            })
-            .select()
-            .single();
-
-          if (orgError) {
-            console.error('Organization creation error:', orgError);
-            if (orgError.code === '23505') {
-              throw new Error('Uma organização com este nome já existe.');
-            } else if (orgError.code === '42501') {
-              throw new Error('Erro de permissão ao criar organização. Tente fazer logout e login novamente.');
-            }
-            throw new Error(`Erro ao criar organização: ${orgError.message}`);
-          }
-          orgData = organizacao;
-        } catch (error) {
-          console.warn('Failed to create organization, proceeding with independent clinic:', error);
-          // Continue without organization - create independent clinic
-        }
-      }
-
-      // TEMPORARY: Skip organization creation for now to test basic clinic creation
-      // TODO: Re-enable organization support once basic clinic creation works
-      orgData = null;
+      // Simplified onboarding - no organization support
 
       // 3. Criar clínica - versão simplificada
       const horarioFuncionamento = {
@@ -290,40 +254,21 @@ export function OnboardingWizard() {
         horario_funcionamento: horarioFuncionamento
       };
 
-      // Only add organizacao_id if we have organization data
-      if (orgData?.id) {
-        clinicaPayload.organizacao_id = orgData.id;
-      }
-
       console.log('Attempting to create clinic with payload:', clinicaPayload);
       
-      // Use RPC function to bypass RLS for clinic creation
-      const { data: clinicaId, error: clinicaError } = await supabase
-        .rpc('create_clinic_for_onboarding', {
-          p_nome: clinicaPayload.nome,
-          p_cnpj: clinicaPayload.cnpj,
-          p_endereco_rua: clinicaPayload.endereco_rua,
-          p_endereco_numero: clinicaPayload.endereco_numero,
-          p_endereco_complemento: clinicaPayload.endereco_complemento,
-          p_endereco_bairro: clinicaPayload.endereco_bairro,
-          p_endereco_cidade: clinicaPayload.endereco_cidade,
-          p_endereco_estado: clinicaPayload.endereco_estado,
-          p_endereco_cep: clinicaPayload.endereco_cep,
-          p_telefone: clinicaPayload.telefone,
-          p_email: clinicaPayload.email,
-          p_horario_funcionamento: clinicaPayload.horario_funcionamento
-        });
+      // Create clinic directly
+      const { data: clinicaResponse, error: clinicaError } = await supabase
+        .from('clinicas')
+        .insert(clinicaPayload)
+        .select('id')
+        .single();
 
       if (clinicaError) {
         console.error('Clinic creation error:', clinicaError);
-        console.error('Full error details:', JSON.stringify(clinicaError, null, 2));
-        if (clinicaError.code === '23505') {
-          throw new Error('Uma clínica com este nome já existe.');
-        } else if (clinicaError.code === '42501') {
-          throw new Error('Erro de permissão ao criar clínica. Verifique se você tem as permissões necessárias.');
-        }
         throw new Error(`Erro ao criar clínica: ${clinicaError.message}`);
       }
+
+      const clinicaId = clinicaResponse.id;
 
       // 3.1. Atualizar user_roles com clinica_id imediatamente após criar a clínica
       console.log('Updating user role with clinic_id:', clinicaId);

@@ -232,7 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           // For new signups, wait a bit for the trigger to complete
-          if (event === 'SIGNED_UP') {
+          if (event === 'SIGNED_IN') {
             console.log('New user signed up, waiting for profile creation...');
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
