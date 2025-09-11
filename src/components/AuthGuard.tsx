@@ -63,11 +63,8 @@ export function AuthGuard({
         return;
       }
     } else {
-      if (location.pathname !== '/onboarding' && !currentRole) {
-        if (!waited) return; // wait briefly for roles
-        navigate('/unauthorized', { replace: true });
-        return;
-      }
+      // For routes without explicit role requirements, allow access even if role is not yet resolved
+      // This prevents unnecessary "acesso negado" screens during hydration or when user has no role
     }
   }, [isAuthenticated, currentRole, isLoading, profile, navigate, location.pathname, redirectTo, requiredRoles]);
 
