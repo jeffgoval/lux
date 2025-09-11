@@ -19,11 +19,14 @@ interface UserProfile {
 }
 
 interface UserRoleContext {
+  id: string;
   user_id: string;
   organizacao_id?: string;
   clinica_id?: string;
   role: UserRole;
   ativo: boolean;
+  criado_em: string;
+  criado_por: string;
 }
 
 interface AuthContextType {
@@ -57,14 +60,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
         return;
       }
 
-      setProfile(data);
+      if (data) {
+        setProfile(data);
+      } else {
+        console.log('Profile not found for user:', userId);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -81,12 +88,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching roles:', error);
+        // Fallback: atribuir role cliente se não conseguir buscar
+        setRoles([{
+          id: crypto.randomUUID(),
+          user_id: userId,
+          role: 'cliente' as UserRole,
+          ativo: true,
+          criado_em: new Date().toISOString(),
+          criado_por: userId,
+          organizacao_id: null,
+          clinica_id: null
+        }]);
         return;
       }
 
-      setRoles(data || []);
+      if (data && data.length > 0) {
+        setRoles(data);
+      } else {
+        // Se não tem roles, criar um role cliente padrão
+        console.log('No roles found, creating default cliente role');
+        try {
+          const { error: insertError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: userId,
+              role: 'cliente',
+              ativo: true,
+              criado_por: userId
+            });
+          
+          if (!insertError) {
+            // Buscar novamente após inserir
+            fetchRoles(userId);
+          } else {
+            console.error('Error creating default role:', insertError);
+            // Fallback local
+            setRoles([{
+              id: crypto.randomUUID(),
+              user_id: userId,
+              role: 'cliente' as UserRole,
+              ativo: true,
+              criado_em: new Date().toISOString(),
+              criado_por: userId,
+              organizacao_id: null,
+              clinica_id: null
+            }]);
+          }
+        } catch (createError) {
+          console.error('Error creating default role:', createError);
+          // Fallback local
+          setRoles([{
+            id: crypto.randomUUID(),
+            user_id: userId,
+            role: 'cliente' as UserRole,
+            ativo: true,
+            criado_em: new Date().toISOString(),
+            criado_por: userId,
+            organizacao_id: null,
+            clinica_id: null
+          }]);
+        }
+      }
     } catch (error) {
       console.error('Error fetching roles:', error);
+      // Fallback final
+      setRoles([{
+        id: crypto.randomUUID(),
+        user_id: userId,
+        role: 'cliente' as UserRole,
+        ativo: true,
+        criado_em: new Date().toISOString(),
+        criado_por: userId,
+        organizacao_id: null,
+        clinica_id: null
+      }]);
     }
   };
 
@@ -163,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(() => {
             fetchProfile(session.user.id);
             fetchRoles(session.user.id);
-          }, 0);
+          }, 100); // Pequeno delay para evitar conflitos
         } else {
           setProfile(null);
           setRoles([]);
