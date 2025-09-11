@@ -62,7 +62,30 @@ This project is built with:
 
 ## How can I deploy this project?
 
+### Deploy na Vercel (Recomendado)
+
+1. **Fork ou clone este repositório**
+2. **Acesse [Vercel](https://vercel.com) e faça login**
+3. **Clique em "New Project"**
+4. **Conecte seu repositório GitHub**
+5. **Configure as variáveis de ambiente:**
+   - `VITE_SUPABASE_URL`: Sua URL do Supabase
+   - `VITE_SUPABASE_ANON_KEY`: Sua chave anônima do Supabase
+6. **Clique em "Deploy"**
+
+### Deploy via Lovable
+
 Simply open [Lovable](https://lovable.dev/projects/2d7a984b-06be-4089-877d-21a790b2deef) and click on Share -> Publish.
+
+### Deploy Local
+
+```bash
+# Build para produção
+npm run build
+
+# Preview do build
+npm run preview
+```
 
 ## Can I connect a custom domain to my Lovable project?
 
