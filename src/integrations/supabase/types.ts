@@ -1381,6 +1381,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_role: {
+        Args: {
+          clinic_id?: string
+          new_role: Database["public"]["Enums"]["user_role_type"]
+          org_id?: string
+          target_user_id: string
+        }
+        Returns: boolean
+      }
       gerar_numero_prontuario: {
         Args: Record<PropertyKey, never>
         Returns: string
