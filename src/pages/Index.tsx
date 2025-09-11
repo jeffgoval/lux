@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { CalendarFilters } from "@/components/CalendarFilters";
 import { DayView } from "@/components/DayView";
@@ -86,22 +89,31 @@ const Index = () => {
       <div className="container mx-auto p-6 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
-              <img 
-                src="/lovable-uploads/d7b20c64-f4e9-410c-bb8e-0b9d3434c239.png" 
-                alt="Logo" 
-                className="w-8 h-8 object-contain"
-              />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
+                <img 
+                  src="/lovable-uploads/d7b20c64-f4e9-410c-bb8e-0b9d3434c239.png" 
+                  alt="Logo" 
+                  className="w-8 h-8 object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="heading-premium text-2xl text-foreground">
+                  Sistema de Agendamento Premium
+                </h1>
+                <p className="text-premium">
+                  Clínica Estética de Alto Padrão
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="heading-premium text-2xl text-foreground">
-                Sistema de Agendamento Premium
-              </h1>
-              <p className="text-premium">
-                Clínica Estética de Alto Padrão
-              </p>
-            </div>
+            
+            <Link to="/clientes">
+              <Button className="btn-premium">
+                <Users className="w-4 h-4 mr-2" />
+                Gestão de Clientes
+              </Button>
+            </Link>
           </div>
         </div>
 
