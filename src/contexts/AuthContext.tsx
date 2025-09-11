@@ -81,6 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
+        console.log('Profile loaded successfully:', { 
+          id: data.id, 
+          primeiro_acesso: data.primeiro_acesso,
+          nome_completo: data.nome_completo 
+        });
         setProfile(data);
         return true;
       } else {
