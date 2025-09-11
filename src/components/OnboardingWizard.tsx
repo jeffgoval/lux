@@ -213,6 +213,18 @@ export function OnboardingWizard() {
 
       if (clinicaError) throw clinicaError;
 
+      // 3.1. Atualizar user_roles com clinica_id imediatamente após criar a clínica
+      const { error: updateRoleError } = await supabase
+        .from('user_roles')
+        .update({
+          clinica_id: clinicaData.id,
+          organizacao_id: orgData?.id || null
+        })
+        .eq('user_id', user.id)
+        .eq('role', 'proprietaria');
+
+      if (updateRoleError) throw updateRoleError;
+
       // 4. Criar profissional
       const profissionalData = data.souEuMesma ? {
         nome: data.nomeCompleto,
@@ -250,16 +262,7 @@ export function OnboardingWizard() {
 
       if (servicoError) throw servicoError;
 
-      // 6. Atualizar user_roles com organizacao_id e clinica_id
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .update({
-          organizacao_id: orgData?.id || null,
-          clinica_id: clinicaData.id
-        })
-        .eq('user_id', user.id);
-
-      if (roleError) throw roleError;
+      // Note: user_roles já foi atualizado no passo 3.1
 
       toast.success('Configuração inicial concluída com sucesso!');
       
@@ -276,6 +279,9 @@ export function OnboardingWizard() {
       if (error.code === '23505') {
         errorMessage = 'Configuração já existe';
         errorDescription = 'Alguns dados já foram configurados. Tente fazer login novamente.';
+      } else if (error.code === '42501' || error.message?.includes('insufficient_privilege') || error.message?.includes('403')) {
+        errorMessage = 'Erro de permissão';
+        errorDescription = 'Houve um problema com as permissões. Tente fazer logout e login novamente.';
       } else if (error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
         errorMessage = 'Dados duplicados';
         errorDescription = 'Alguns dados já existem no sistema. Tente novamente.';
