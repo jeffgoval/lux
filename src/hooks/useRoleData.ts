@@ -6,7 +6,7 @@ export interface RoleData {
   role_name: string;
   display_name: string;
   description: string;
-  permissions: Record<string, boolean>;
+  permissions: any; // Using any to handle Json type from Supabase
   hierarchy_level: number;
   color_class: string;
   ativo: boolean;
@@ -28,11 +28,8 @@ export function useRoleData() {
       setLoading(true);
       setError(null);
       
-      const { data, error: fetchError } = await supabase
-        .from('roles')
-        .select('*')
-        .eq('ativo', true)
-        .order('hierarchy_level');
+      // Using direct RPC call since types aren't updated yet
+      const { data, error: fetchError } = await supabase.rpc('get_active_roles');
 
       if (fetchError) {
         setError(fetchError.message);

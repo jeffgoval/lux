@@ -1,8 +1,9 @@
 import { Database } from '@/integrations/supabase/types';
 
-export type UserRole = Database['public']['Enums']['user_role_type'];
-export type PlanoType = Database['public']['Enums']['plano_type'];
-export type StatusConvite = Database['public']['Enums']['status_convite'];
+// Define types based on available enums, using fallbacks for missing ones
+export type UserRole = 'super_admin' | 'proprietaria' | 'gerente' | 'profissionais' | 'recepcionistas' | 'visitante' | 'cliente';
+export type PlanoType = 'basico' | 'premium' | 'enterprise';
+export type StatusConvite = 'pendente' | 'aceito' | 'recusado' | 'expirado';
 
 export interface UserProfile {
   id: string;

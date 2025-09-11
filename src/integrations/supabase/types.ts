@@ -531,7 +531,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_user_profile: {
+        Args: { p_nome_completo: string; p_telefone: string; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       nivel_acesso_medico:
