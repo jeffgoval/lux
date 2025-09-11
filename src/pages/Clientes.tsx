@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Users, Search, Filter, Plus, TrendingUp, UserCheck, Clock, Star } from "lucide-react";
+import { Users, Search, Filter, Plus, TrendingUp, UserCheck, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +8,7 @@ import { mockClientes, mockMetricas } from "@/data/clientesMock";
 import { Cliente, FiltrosCliente } from "@/types/cliente";
 import { ClienteCard } from "@/components/ClienteCard";
 import { ClienteFilters } from "@/components/ClienteFilters";
+import { NovoClienteModal } from "@/components/modals/NovoClienteModal";
 
 const Clientes = () => {
   const [clientes] = useState<Cliente[]>(mockClientes);
@@ -16,6 +16,7 @@ const Clientes = () => {
   const [filtros, setFiltros] = useState<FiltrosCliente>({});
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [busca, setBusca] = useState("");
+  const [novoClienteOpen, setNovoClienteOpen] = useState(false);
 
   const clientesFiltrados = clientes.filter(cliente => {
     if (busca && !cliente.nome.toLowerCase().includes(busca.toLowerCase()) && 
@@ -63,26 +64,24 @@ const Clientes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <div className="container mx-auto p-6 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
-              <Users className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="heading-premium text-3xl text-foreground">
-                Gestão de Clientes Premium
-              </h1>
-              <p className="text-premium">
-                Sistema completo de relacionamento com clientes
-              </p>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold heading-premium">Clientes</h1>
+          <p className="text-muted-foreground">
+            Gerencie seus clientes e acompanhe o relacionamento
+          </p>
+        </div>
+        <Button className="btn-premium" onClick={() => setNovoClienteOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Cliente
+        </Button>
+      </div>
 
-          {/* Métricas Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Métricas Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
             <Card className="glass-effect hover-elegant">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -145,11 +144,10 @@ const Clientes = () => {
                 </p>
               </CardContent>
             </Card>
-          </div>
-        </div>
+      </div>
 
-        {/* Actions Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-6">
+      {/* Actions Bar */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
           <div className="flex flex-1 gap-4 items-center w-full lg:w-auto">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -174,31 +172,26 @@ const Clientes = () => {
               )}
             </Button>
           </div>
-          
-          <Button className="btn-premium">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Cliente
-          </Button>
-        </div>
+      </div>
 
-        {/* Filters Panel */}
-        <ClienteFilters
-          isOpen={filtersOpen}
-          filtros={filtros}
-          onFiltrosChange={setFiltros}
-          onClose={() => setFiltersOpen(false)}
-        />
+      {/* Filters Panel */}
+      <ClienteFilters
+        isOpen={filtersOpen}
+        filtros={filtros}
+        onFiltrosChange={setFiltros}
+        onClose={() => setFiltersOpen(false)}
+      />
 
-        {/* Results Summary */}
-        <div className="mb-6">
-          <p className="text-premium">
-            Exibindo <span className="font-medium text-foreground">{clientesFiltrados.length}</span> de{" "}
-            <span className="font-medium text-foreground">{clientes.length}</span> clientes
-          </p>
-        </div>
+      {/* Results Summary */}
+      <div>
+        <p className="text-muted-foreground">
+          Exibindo <span className="font-medium text-foreground">{clientesFiltrados.length}</span> de{" "}
+          <span className="font-medium text-foreground">{clientes.length}</span> clientes
+        </p>
+      </div>
 
-        {/* Clientes Grid */}
-        <div className="animate-fade-in">
+      {/* Clientes Grid */}
+      <div className="animate-fade-in">
           {clientesFiltrados.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {clientesFiltrados.map((cliente) => (
@@ -215,15 +208,20 @@ const Clientes = () => {
                   : "Comece adicionando seu primeiro cliente"
                 }
               </p>
-              {!busca && Object.keys(filtros).length === 0 && (
-                <Button className="btn-premium">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Primeiro Cliente
-                </Button>
-              )}
-            </Card>
-          )}
-        </div>
+            {!busca && Object.keys(filtros).length === 0 && (
+              <Button className="btn-premium" onClick={() => setNovoClienteOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Primeiro Cliente
+              </Button>
+            )}
+          </Card>
+        )}
+
+        {/* Modal de Novo Cliente */}
+        <NovoClienteModal
+          open={novoClienteOpen}
+          onOpenChange={setNovoClienteOpen}
+        />
       </div>
     </div>
   );

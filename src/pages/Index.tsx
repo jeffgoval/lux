@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Users, Sparkles, Package, Wrench, DollarSign, MessageSquare, FileText } from "lucide-react";
+import { Plus, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { CalendarFilters } from "@/components/CalendarFilters";
 import { DayView } from "@/components/DayView";
+import { WeekView } from "@/components/calendar/WeekView";
+import { MonthView } from "@/components/calendar/MonthView";
+import { NovoAgendamentoModal } from "@/components/modals/NovoAgendamentoModal";
 
 // Mock data for appointments
 const mockAppointments = [
@@ -71,9 +73,14 @@ const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState<'day' | 'week' | 'month'>('day');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [novoAgendamentoOpen, setNovoAgendamentoOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>();
 
-  const handleNewAppointment = () => {
-    console.log('Novo agendamento');
+  const handleNewAppointment = (date?: Date, time?: string) => {
+    setSelectedDate(date || currentDate);
+    setSelectedTime(time);
+    setNovoAgendamentoOpen(true);
   };
 
   const handleEditAppointment = (appointment: any) => {
@@ -84,127 +91,96 @@ const Index = () => {
     console.log('Deletar agendamento:', id);
   };
 
+  // Converter mock appointments para o formato esperado pelos componentes
+  const convertedAppointments = mockAppointments.map(apt => ({
+    id: apt.id,
+    clienteNome: apt.client.name,
+    servico: apt.service,
+    horario: apt.time,
+    medico: apt.professional,
+    status: apt.status as 'confirmado' | 'pendente' | 'cancelado',
+    data: currentDate.toISOString()
+  }));
+
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <div className="container mx-auto p-6 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
-                <img 
-                  src="/lovable-uploads/d7b20c64-f4e9-410c-bb8e-0b9d3434c239.png" 
-                  alt="Logo" 
-                  className="w-8 h-8 object-contain"
-                />
-              </div>
-              <div>
-                <h1 className="heading-premium text-2xl text-foreground">
-                  Sistema de Agendamento Premium
-                </h1>
-                <p className="text-premium">
-                  Clínica Estética de Alto Padrão
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2">
-              <Link to="/clientes">
-                <Button className="btn-premium">
-                  <Users className="w-4 h-4 mr-2" />
-                  Gestão de Clientes
-                </Button>
-              </Link>
-              <Link to="/servicos">
-                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Serviços
-                </Button>
-              </Link>
-              <Link to="/produtos">
-                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
-                  <Package className="w-4 h-4 mr-2" />
-                  Produtos
-                </Button>
-              </Link>
-              <Link to="/equipamentos">
-                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
-                  <Wrench className="w-4 h-4 mr-2" />
-                  Equipamentos
-                </Button>
-              </Link>
-              <Link to="/financeiro">
-                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Financeiro
-                </Button>
-              </Link>
-              <Link to="/comunicacao">
-                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Comunicação
-                </Button>
-              </Link>
-              <Link to="/prontuarios">
-                <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Prontuários Digitais
-                </Button>
-              </Link>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold heading-premium">Agenda</h1>
+          <p className="text-muted-foreground">Gerencie agendamentos e consultas</p>
         </div>
-
-        {/* Calendar Header */}
-        <CalendarHeader
-          currentDate={currentDate}
-          viewType={viewType}
-          onDateChange={setCurrentDate}
-          onViewChange={setViewType}
-          onNewAppointment={handleNewAppointment}
-          onToggleFilters={() => setFiltersOpen(!filtersOpen)}
-          filtersActive={filtersOpen}
-        />
-
-        {/* Main Content */}
-        <div className="animate-fade-in">
-          {viewType === 'day' && (
-            <DayView
-              date={currentDate}
-              appointments={mockAppointments}
-              onEditAppointment={handleEditAppointment}
-              onDeleteAppointment={handleDeleteAppointment}
-            />
-          )}
-          
-          {viewType === 'week' && (
-            <div className="glass-effect rounded-2xl p-8 text-center">
-              <h3 className="heading-premium text-lg mb-2">Visão Semanal</h3>
-              <p className="text-premium">Em desenvolvimento - Visualização semanal com slots detalhados</p>
-            </div>
-          )}
-          
-          {viewType === 'month' && (
-            <div className="glass-effect rounded-2xl p-8 text-center">
-              <h3 className="heading-premium text-lg mb-2">Visão Mensal</h3>
-              <p className="text-premium">Em desenvolvimento - Calendário mensal com percentual de ocupação</p>
-            </div>
-          )}
-        </div>
-
-        {/* Filters Panel */}
-        <CalendarFilters
-          isOpen={filtersOpen}
-          onClose={() => setFiltersOpen(false)}
-        />
-
-        {/* Footer */}
-        <div className="mt-12 text-center">
-          <p className="text-premium text-sm">
-            Sistema desenvolvido para clínicas estéticas premium
-          </p>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setFiltersOpen(!filtersOpen)}
+          >
+            <Filter className="h-4 w-4" />
+          </Button>
+          <Button onClick={() => handleNewAppointment()} variant="premium">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Agendamento
+          </Button>
         </div>
       </div>
+
+      {/* Calendar Header */}
+      <CalendarHeader
+        currentDate={currentDate}
+        viewType={viewType}
+        onDateChange={setCurrentDate}
+        onViewChange={setViewType}
+        onNewAppointment={handleNewAppointment}
+        onToggleFilters={() => setFiltersOpen(!filtersOpen)}
+        filtersActive={filtersOpen}
+      />
+
+      {/* Main Content */}
+      <div className="animate-fade-in">
+        {viewType === 'day' && (
+          <DayView
+            date={currentDate}
+            appointments={mockAppointments}
+            onEditAppointment={handleEditAppointment}
+            onDeleteAppointment={handleDeleteAppointment}
+          />
+        )}
+        
+        {viewType === 'week' && (
+          <WeekView
+            currentDate={currentDate}
+            appointments={convertedAppointments}
+            onEditAppointment={handleEditAppointment}
+            onDeleteAppointment={handleDeleteAppointment}
+            onNewAppointment={handleNewAppointment}
+          />
+        )}
+        
+        {viewType === 'month' && (
+          <MonthView
+            currentDate={currentDate}
+            appointments={convertedAppointments}
+            onEditAppointment={handleEditAppointment}
+            onDeleteAppointment={handleDeleteAppointment}
+            onNewAppointment={handleNewAppointment}
+          />
+        )}
+      </div>
+
+      {/* Filters Panel */}
+      <CalendarFilters
+        isOpen={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+      />
+
+      {/* Modal de Novo Agendamento */}
+      <NovoAgendamentoModal
+        open={novoAgendamentoOpen}
+        onOpenChange={setNovoAgendamentoOpen}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+      />
     </div>
   );
 };
