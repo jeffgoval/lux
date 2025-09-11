@@ -1390,6 +1390,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_manager_view_user_roles: {
+        Args: { target_user: string }
+        Returns: boolean
+      }
+      current_user_is_manager_of_org: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
       gerar_numero_prontuario: {
         Args: Record<PropertyKey, never>
         Returns: string
