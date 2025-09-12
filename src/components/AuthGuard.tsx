@@ -56,10 +56,20 @@ export function AuthGuard({
       return;
     }
 
-    // If user is on first access or has no profile yet, redirect to onboarding
-    if ((profile?.primeiro_acesso || (!profile && isAuthenticated)) && location.pathname !== '/onboarding') {
-      navigate('/onboarding', { replace: true });
-      return;
+    // If user is on first access, redirect to onboarding
+    // Redirect if user has no profile OR if profile is marked as first access
+    if (location.pathname !== '/onboarding') {
+      if (!profile || profile.primeiro_acesso) {
+        console.log('Redirecting to onboarding - no profile or first access:', { profile });
+        navigate('/onboarding', { replace: true });
+        return;
+      }
+      
+      // Also redirect if user has no roles (indicates incomplete setup)
+      if (profile && !currentRole && waited) {
+        navigate('/onboarding', { replace: true });
+        return;
+      }
     }
 
     // Role checks with small grace period for hydration
@@ -97,20 +107,28 @@ export function AuthGuard({
     );
   }
 
-  // If we've waited long enough but still no role, and user is not on onboarding, 
-  // redirect to onboarding or show unauthorized
+  // If we've waited long enough but still no role, and user is not on onboarding
   if (isAuthenticated && !currentRole && location.pathname !== '/onboarding' && waited) {
-    if (profile?.primeiro_acesso || !profile) {
+    if (profile?.primeiro_acesso) {
       navigate('/onboarding', { replace: true });
       return null;
     } else {
-      navigate('/unauthorized', { replace: true });
-      return null;
+      // Only redirect to unauthorized if this route actually requires roles
+      if (requiredRoles.length > 0) {
+        navigate('/unauthorized', { replace: true });
+        return null;
+      }
+      // For routes without role requirements (like dashboard), allow access even without roles
     }
   }
 
   // Show nothing while redirecting
-  if (!isAuthenticated || (requiredRoles.length > 0 && (!currentRole || !requiredRoles.includes(currentRole)))) {
+  if (!isAuthenticated) {
+    return null;
+  }
+  
+  // For routes with role requirements, check if user has the required role
+  if (requiredRoles.length > 0 && (!currentRole || !requiredRoles.includes(currentRole))) {
     return null;
   }
 

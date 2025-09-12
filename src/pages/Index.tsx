@@ -144,6 +144,7 @@ const Index = () => {
             appointments={mockAppointments}
             onEditAppointment={handleEditAppointment}
             onDeleteAppointment={handleDeleteAppointment}
+            onGoToToday={() => setCurrentDate(new Date())}
           />
         )}
         

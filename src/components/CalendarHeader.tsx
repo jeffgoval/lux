@@ -88,15 +88,17 @@ export const CalendarHeader = ({
             </Button>
           </div>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDateChange(new Date())}
-            className="text-warm hover:text-primary-dark"
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            Hoje
-          </Button>
+          {viewType !== 'day' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDateChange(new Date())}
+              className="text-warm hover:text-primary-dark"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Hoje
+            </Button>
+          )}
         </div>
 
         {/* View Controls */}

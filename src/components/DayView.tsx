@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, User, Scissors, Phone, Mail, Edit, Trash2 } from "lucide-react";
+import { Clock, User, Scissors, Phone, Mail, Edit, Trash2, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -26,9 +26,10 @@ interface DayViewProps {
   appointments: Appointment[];
   onEditAppointment: (appointment: Appointment) => void;
   onDeleteAppointment: (id: string) => void;
+  onGoToToday?: () => void;
 }
 
-export const DayView = ({ date, appointments, onEditAppointment, onDeleteAppointment }: DayViewProps) => {
+export const DayView = ({ date, appointments, onEditAppointment, onDeleteAppointment, onGoToToday }: DayViewProps) => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   
   // Generate time slots from 8:00 to 20:00
@@ -72,19 +73,29 @@ export const DayView = ({ date, appointments, onEditAppointment, onDeleteAppoint
 
   return (
     <div className="space-y-4">
-      {/* Date Header */}
+      {/* Today Button and Stats */}
       <div className="glass-effect rounded-xl p-4">
-        <h2 className="heading-premium text-lg">
-          {format(date, "EEEE, d 'de' MMMM", { locale: ptBR })}
-        </h2>
-        <div className="flex items-center gap-4 mt-2">
-          <div className="flex items-center gap-2 text-sm text-warm">
-            <Clock className="h-4 w-4" />
-            {appointments.length} agendamentos
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-warm">
+              <Clock className="h-4 w-4" />
+              {appointments.length} agendamentos
+            </div>
+            <div className="flex items-center gap-2 text-sm text-premium">
+              Taxa de ocupação: {Math.round((appointments.length / 24) * 100)}%
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-sm text-premium">
-            Taxa de ocupação: {Math.round((appointments.length / 24) * 100)}%
-          </div>
+          {onGoToToday && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onGoToToday}
+              className="text-warm hover:text-primary-dark"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Hoje
+            </Button>
+          )}
         </div>
       </div>
 

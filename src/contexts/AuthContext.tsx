@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        
+
         // If profile doesn't exist and we haven't retried too many times, try to fix it
         if (error.code === 'PGRST116' && retryCount < 2) {
           console.log('Profile not found, attempting to fix missing data...');
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       } else {
         console.log('Profile not found for user:', userId);
-        
+
         // Try to fix missing profile if we haven't retried
         if (retryCount < 2) {
           console.log('Attempting to fix missing profile...');
@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       } else {
         console.log('No roles found for user:', userId);
-        
+
         // Try to fix missing roles if we haven't retried
         if (retryCount < 2) {
           console.log('Attempting to fix missing roles...');
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Sign up function - redireciona para onboarding
+  // Sign up function - apenas cria o usuário, dados serão criados no onboarding
   const signUp = async (email: string, password: string, metadata?: any) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -150,12 +150,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  // Sign in function
+  // Sign in function - verifica e cria dados faltantes
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
+
+    // Se o login foi bem-sucedido, verificar se tem profile e role
+    if (!error && data.user) {
+      console.log('Checking user data for:', data.user.email);
+
+      // Aguardar um pouco para o auth state se estabilizar
+      setTimeout(async () => {
+        try {
+          // Verificar profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+
+          if (!profile) {
+            console.log('Creating missing profile for existing user');
+            await supabase
+              .from('profiles')
+              .insert({
+                user_id: data.user.id,
+                nome_completo: data.user.email?.split('@')[0] || 'Usuário',
+                email: data.user.email || '',
+                primeiro_acesso: false,
+                ativo: true
+              });
+          }
+
+          // Verificar role
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('id')
+            .eq('user_id', data.user.id)
+            .eq('ativo', true);
+
+          if (!roles || roles.length === 0) {
+            console.log('Creating missing role for existing user');
+            await supabase
+              .from('user_roles')
+              .insert({
+                user_id: data.user.id,
+                role: 'proprietaria',
+                ativo: true,
+                criado_por: data.user.id
+              });
+          }
+
+        } catch (checkError) {
+          console.error('Error checking/creating user data:', checkError);
+        }
+      }, 500);
+    }
+
     return { error };
   };
 
@@ -176,10 +229,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Get current highest priority role
   const getCurrentRole = (): UserRole | null => {
     if (!roles.length) return null;
-    
+
     const roleOrder: UserRole[] = [
       'super_admin',
-      'proprietaria', 
+      'proprietaria',
       'gerente',
       'profissionais',
       'recepcionistas',
@@ -190,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     for (const role of roleOrder) {
       if (hasRole(role)) return role;
     }
-    
+
     return null;
   };
 
@@ -203,20 +256,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return false;
 
     try {
-      // Import the recovery utility
-      const { comprehensiveUserDataRecovery } = await import('@/utils/userDataRecovery');
-      
-      const result = await comprehensiveUserDataRecovery(user);
-      
+      // Import the force setup utility
+      const { forceUserSetup } = await import('@/utils/forceUserSetup');
+
+      const result = await forceUserSetup(user);
+
       if (result.success) {
         console.log('Successfully fixed missing user data:', result);
         return true;
       } else {
         console.error('Failed to fix missing user data:', result.error);
+
+        // Fallback to comprehensive recovery
+        const { comprehensiveUserDataRecovery } = await import('@/utils/userDataRecovery');
+        const fallbackResult = await comprehensiveUserDataRecovery(user);
+
+        if (fallbackResult.success) {
+          console.log('Fallback recovery successful:', fallbackResult);
+          return true;
+        }
+
         return false;
       }
     } catch (error) {
-      console.error('Error calling comprehensive recovery:', error);
+      console.error('Error calling force setup:', error);
       return false;
     }
   };
@@ -226,42 +289,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           // For new signups, wait a bit for the trigger to complete
           if (event === 'SIGNED_IN') {
             console.log('New user signed up, waiting for profile creation...');
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
-          
+
           // Fetch additional user data with retry logic and timeout
           try {
             const profilePromise = fetchProfile(session.user.id);
             const rolesPromise = fetchRoles(session.user.id);
-            
+
             // Add timeout to prevent hanging
             const timeoutPromise = new Promise<boolean>((resolve) => {
               setTimeout(() => {
                 resolve(false);
               }, 5000); // 5 second timeout
             });
-            
+
             const [profileSuccess, rolesSuccess] = await Promise.race([
               Promise.all([profilePromise, rolesPromise]),
               timeoutPromise.then(() => [false, false])
             ]);
-            
-            // If either failed, log for debugging
+
+            // If either failed, try to fix missing data immediately
             if (!profileSuccess || !rolesSuccess) {
-              console.warn('Failed to fetch complete user data:', {
+              console.warn('Failed to fetch complete user data, attempting fix:', {
                 profileSuccess,
                 rolesSuccess,
                 userId: session.user.id
               });
-              
+
+              // Try to fix missing data
+              const fixed = await fixMissingUserData();
+              if (fixed) {
+                console.log('Successfully fixed missing user data, refetching...');
+                // Retry fetching after fix
+                await fetchProfile(session.user.id);
+                await fetchRoles(session.user.id);
+              }
+
               // Generate debug report in development
               if (process.env.NODE_ENV === 'development') {
                 generateAuthDebugReport(session.user).then(logAuthDebugReport);
@@ -274,7 +346,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null);
           setRoles([]);
         }
-        
+
         setIsLoading(false);
       }
     );
@@ -283,12 +355,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         await fetchProfile(session.user.id);
         await fetchRoles(session.user.id);
       }
-      
+
       setIsLoading(false);
     });
 
@@ -301,7 +373,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Refreshing profile and roles for user:', user.email);
       const profileSuccess = await fetchProfile(user.id);
       const rolesSuccess = await fetchRoles(user.id);
-      
+
       if (!profileSuccess || !rolesSuccess) {
         console.warn('Failed to refresh complete user data, attempting fix...');
         await fixMissingUserData();

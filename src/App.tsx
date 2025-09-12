@@ -33,7 +33,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             
@@ -55,7 +55,7 @@ const App = () => (
               } 
             />
             <Route 
-              path="/" 
+              path="/dashboard" 
               element={
                 <AuthGuard>
                   <AppLayout>

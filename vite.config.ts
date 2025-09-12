@@ -16,21 +16,9 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Otimizações para produção
     target: 'esnext',
     minify: 'esbuild',
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Separa vendor libraries em chunks separados
-          vendor: ['react', 'react-dom'],
-          supabase: ['@supabase/supabase-js'],
-          ui: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
-        },
-      },
-    },
-    // Aumenta o limite de warning para chunks grandes
     chunkSizeWarningLimit: 1000,
   },
   // Configurações para preview (teste local do build)

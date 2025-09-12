@@ -22,7 +22,7 @@ export default function Auth() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from || '/';
+  const from = location.state?.from || '/dashboard';
 
   useEffect(() => {
     if (isAuthenticated) {
