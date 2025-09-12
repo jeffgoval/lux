@@ -3,10 +3,14 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { generateAuthDebugReport, logAuthDebugReport } from '@/utils/authDebugger';
+import { authCacheManager, AuthState, getAuthCacheStats, clearAuthCache } from '@/utils/authCache';
+import { retrySupabaseOperation, retryConfigs, isRetryableError } from '@/utils/retryUtils';
+import { errorRecoveryManager, createAuthError, createDataError, ErrorCategory, ErrorSeverity } from '@/utils/errorRecovery';
+import { performanceMonitor, timeAsync } from '@/utils/performanceMonitor';
 
 type UserRole = Database['public']['Enums']['user_role_type'];
 
-interface UserProfile {
+export interface UserProfile {
   id: string;
   user_id: string;
   nome_completo: string;
@@ -19,7 +23,7 @@ interface UserProfile {
   atualizado_em: string;
 }
 
-interface UserRoleContext {
+export interface UserRoleContext {
   id: string;
   user_id: string;
   organizacao_id?: string;
@@ -37,12 +41,17 @@ interface AuthContextType {
   roles: UserRoleContext[];
   currentRole: UserRole | null;
   isLoading: boolean;
+  isProfileLoading: boolean;
+  isRolesLoading: boolean;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
   getCurrentRole: () => UserRole | null;
   refreshProfile: () => Promise<void>;
+  refreshUserData: (force?: boolean) => Promise<void>;
+  clearAuthCache: () => void;
+  getAuthState: () => AuthState;
   isAuthenticated: boolean;
   isOnboardingComplete: boolean;
   fixMissingUserData: () => Promise<boolean>;
@@ -56,84 +65,176 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [roles, setRoles] = useState<UserRoleContext[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [isRolesLoading, setIsRolesLoading] = useState(false);
 
-  // Fetch user profile with retry logic
-  const fetchProfile = async (userId: string, retryCount = 0): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-
-        // If profile doesn't exist and we haven't retried too many times, try to fix it
-        if (error.code === 'PGRST116' && retryCount < 2) {
-          console.log('Profile not found, attempting to fix missing data...');
-          const fixed = await fixMissingUserData();
-          if (fixed && retryCount < 1) {
-            return fetchProfile(userId, retryCount + 1);
-          }
+  // Initialize error recovery with auth-specific actions
+  useEffect(() => {
+    errorRecoveryManager.injectAuthRecovery(
+      async () => {
+        try {
+          await refreshUserData(true);
+          return true;
+        } catch {
+          return false;
         }
-        return false;
-      }
+      },
+      fixMissingUserData
+    );
+  }, []);
 
-      if (data) {
-        setProfile(data);
+  // Fetch user profile with enhanced retry logic, loading state, and caching
+  const fetchProfile = async (userId: string, retryCount = 0, force = false): Promise<boolean> => {
+    // Check cache first unless forced refresh
+    if (!force) {
+      const cachedProfile = authCacheManager.getProfile();
+      if (cachedProfile && !cachedProfile.isStale) {
+        console.log('Using cached profile data');
+        setProfile(cachedProfile.data);
+        return !!cachedProfile.data;
+      }
+    }
+
+    setIsProfileLoading(true);
+    
+    try {
+      // Use retry utility for robust profile fetching with performance monitoring
+      const result = await timeAsync('profile-fetch', () => 
+        retrySupabaseOperation(
+          () => supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .maybeSingle(),
+          retryConfigs.critical
+        ), 'auth'
+      );
+
+      if (result.success && result.data) {
+        setProfile(result.data);
+        authCacheManager.setProfile(result.data);
+        setIsProfileLoading(false);
+        console.log(`Profile fetched successfully after ${result.attempts} attempts in ${result.totalTime}ms`);
         return true;
       } else {
         console.log('Profile not found for user:', userId);
+        authCacheManager.setProfile(null);
 
         // Try to fix missing profile if we haven't retried
         if (retryCount < 2) {
           console.log('Attempting to fix missing profile...');
           const fixed = await fixMissingUserData();
           if (fixed && retryCount < 1) {
-            return fetchProfile(userId, retryCount + 1);
+            setIsProfileLoading(false);
+            return fetchProfile(userId, retryCount + 1, force);
           }
         }
+        setIsProfileLoading(false);
         return false;
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching profile after retries:', error);
+      authCacheManager.setProfile(null, (error as Error).message);
+      
+      // Create error for recovery system
+      const appError = createDataError(
+        'Failed to fetch user profile',
+        { userId, currentRoute: window.location.pathname },
+        error as Error
+      );
+      
+      // Attempt automatic recovery
+      const recovered = await errorRecoveryManager.attemptRecovery(appError);
+      if (recovered && retryCount < 1) {
+        setIsProfileLoading(false);
+        return fetchProfile(userId, retryCount + 1, force);
+      }
+      
+      // If it's a "not found" error and we haven't tried to fix it, try once
+      if ((error as Error).message.includes('PGRST116') && retryCount < 2) {
+        console.log('Profile not found, attempting to fix missing data...');
+        const fixed = await fixMissingUserData();
+        if (fixed && retryCount < 1) {
+          setIsProfileLoading(false);
+          return fetchProfile(userId, retryCount + 1, force);
+        }
+      }
+      
+      setIsProfileLoading(false);
       return false;
     }
   };
 
-  // Fetch user roles with retry logic
-  const fetchRoles = async (userId: string, retryCount = 0): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('ativo', true);
-
-      if (error) {
-        console.error('Error fetching roles:', error);
-        return false;
+  // Fetch user roles with enhanced retry logic, loading state, and caching
+  const fetchRoles = async (userId: string, retryCount = 0, force = false): Promise<boolean> => {
+    // Check cache first unless forced refresh
+    if (!force) {
+      const cachedRoles = authCacheManager.getRoles();
+      if (cachedRoles && !cachedRoles.isStale) {
+        console.log('Using cached roles data');
+        setRoles(cachedRoles.data);
+        return cachedRoles.data.length > 0;
       }
+    }
 
-      if (data && data.length > 0) {
-        setRoles(data);
-        return true;
-      } else {
-        console.log('No roles found for user:', userId);
+    setIsRolesLoading(true);
+    
+    try {
+      // Use retry utility for robust roles fetching with performance monitoring
+      const result = await timeAsync('roles-fetch', () =>
+        retrySupabaseOperation(
+          () => supabase
+            .from('user_roles')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('ativo', true),
+          retryConfigs.standard
+        ), 'auth'
+      );
 
-        // Try to fix missing roles if we haven't retried
-        if (retryCount < 2) {
-          console.log('Attempting to fix missing roles...');
-          const fixed = await fixMissingUserData();
-          if (fixed && retryCount < 1) {
-            return fetchRoles(userId, retryCount + 1);
+      if (result.success) {
+        const rolesData = result.data || [];
+        setRoles(rolesData);
+        authCacheManager.setRoles(rolesData);
+        setIsRolesLoading(false);
+        console.log(`Roles fetched successfully after ${result.attempts} attempts in ${result.totalTime}ms`);
+
+        if (rolesData.length > 0) {
+          return true;
+        } else {
+          console.log('No roles found for user:', userId);
+
+          // Try to fix missing roles if we haven't retried
+          if (retryCount < 2) {
+            console.log('Attempting to fix missing roles...');
+            const fixed = await fixMissingUserData();
+            if (fixed && retryCount < 1) {
+              return fetchRoles(userId, retryCount + 1, force);
+            }
           }
+          return false;
         }
+      } else {
+        console.error('Failed to fetch roles after retries:', result.error);
+        authCacheManager.setRoles([], result.error?.message);
+        setIsRolesLoading(false);
         return false;
       }
     } catch (error) {
       console.error('Error fetching roles:', error);
+      authCacheManager.setRoles([], (error as Error).message);
+      
+      // Create error for recovery system
+      const appError = createDataError(
+        'Failed to fetch user roles',
+        { userId, currentRoute: window.location.pathname },
+        error as Error
+      );
+      
+      // Attempt automatic recovery
+      await errorRecoveryManager.attemptRecovery(appError);
+      
+      setIsRolesLoading(false);
       return false;
     }
   };
@@ -161,39 +262,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!error && data.user) {
       console.log('Checking user data for:', data.user.email);
 
-      // Aguardar um pouco para o auth state se estabilizar
+      // Aguardar um pouco para o auth state se estabilizar, então verificar/criar dados
       setTimeout(async () => {
         try {
+          console.log('SignIn: Checking/creating user data after auth stabilization');
+          
           // Verificar profile
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('id')
             .eq('user_id', data.user.id)
             .maybeSingle();
 
+          if (profileError) {
+            console.error('Error checking profile:', profileError);
+          }
+
           if (!profile) {
-            console.log('Creating missing profile for existing user');
-            await supabase
+            console.log('SignIn: Creating missing profile for existing user');
+            const { error: insertProfileError } = await supabase
               .from('profiles')
               .insert({
                 user_id: data.user.id,
                 nome_completo: data.user.email?.split('@')[0] || 'Usuário',
                 email: data.user.email || '',
-                primeiro_acesso: false,
+                primeiro_acesso: false, // Usuário existente não precisa de onboarding
                 ativo: true
               });
+              
+            if (insertProfileError) {
+              console.error('Error creating profile:', insertProfileError);
+            } else {
+              console.log('SignIn: Profile created successfully');
+            }
+          } else {
+            console.log('SignIn: Profile already exists');
           }
 
           // Verificar role
-          const { data: roles } = await supabase
+          const { data: roles, error: rolesError } = await supabase
             .from('user_roles')
             .select('id')
             .eq('user_id', data.user.id)
             .eq('ativo', true);
 
+          if (rolesError) {
+            console.error('Error checking roles:', rolesError);
+          }
+
           if (!roles || roles.length === 0) {
-            console.log('Creating missing role for existing user');
-            await supabase
+            console.log('SignIn: Creating missing role for existing user');
+            const { error: insertRoleError } = await supabase
               .from('user_roles')
               .insert({
                 user_id: data.user.id,
@@ -201,6 +320,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 ativo: true,
                 criado_por: data.user.id
               });
+              
+            if (insertRoleError) {
+              console.error('Error creating role:', insertRoleError);
+            } else {
+              console.log('SignIn: Role created successfully');
+            }
+          } else {
+            console.log('SignIn: Role already exists');
           }
 
         } catch (checkError) {
@@ -212,13 +339,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  // Sign out function
+  // Sign out function with cache clearing
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
     setRoles([]);
+    setIsProfileLoading(false);
+    setIsRolesLoading(false);
+    clearAuthCache();
   };
 
   // Check if user has specific role
@@ -302,8 +432,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           // Fetch additional user data with retry logic and timeout
           try {
-            const profilePromise = fetchProfile(session.user.id);
-            const rolesPromise = fetchRoles(session.user.id);
+            const profilePromise = fetchProfile(session.user.id, 0, false);
+            const rolesPromise = fetchRoles(session.user.id, 0, false);
 
             // Add timeout to prevent hanging
             const timeoutPromise = new Promise<boolean>((resolve) => {
@@ -330,8 +460,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               if (fixed) {
                 console.log('Successfully fixed missing user data, refetching...');
                 // Retry fetching after fix
-                await fetchProfile(session.user.id);
-                await fetchRoles(session.user.id);
+                await fetchProfile(session.user.id, 0, true);
+                await fetchRoles(session.user.id, 0, true);
               }
 
               // Generate debug report in development
@@ -345,6 +475,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setProfile(null);
           setRoles([]);
+          setIsProfileLoading(false);
+          setIsRolesLoading(false);
         }
 
         setIsLoading(false);
@@ -357,8 +489,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        await fetchProfile(session.user.id);
-        await fetchRoles(session.user.id);
+        await fetchProfile(session.user.id, 0, false);
+        await fetchRoles(session.user.id, 0, false);
       }
 
       setIsLoading(false);
@@ -371,17 +503,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (user) {
       console.log('Refreshing profile and roles for user:', user.email);
-      const profileSuccess = await fetchProfile(user.id);
-      const rolesSuccess = await fetchRoles(user.id);
+      const profileSuccess = await fetchProfile(user.id, 0, true); // Force refresh
+      const rolesSuccess = await fetchRoles(user.id, 0, true); // Force refresh
 
       if (!profileSuccess || !rolesSuccess) {
         console.warn('Failed to refresh complete user data, attempting fix...');
         await fixMissingUserData();
         // Try once more after fixing
-        await fetchProfile(user.id);
-        await fetchRoles(user.id);
+        await fetchProfile(user.id, 0, true);
+        await fetchRoles(user.id, 0, true);
       }
     }
+  };
+
+  // Enhanced refresh function with force option
+  const refreshUserData = async (force = false) => {
+    if (user) {
+      console.log('Refreshing user data:', { force, email: user.email });
+      
+      if (force) {
+        authCacheManager.invalidateAll();
+      }
+
+      const profileSuccess = await fetchProfile(user.id, 0, force);
+      const rolesSuccess = await fetchRoles(user.id, 0, force);
+
+      if (!profileSuccess || !rolesSuccess) {
+        console.warn('Failed to refresh complete user data, attempting fix...');
+        await fixMissingUserData();
+        // Try once more after fixing
+        await fetchProfile(user.id, 0, true);
+        await fetchRoles(user.id, 0, true);
+      }
+    }
+  };
+
+  // Function to clear auth cache
+  const clearAuthCacheHandler = () => {
+    authCacheManager.clearAll();
+  };
+
+  // Function to get current auth state
+  const getAuthState = (): AuthState => {
+    return authCacheManager.getAuthState(isAuthenticated);
   };
 
   const value = {
@@ -391,12 +555,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     roles,
     currentRole,
     isLoading,
+    isProfileLoading,
+    isRolesLoading,
     signUp,
     signIn,
     signOut,
     hasRole,
     getCurrentRole,
     refreshProfile,
+    refreshUserData,
+    clearAuthCache: clearAuthCacheHandler,
+    getAuthState,
     isAuthenticated,
     isOnboardingComplete,
     fixMissingUserData

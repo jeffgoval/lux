@@ -3,11 +3,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { query, transaction } = require('../db/connection');
 const { authenticateToken } = require('../middleware/auth');
+const { validateRegistrationData, validateLoginData } = require('../middleware/validation');
+const { asyncErrorHandler } = require('../middleware/errorHandler');
 
 const router = express.Router();
 
 // Login - SEM RLS, SEM COMPLICAÇÃO
-router.post('/login', async (req, res) => {
+router.post('/login', validateLoginData, asyncErrorHandler(async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -85,10 +87,10 @@ router.post('/login', async (req, res) => {
       error: 'Erro interno do servidor'
     });
   }
-});
+}));
 
 // Registro - SIMPLES
-router.post('/register', async (req, res) => {
+router.post('/register', validateRegistrationData, asyncErrorHandler(async (req, res) => {
   try {
     const { email, password, nome_completo, telefone } = req.body;
 
@@ -150,7 +152,7 @@ router.post('/register', async (req, res) => {
       error: 'Erro interno do servidor'
     });
   }
-});
+}));
 
 // Verificar token
 router.get('/me', authenticateToken, async (req, res) => {

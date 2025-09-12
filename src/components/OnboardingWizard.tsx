@@ -468,7 +468,7 @@ export function OnboardingWizard() {
 
       if (finalSessionCheck) {
         console.log('Redirecting to dashboard...');
-        navigate('/');
+        navigate('/dashboard');
       } else {
         console.log('Session invalid, redirecting to auth...');
         toast.error('Sessão perdida', {

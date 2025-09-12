@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "./AppSidebar"
+import { NavigationLoadingIndicator } from "./OptimisticNavLink"
 import { Bell, User, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -33,6 +34,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
 
   return (
     <SidebarProvider defaultOpen={true}>
+      <NavigationLoadingIndicator />
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         

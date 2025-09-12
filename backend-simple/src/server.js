@@ -5,6 +5,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const clinicasRoutes = require('./routes/clinicas');
 const usersRoutes = require('./routes/users');
+const onboardingRoutes = require('./routes/onboarding');
 
 const app = express();
 // DigitalOcean App Platform usa porta 8080
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/clinicas', clinicasRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 
 // Health check endpoints
 app.get('/', (req, res) => {
@@ -59,23 +61,11 @@ app.use('*', (req, res) => {
   });
 });
 
+// Import error handler
+const { errorHandlerMiddleware } = require('./middleware/errorHandler');
+
 // Error handler
-app.use((err, req, res, next) => {
-  console.error('Error occurred:', {
-    error: err.message,
-    stack: err.stack,
-    url: req.url,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
-  
-  res.status(500).json({ 
-    success: false, 
-    error: 'Algo deu errado!',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
-    timestamp: new Date().toISOString()
-  });
-});
+app.use(errorHandlerMiddleware);
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

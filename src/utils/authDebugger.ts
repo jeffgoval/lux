@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { checkUserDataStatus, validateUserDataIntegrity } from './userDataRecovery';
+import { getAuthCacheStats } from './authCache';
+import { errorRecoveryManager } from './errorRecovery';
 
 export interface AuthDebugReport {
   timestamp: string;
@@ -35,10 +37,35 @@ export interface AuthDebugReport {
     data?: any[];
     error?: string;
   };
+  cacheStatus: {
+    profileCached: boolean;
+    profileFresh: boolean;
+    rolesCached: boolean;
+    rolesFresh: boolean;
+    permissionsCached: boolean;
+    permissionsFresh: boolean;
+  };
+  navigationStatus: {
+    currentRoute: string;
+    previousRoute?: string;
+    isNavigating: boolean;
+    navigationHistory: string[];
+  };
+  errorStatus: {
+    totalErrors: number;
+    recentErrors: any[];
+    errorsByCategory: Record<string, number>;
+    errorsBySeverity: Record<string, number>;
+  };
   integrity: {
     isValid: boolean;
     issues: string[];
     recommendations: string[];
+  };
+  performance: {
+    memoryUsage?: any;
+    navigationTiming?: any;
+    cacheHitRate: number;
   };
   summary: {
     overallStatus: 'healthy' | 'warning' | 'error';
@@ -104,6 +131,18 @@ export async function generateAuthDebugReport(user?: User): Promise<AuthDebugRep
   // Check organization access
   const organizationStatus = await checkOrganizationAccess(userId);
   
+  // Get cache status
+  const cacheStatus = getAuthCacheStats();
+  
+  // Get navigation status
+  const navigationStatus = getNavigationStatus();
+  
+  // Get error status
+  const errorStatus = getErrorStatus();
+  
+  // Get performance metrics
+  const performance = getPerformanceMetrics();
+  
   // Validate data integrity
   const integrity = await validateUserDataIntegrity(userId);
   
@@ -114,7 +153,11 @@ export async function generateAuthDebugReport(user?: User): Promise<AuthDebugRep
     roleStatus,
     clinicStatus,
     organizationStatus,
-    integrity
+    cacheStatus,
+    navigationStatus,
+    errorStatus,
+    integrity,
+    performance
   });
 
   return {
@@ -126,7 +169,11 @@ export async function generateAuthDebugReport(user?: User): Promise<AuthDebugRep
     roleStatus,
     clinicStatus,
     organizationStatus,
+    cacheStatus,
+    navigationStatus,
+    errorStatus,
     integrity,
+    performance,
     summary
   };
 }
@@ -232,6 +279,86 @@ async function checkOrganizationAccess(userId: string) {
   }
 }
 
+function getNavigationStatus() {
+  try {
+    // Try to get navigation context if available
+    const currentRoute = window.location.pathname;
+    return {
+      currentRoute,
+      previousRoute: document.referrer ? new URL(document.referrer).pathname : undefined,
+      isNavigating: false, // Will be updated by navigation context
+      navigationHistory: [currentRoute]
+    };
+  } catch (error) {
+    return {
+      currentRoute: 'unknown',
+      isNavigating: false,
+      navigationHistory: []
+    };
+  }
+}
+
+function getErrorStatus() {
+  try {
+    const errorReport = errorRecoveryManager.generateErrorReport();
+    return {
+      totalErrors: errorReport.totalErrors,
+      recentErrors: errorReport.recentErrors,
+      errorsByCategory: errorReport.errorsByCategory,
+      errorsBySeverity: errorReport.errorsBySeverity
+    };
+  } catch (error) {
+    return {
+      totalErrors: 0,
+      recentErrors: [],
+      errorsByCategory: {},
+      errorsBySeverity: {}
+    };
+  }
+}
+
+function getPerformanceMetrics() {
+  try {
+    const performance: any = {
+      cacheHitRate: 0
+    };
+
+    // Get memory usage if available
+    if ('memory' in performance && (performance as any).memory) {
+      performance.memoryUsage = {
+        usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
+        totalJSHeapSize: (performance as any).memory.totalJSHeapSize,
+        jsHeapSizeLimit: (performance as any).memory.jsHeapSizeLimit
+      };
+    }
+
+    // Get navigation timing if available
+    if ('getEntriesByType' in performance) {
+      const navigationEntries = performance.getEntriesByType('navigation');
+      if (navigationEntries.length > 0) {
+        const entry = navigationEntries[0];
+        performance.navigationTiming = {
+          domContentLoaded: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart,
+          loadComplete: entry.loadEventEnd - entry.loadEventStart,
+          totalTime: entry.loadEventEnd - entry.fetchStart
+        };
+      }
+    }
+
+    // Calculate cache hit rate from cache stats
+    const cacheStats = getAuthCacheStats();
+    const totalCacheChecks = Object.values(cacheStats).filter(Boolean).length;
+    const freshCacheHits = [cacheStats.profileFresh, cacheStats.rolesFresh, cacheStats.permissionsFresh].filter(Boolean).length;
+    performance.cacheHitRate = totalCacheChecks > 0 ? (freshCacheHits / totalCacheChecks) * 100 : 0;
+
+    return performance;
+  } catch (error) {
+    return {
+      cacheHitRate: 0
+    };
+  }
+}
+
 function generateSummary(checks: any) {
   const criticalIssues: string[] = [];
   const nextSteps: string[] = [];
@@ -255,13 +382,33 @@ function generateSummary(checks: any) {
   if (checks.profileStatus.exists && checks.profileStatus.data?.primeiro_acesso) {
     nextSteps.push('Complete onboarding process');
   }
+
+  // Check cache issues
+  if (!checks.cacheStatus.profileFresh && checks.cacheStatus.profileCached) {
+    nextSteps.push('Refresh profile cache');
+  }
+
+  if (!checks.cacheStatus.rolesFresh && checks.cacheStatus.rolesCached) {
+    nextSteps.push('Refresh roles cache');
+  }
+
+  // Check error issues
+  if (checks.errorStatus.totalErrors > 10) {
+    criticalIssues.push('High error count detected');
+    nextSteps.push('Review error logs and fix underlying issues');
+  }
+
+  // Check performance issues
+  if (checks.performance.cacheHitRate < 50) {
+    nextSteps.push('Optimize cache usage for better performance');
+  }
   
   // Determine overall status
   let overallStatus: 'healthy' | 'warning' | 'error' = 'healthy';
   
   if (criticalIssues.length > 0) {
     overallStatus = 'error';
-  } else if (!checks.integrity.isValid) {
+  } else if (!checks.integrity.isValid || checks.errorStatus.totalErrors > 5) {
     overallStatus = 'warning';
   }
   
@@ -289,6 +436,10 @@ export function logAuthDebugReport(report: AuthDebugReport) {
   console.log('🎭 Roles:', report.roleStatus);
   console.log('🏥 Clinics:', report.clinicStatus);
   console.log('🏢 Organizations:', report.organizationStatus);
+  console.log('💾 Cache:', report.cacheStatus);
+  console.log('🧭 Navigation:', report.navigationStatus);
+  console.log('❌ Errors:', report.errorStatus);
+  console.log('⚡ Performance:', report.performance);
   console.log('✅ Integrity:', report.integrity);
   
   console.groupEnd();

@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-09-12T22:28:45.460Z",
+  "supabaseUrl": "https://dvnyfwpphuuujhodqkko.supabase.co",
+  "tables": {
+    "profiles": {
+      "table": "profiles",
+      "data": [],
+      "success": true,
+      "count": 0
+    },
+    "user_roles": {
+      "table": "user_roles",
+      "data": [],
+      "success": true,
+      "count": 0
+    },
+    "organizations": {
+      "table": "organizations",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "clinics": {
+      "table": "clinics",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "clinic_professionals": {
+      "table": "clinic_professionals",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "roles": {
+      "table": "roles",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "appointments": {
+      "table": "appointments",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "patients": {
+      "table": "patients",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "medical_records": {
+      "table": "medical_records",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "procedures": {
+      "table": "procedures",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "procedure_templates": {
+      "table": "procedure_templates",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "inventory_items": {
+      "table": "inventory_items",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "equipment": {
+      "table": "equipment",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "audit_logs": {
+      "table": "audit_logs",
+      "data": [],
+      "success": false,
+      "error": 404
+    },
+    "storage_objects": {
+      "table": "storage_objects",
+      "data": [],
+      "success": false,
+      "error": 404
+    }
+  },
+  "summary": {
+    "totalTables": 15,
+    "successfulTables": 2,
+    "totalRecords": 0,
+    "errors": [
+      "organizations: 404",
+      "clinics: 404",
+      "clinic_professionals: 404",
+      "roles: 404",
+      "appointments: 404",
+      "patients: 404",
+      "medical_records: 404",
+      "procedures: 404",
+      "procedure_templates: 404",
+      "inventory_items: 404",
+      "equipment: 404",
+      "audit_logs: 404",
+      "storage_objects: 404"
+    ]
+  }
+}

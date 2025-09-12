@@ -198,7 +198,7 @@ export default function Landing() {
               ✨ Clínica Estética de Excelência ✨
             </Badge>
 
-            <h1 className="heading-premium text-7xl lg:text-9xl font-light mb-4 leading-tight animate-slide-up animate-delay-300">
+            <h1 className="heading-premium text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-light mb-4 leading-tight animate-slide-up animate-delay-300">
               <span className="text-warm block text-gradient animate-float relative">
                 SUAVIZAR
                 <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-transparent to-primary-light/20 blur-xl -z-10 animate-pulse-soft"></div>
@@ -206,7 +206,7 @@ export default function Landing() {
             </h1>
 
             <p className="text-premium text-xl lg:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in animate-delay-400 font-light">
-              Estética Especializada • Beleza Natural • Resultados Excepcionais
+              Estética Especializada
             </p>
 
             <div className="flex justify-center items-center animate-scale-in animate-delay-500">
@@ -299,7 +299,7 @@ export default function Landing() {
             {services.map((service, index) => (
               <Card
                 key={index}
-                className={`p-8 hover-elegant hover-lift group cursor-pointer border-0 shadow-soft relative overflow-hidden transition-all duration-700 ${isVisible.services ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
+                className={`p-8 text-center hover-elegant hover-lift group cursor-pointer border-0 shadow-soft relative overflow-hidden transition-all duration-700 ${isVisible.services ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
                   }`}
                 style={{ animationDelay: `${index * 150}ms` }}
               >
@@ -423,7 +423,7 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section id="cta" className="py-24 relative overflow-hidden">
+      <section id="cta" className="py-24 relative overflow-hidden hidden md:block">
         {/* Animated Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary-light/5"></div>
 
@@ -596,7 +596,7 @@ export default function Landing() {
                 className="h-12 w-auto mx-auto mb-4 hover-lift transition-spring"
               />
               <h3 className="heading-premium text-2xl mb-2 text-gradient">SUAVIZAR</h3>
-              <p className="text-premium">Estética Especializada • Beleza Natural</p>
+              <p className="text-premium">Estética Especializada</p>
             </div>
 
             {/* Divider */}

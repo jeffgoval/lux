@@ -1,0 +1,10 @@
+# Ignorar todos os arquivos de backup
+*.sql
+*.dump
+*.backup
+
+# Manter apenas este arquivo .gitignore
+!.gitignore
+
+# Arquivo README para documentar o diretório
+!README.md

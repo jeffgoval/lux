@@ -26,13 +26,18 @@ export async function forceUserSetup(user: User): Promise<{
     // Create profile if missing
     if (!existingProfile) {
       console.log('📝 Creating missing profile...');
+      
+      // Check if this is a completely new user or an existing user with missing profile
+      // If user has metadata from signup, it's likely a new user
+      const isNewUser = !user.user_metadata?.nome_completo && !user.user_metadata?.completed_onboarding;
+      
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
           user_id: user.id,
           nome_completo: user.user_metadata?.nome_completo || user.email?.split('@')[0] || 'Usuário',
           email: user.email || '',
-          primeiro_acesso: true,
+          primeiro_acesso: isNewUser, // Only new users need onboarding
           ativo: true
         });
 
