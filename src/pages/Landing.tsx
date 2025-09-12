@@ -92,8 +92,7 @@ export default function Landing() {
             </Badge>
             
             <h1 className="heading-premium text-4xl lg:text-6xl font-light mb-6 leading-tight">
-              Desperte sua
-              <span className="text-warm block">beleza natural</span>
+              <span className="text-warm block">SUAVIZAR</span>
             </h1>
             
             <p className="text-premium text-lg lg:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
