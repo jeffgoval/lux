@@ -15,8 +15,15 @@ CREATE TABLE IF NOT EXISTS public.clinica_profissionais (
 -- 2. Habilitar RLS e criar política
 ALTER TABLE public.clinica_profissionais ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "Allow users to manage their clinic relationships"
-ON public.clinica_profissionais
-FOR ALL
-USING (auth.uid() = user_id)
-WITH CHECK (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE policyname = 'Allow users to manage their clinic relationships' AND schemaname = 'public' AND tablename = 'clinica_profissionais'
+  ) THEN
+    CREATE POLICY "Allow users to manage their clinic relationships"
+    ON public.clinica_profissionais
+    FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+  END IF;
+END $$;

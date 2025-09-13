@@ -14,11 +14,16 @@ import { User, Mail, Phone, Calendar, Shield, Building2, Loader2 } from 'lucide-
 import { supabase } from '@/integrations/supabase/client';
 import { useSystemRoles } from '@/hooks/useSystemRoles';
 import { toast } from 'sonner';
+import { LoadingFallback } from '@/components/LoadingFallback';
+import { useAuthLoadingDetector } from '@/hooks/useInfiniteLoadingDetector';
 
 export default function Perfil() {
   const { user, profile, roles, currentRole, isLoading } = useAuth();
   const { getRoleDisplayName, getRoleColor } = useSystemRoles();
   const navigate = useNavigate();
+  
+  // Detect infinite loading
+  useAuthLoadingDetector(isLoading);
   
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -29,9 +34,12 @@ export default function Perfil() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <LoadingFallback 
+        message="Carregando perfil..."
+        timeout={8000}
+        onRetry={() => window.location.reload()}
+        showRetry={true}
+      />
     );
   }
 

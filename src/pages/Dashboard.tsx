@@ -2,14 +2,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, FileText, Settings } from "lucide-react";
 
+import { LoadingFallback } from '@/components/LoadingFallback';
+import { useAuthLoadingDetector } from '@/hooks/useInfiniteLoadingDetector';
+
 export default function Dashboard() {
   const { currentRole, isLoading } = useAuth();
+  
+  // Detect infinite loading
+  useAuthLoadingDetector(isLoading);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+      <LoadingFallback 
+        message="Carregando dashboard..."
+        timeout={8000}
+        onRetry={() => window.location.reload()}
+        showRetry={true}
+      />
     );
   }
 

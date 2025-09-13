@@ -23,9 +23,9 @@ export interface AuthState {
   needsOnboarding: boolean;
 }
 
-// Default TTL: 5 minutes for profile, 10 minutes for roles
-const DEFAULT_PROFILE_TTL = 5 * 60 * 1000;
-const DEFAULT_ROLES_TTL = 10 * 60 * 1000;
+// Default TTL: 10 minutes for profile, 30 minutes for roles (roles change less frequently)
+const DEFAULT_PROFILE_TTL = 10 * 60 * 1000;
+const DEFAULT_ROLES_TTL = 30 * 60 * 1000;
 const DEFAULT_PERMISSIONS_TTL = 15 * 60 * 1000;
 
 export class AuthCacheManager {

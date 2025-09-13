@@ -98,16 +98,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsProfileLoading(true);
     
     try {
-      // Use retry utility for robust profile fetching with performance monitoring
-      const result = await timeAsync('profile-fetch', () => 
-        retrySupabaseOperation(
-          () => supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', userId)
-            .maybeSingle(),
-          retryConfigs.critical
-        ), 'auth'
+      // Simple profile fetch without excessive timeouts
+      const result = await retrySupabaseOperation(
+        () => supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle(),
+        { maxAttempts: 2, baseDelay: 500, timeout: 3000 }
       );
 
       if (result.success && result.data) {
@@ -180,16 +178,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsRolesLoading(true);
     
     try {
-      // Use retry utility for robust roles fetching with performance monitoring
-      const result = await timeAsync('roles-fetch', () =>
-        retrySupabaseOperation(
-          () => supabase
-            .from('user_roles')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('ativo', true),
-          retryConfigs.standard
-        ), 'auth'
+      // Simple roles fetch without excessive timeouts
+      const result = await retrySupabaseOperation(
+        () => supabase
+          .from('user_roles')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('ativo', true),
+        { maxAttempts: 2, baseDelay: 500, timeout: 3000 }
       );
 
       if (result.success) {
@@ -280,11 +276,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (!profile) {
             console.log('SignIn: Creating missing profile for existing user');
+            // Para usuários existentes, criar um nome mais completo para evitar onboarding
+            const emailPrefix = data.user.email?.split('@')[0] || 'Usuário';
+            const nomeCompleto = emailPrefix.length > 3 ? 
+              emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) + ' (Usuário)' : 
+              'Usuário Existente';
+              
             const { error: insertProfileError } = await supabase
               .from('profiles')
               .insert({
                 user_id: data.user.id,
-                nome_completo: data.user.email?.split('@')[0] || 'Usuário',
+                nome_completo: nomeCompleto,
                 email: data.user.email || '',
                 primeiro_acesso: false, // Usuário existente não precisa de onboarding
                 ativo: true
@@ -380,6 +382,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const currentRole = getCurrentRole();
   const isAuthenticated = !!user;
   const isOnboardingComplete = profile ? !profile.primeiro_acesso : false;
+
+  // Minimal auto-recovery - só quando realmente necessário
+  useEffect(() => {
+    if (isAuthenticated && user && profile && roles.length === 0 && !isRolesLoading && !profile.primeiro_acesso) {
+      // Só tentar recovery uma vez por sessão
+      const recoveryKey = `recovery_${user.id}`;
+      if (sessionStorage.getItem(recoveryKey)) return;
+      
+      sessionStorage.setItem(recoveryKey, 'attempted');
+      
+      const recoveryTimeout = setTimeout(async () => {
+        try {
+          await fetchRoles(user.id, 0, true);
+        } catch (error) {
+          console.error('AuthContext: Role recovery failed:', error);
+        }
+      }, 500); // Reduzido para 500ms
+
+      return () => clearTimeout(recoveryTimeout);
+    }
+  }, [isAuthenticated, user?.id, profile?.primeiro_acesso, roles.length, isRolesLoading]);
 
   // Function to fix missing user data
   const fixMissingUserData = async (): Promise<boolean> => {
@@ -498,6 +521,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Auto-heal: se perfil ainda marca primeiro_acesso mas já existem roles ativas, corrigir a flag e atualizar cache
+  useEffect(() => {
+    const tryHeal = async () => {
+      if (!user || !profile) return;
+      if (!profile.primeiro_acesso) return;
+      if (roles.length === 0) return;
+
+      const healedKey = `onboarding_healed_${user.id}`;
+      if (sessionStorage.getItem(healedKey)) return;
+      sessionStorage.setItem(healedKey, '1');
+
+      try {
+        const { markOnboardingComplete } = await import('@/utils/onboardingUtils');
+        const ok = await markOnboardingComplete(user.id);
+        if (ok) {
+          // Recarregar profile para refletir a mudança
+          await fetchProfile(user.id, 0, true);
+        }
+      } catch (e) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Auto-heal primeiro_acesso falhou:', e);
+        }
+      }
+    };
+
+    tryHeal();
+  }, [user?.id, profile?.primeiro_acesso, roles.length]);
 
   // Function to refresh profile after onboarding
   const refreshProfile = async () => {

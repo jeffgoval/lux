@@ -54,10 +54,16 @@ export function checkOnboardingStatus(
 
   // Profile exists but no roles - this is more nuanced
   if (roles.length === 0) {
+
+
     // If profile has basic info filled out, user might not need full onboarding
+    // Para usuários existentes que foram criados automaticamente, ser mais flexível
+    const emailPrefix = profile.email?.split('@')[0];
     const hasBasicInfo = profile.nome_completo && 
-                        profile.nome_completo !== profile.email?.split('@')[0] &&
-                        profile.email;
+                        profile.email &&
+                        (profile.nome_completo !== emailPrefix || 
+                         profile.nome_completo.includes('Usuário') ||
+                         !profile.primeiro_acesso); // Se primeiro_acesso é false, considerar válido
 
     if (hasBasicInfo) {
       return {

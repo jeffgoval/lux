@@ -1,4 +1,4 @@
-import { Clock, DollarSign, Star, Users, Zap, Calendar, MoreVertical } from 'lucide-react';
+import { Clock, DollarSign, Star, Users, Zap, Calendar, MoreVertical, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,14 +39,14 @@ const statusLabels = {
 export default function ServicoCard({ servico, variant = 'grid' }: ServicoCardProps) {
   const getCategoriaEmoji = (categoria: string) => {
     const emojis: Record<string, string> = {
-      facial: '👤',
-      corporal: '🫐',
+      facial: '✨',
+      corporal: '💆',
       capilar: '💇',
       estetica_avancada: '⚡',
       wellness: '🧘',
       masculino: '👨'
     };
-    return emojis[categoria] || '✨';
+    return emojis[categoria] || '💎';
   };
 
   const getComplexidadeLabel = (nivel: string) => {
@@ -66,8 +66,31 @@ export default function ServicoCard({ servico, variant = 'grid' }: ServicoCardPr
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 flex-1">
-              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center text-2xl">
-                {servico.icone || getCategoriaEmoji(servico.categoria)}
+              <div className="w-16 h-16 rounded-lg overflow-hidden relative">
+                {servico.imagemPrincipal ? (
+                  <img 
+                    src={servico.imagemPrincipal} 
+                    alt={servico.nome}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 flex items-center justify-center relative">
+                    {/* Mini background pattern */}
+                    <div className="absolute inset-0 opacity-20">
+                      <div className="absolute top-1 left-1 w-2 h-2 rounded-full bg-primary/40"></div>
+                      <div className="absolute top-3 right-2 w-1 h-1 rounded-full bg-secondary/50"></div>
+                      <div className="absolute bottom-2 left-2 w-1.5 h-1.5 rounded-full bg-accent/40"></div>
+                      <div className="absolute bottom-1 right-1 w-2.5 h-2.5 rounded-full bg-primary/30"></div>
+                    </div>
+                    
+                    {/* Icon */}
+                    <div className="relative z-10 w-8 h-8 rounded-full bg-gradient-to-br from-primary/40 to-secondary/40 flex items-center justify-center">
+                      <span className="text-lg">
+                        {servico.icone || getCategoriaEmoji(servico.categoria)}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="flex-1 min-w-0">
@@ -137,16 +160,37 @@ export default function ServicoCard({ servico, variant = 'grid' }: ServicoCardPr
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
       {/* Imagem/Header */}
-      <div className="relative h-40 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+      <div className="relative h-40 overflow-hidden">
         {servico.imagemPrincipal ? (
           <img 
             src={servico.imagemPrincipal} 
             alt={servico.nome}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="text-4xl">
-            {servico.icone || getCategoriaEmoji(servico.categoria)}
+          <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/20 flex items-center justify-center relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-4 left-4 w-8 h-8 rounded-full bg-primary/30"></div>
+              <div className="absolute top-12 right-8 w-4 h-4 rounded-full bg-secondary/40"></div>
+              <div className="absolute bottom-8 left-8 w-6 h-6 rounded-full bg-accent/30"></div>
+              <div className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-primary/20"></div>
+            </div>
+            
+            {/* Main Icon */}
+            <div className="relative z-10 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300">
+                <span className="text-2xl">
+                  {servico.icone || getCategoriaEmoji(servico.categoria)}
+                </span>
+              </div>
+              <div className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wider">
+                {servico.categoria.replace('_', ' ')}
+              </div>
+            </div>
+            
+            {/* Subtle shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
           </div>
         )}
         

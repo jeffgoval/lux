@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NavigationProvider } from "@/contexts/NavigationContext";
-import { AuthGuard } from "./components/AuthGuard";
+import { FastAuthGuard } from "./components/FastAuthGuard";
 import { GlobalErrorBoundary } from "./components/GlobalErrorBoundary";
 import { AppLayout } from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
@@ -23,7 +23,10 @@ import Perfil from "./pages/Perfil";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
+import { DashboardExecutivo } from "./components/executive/DashboardExecutivo";
+import { AlertsDashboard } from "./components/alerts/AlertsDashboard";
 import { OnboardingWizard } from "./components/OnboardingWizard";
+import { LoadingDebugPanel } from "./components/LoadingDebugPanel";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -45,123 +48,144 @@ const App = () => (
             <Route 
               path="/onboarding" 
               element={
-                <AuthGuard>
+                <FastAuthGuard>
                   <OnboardingWizard />
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/perfil" 
               element={
-                <AuthGuard>
+                <FastAuthGuard>
                   <Perfil />
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/dashboard" 
               element={
-                <AuthGuard>
+                <FastAuthGuard>
                   <AppLayout>
                     <Dashboard />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/agendamento" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'recepcionistas']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'recepcionistas']}>
                   <AppLayout>
                     <Index />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/clientes" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas']}>
                   <AppLayout>
                     <Clientes />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/clientes/:id" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas']}>
                   <AppLayout>
                     <ClienteDetalhes />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/servicos" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais']}>
                   <AppLayout>
                     <Servicos />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/produtos" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
                   <AppLayout>
                     <Produtos />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/equipamentos" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
                   <AppLayout>
                     <Equipamentos />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/financeiro" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
                   <AppLayout>
                     <Financeiro />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/comunicacao" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'recepcionistas']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'recepcionistas']}>
                   <AppLayout>
                     <Comunicacao />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
               } 
             />
             <Route 
               path="/prontuarios" 
               element={
-                <AuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais']}>
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais']}>
                   <AppLayout>
                     <Prontuarios />
                   </AppLayout>
-                </AuthGuard>
+                </FastAuthGuard>
+              } 
+            />
+            <Route 
+              path="/executivo" 
+              element={
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                  <AppLayout title="Dashboard Executivo">
+                    <DashboardExecutivo />
+                  </AppLayout>
+                </FastAuthGuard>
+              } 
+            />
+            <Route 
+              path="/alertas" 
+              element={
+                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                  <AppLayout title="Alertas Inteligentes">
+                    <AlertsDashboard />
+                  </AppLayout>
+                </FastAuthGuard>
               } 
             />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+              <LoadingDebugPanel />
             </NavigationProvider>
           </BrowserRouter>
         </TooltipProvider>

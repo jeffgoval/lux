@@ -1,4 +1,4 @@
-import { CalendarDays, Users, Briefcase, Package, Wrench, DollarSign, MessageSquare, FileText, Home, Search, Settings, LogOut, Loader2 } from "lucide-react"
+import { CalendarDays, Users, Briefcase, Package, Wrench, DollarSign, MessageSquare, FileText, Home, Search, Settings, LogOut, Loader2, BarChart3, Bell, Zap } from "lucide-react"
 import { useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { useClinica } from "@/hooks/useClinica"
@@ -90,6 +90,20 @@ const allNavItems = [
     icon: FileText,
     roles: ['super_admin', 'proprietaria', 'gerente', 'profissionais'] as UserRole[],
     priority: 9
+  },
+  {
+    title: "Dashboard Executivo",
+    url: "/executivo",
+    icon: BarChart3,
+    roles: ['super_admin', 'proprietaria', 'gerente'] as UserRole[],
+    priority: 10
+  },
+  {
+    title: "Alertas",
+    url: "/alertas",
+    icon: Bell,
+    roles: ['super_admin', 'proprietaria', 'gerente'] as UserRole[],
+    priority: 11
   },
 ]
 

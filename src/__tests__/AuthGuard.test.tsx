@@ -174,10 +174,24 @@ describe('AuthGuard', () => {
       });
     });
 
+    it('does not redirect to onboarding when user has roles even if primeiro_acesso is true', async () => {
+      mockAuthContext.isAuthenticated = true;
+      mockAuthContext.profile = { primeiro_acesso: true } as any;
+      mockAuthContext.currentRole = 'proprietaria';
+      mockAuthContext.roles = [{ role: 'proprietaria', ativo: true }] as any;
+      renderAuthGuard();
+      
+      await waitFor(() => {
+        expect(screen.getByText('Protected Content')).toBeInTheDocument();
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding', expect.anything());
+    });
+
     it('redirects to onboarding when user has profile but no roles', async () => {
       mockAuthContext.isAuthenticated = true;
-      mockAuthContext.profile = { primeiro_acesso: false };
+      mockAuthContext.profile = { primeiro_acesso: false } as any;
       mockAuthContext.currentRole = null;
+      mockAuthContext.roles = [] as any;
       renderAuthGuard();
       
       await waitFor(() => {

@@ -31,7 +31,8 @@ function loadEnv() {
 
 const env = loadEnv();
 const supabaseUrl = env.VITE_SUPABASE_URL;
-const supabaseKey = env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Fallback para ANON KEY se PUBLISHABLE_KEY não existir
+const supabaseKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY;
 
 console.log('Supabase URL:', supabaseUrl);
 console.log('Supabase Key:', supabaseKey ? 'Present' : 'Missing');
