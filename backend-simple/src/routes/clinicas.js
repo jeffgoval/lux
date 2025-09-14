@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const { query, transaction } = require('../db/connection');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
       data: result.rows
     });
   } catch (error) {
-    console.error('Erro ao listar clínicas:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
@@ -88,7 +88,7 @@ router.post('/', requireRole(['proprietaria', 'super_admin']), async (req, res) 
     });
 
   } catch (error) {
-    console.error('Erro ao criar clínica:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
@@ -121,7 +121,7 @@ router.get('/:id', async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error('Erro ao buscar clínica:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
@@ -172,7 +172,7 @@ router.put('/:id', requireRole(['proprietaria', 'gerente', 'super_admin']), asyn
     });
 
   } catch (error) {
-    console.error('Erro ao atualizar clínica:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,7 @@ export default function Prontuarios() {
       // Mock data para demonstração
       setProntuarios([]);
     } catch (error) {
-      console.error('Erro ao carregar prontuários:', error);
+
       toast.error('Erro ao carregar prontuários');
     } finally {
       setLoading(false);
@@ -64,7 +64,7 @@ export default function Prontuarios() {
         procedimentos_mais_realizados: []
       });
     } catch (error) {
-      console.error('Erro ao carregar métricas:', error);
+
     }
   };
 

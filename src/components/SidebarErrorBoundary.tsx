@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode, useState, useCallback } from 'react';
+﻿import React, { Component, ErrorInfo, ReactNode, useState, useCallback } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -24,7 +24,7 @@ export class SidebarErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Sidebar Error Boundary caught an error:', error, errorInfo);
+
     this.setState({ error, errorInfo });
   }
 
@@ -34,39 +34,24 @@ export class SidebarErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // Log do erro apenas no console (desenvolvimento)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Sidebar Error Boundary capturou erro:', this.state.error);
+      }
+
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
+      // Tentar recuperação automática silenciosa
+      setTimeout(() => {
+        this.handleRetry();
+      }, 100);
+
+      // Retornar um placeholder discreto
       return (
-        <div className="flex flex-col items-center justify-center p-4 text-center">
-          <AlertTriangle className="h-8 w-8 text-destructive mb-2" />
-          <h3 className="text-sm font-medium text-foreground mb-1">
-            Erro no Menu
-          </h3>
-          <p className="text-xs text-muted-foreground mb-3">
-            Ocorreu um erro ao carregar o menu de navegação.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={this.handleRetry}
-            className="text-xs"
-          >
-            <RefreshCw className="h-3 w-3 mr-1" />
-            Tentar Novamente
-          </Button>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
-            <details className="mt-2 text-xs text-left">
-              <summary className="cursor-pointer text-muted-foreground">
-                Detalhes do erro
-              </summary>
-              <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-auto max-w-full">
-                {this.state.error.toString()}
-                {this.state.errorInfo?.componentStack}
-              </pre>
-            </details>
-          )}
+        <div className="flex items-center justify-center p-4">
+          <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
         </div>
       );
     }
@@ -80,7 +65,7 @@ export function useSidebarErrorHandler() {
   const [error, setError] = useState<Error | null>(null);
 
   const handleError = useCallback((error: Error) => {
-    console.error('Sidebar error:', error);
+
     setError(error);
   }, []);
 

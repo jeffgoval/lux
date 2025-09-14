@@ -1,4 +1,4 @@
-// =====================================================
+﻿// =====================================================
 // COMPREHENSIVE ERROR HANDLING MIDDLEWARE
 // Handles database errors, RLS violations, and business logic errors
 // =====================================================
@@ -272,18 +272,6 @@ class ErrorHandler {
  */
 const errorHandlerMiddleware = (err, req, res, next) => {
   // Log error for debugging
-  console.error('Error occurred:', {
-    error: err.message,
-    code: err.code,
-    constraint: err.constraint,
-    table: err.table,
-    column: err.column,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    url: req.url,
-    method: req.method,
-    userId: req.user?.userId,
-    timestamp: new Date().toISOString()
-  });
 
   // Process error
   const processedError = ErrorHandler.processError(err, {
@@ -354,9 +342,7 @@ class RetryManager {
 
         // Calculate delay with exponential backoff
         const delay = Math.min(baseDelay * Math.pow(2, attempt - 1), maxDelay);
-        
-        console.warn(`Operation failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms:`, error.message);
-        
+
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }

@@ -19,12 +19,25 @@ export default function Landing() {
   });
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
+    // Throttle scroll handler to reduce performance impact
+    let scrollTimeout: NodeJS.Timeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        setScrollY(window.scrollY);
+      }, 16); // ~60fps
+    };
+
+    // Throttle mouse move handler
+    let mouseTimeout: NodeJS.Timeout;
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: (e.clientY / window.innerHeight) * 2 - 1,
-      });
+      clearTimeout(mouseTimeout);
+      mouseTimeout = setTimeout(() => {
+        setMousePosition({
+          x: (e.clientX / window.innerWidth) * 2 - 1,
+          y: (e.clientY / window.innerHeight) * 2 - 1,
+        });
+      }, 32); // ~30fps
     };
 
     // Intersection Observer for animations

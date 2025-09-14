@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Script para configurar as tabelas de métricas no Supabase remoto
  */
 
@@ -17,15 +17,13 @@ const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
 const supabaseServiceKey = getEnvVar('SUPABASE_SERVICE_ROLE_KEY') || getEnvVar('VITE_SUPABASE_ANON_KEY');
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Variáveis de ambiente do Supabase não encontradas!');
-  console.log('Verifique se VITE_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY estão definidas');
+
   process.exit(1);
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function setupDatabase() {
-  console.log('🚀 Configurando banco de dados...');
 
   // SQL das métricas
   const metricsSQL = `
@@ -146,53 +144,38 @@ ON CONFLICT (period, date) DO NOTHING;`;
 
   try {
     // Executar SQLs sequencialmente
-    console.log('📋 Criando tabelas...');
+
     const { error: tablesError } = await supabase.rpc('exec_sql', { sql: metricsSQL });
     if (tablesError) throw tablesError;
 
-    console.log('🔍 Criando índices...');
     const { error: indexesError } = await supabase.rpc('exec_sql', { sql: indexesSQL });
     if (indexesError) throw indexesError;
 
-    console.log('🔒 Configurando políticas RLS...');
     const { error: rlsError } = await supabase.rpc('exec_sql', { sql: rlsSQL });
     if (rlsError) throw rlsError;
 
-    console.log('📊 Inserindo dados iniciais...');
     const { error: dataError } = await supabase.rpc('exec_sql', { sql: dataSQL });
     if (dataError) throw dataError;
 
-    console.log('✅ Banco de dados configurado com sucesso!');
   } catch (error) {
-    console.error('❌ Erro ao configurar banco:', error);
-    
+
     // Tentar usando queries diretas
     try {
-      console.log('🔄 Tentando método alternativo...');
-      
+
       const { error: altError } = await supabase
         .from('metrics_snapshots')
         .select('id')
         .limit(1);
         
       if (altError && altError.code === '42P01') {
-        console.log('📋 Tabela não existe, criando via SQL direto...');
+
         // Método alternativo usando SQL direto
         await executeDirectSQL();
       } else {
-        console.log('✅ Tabelas já existem!');
+
       }
     } catch (altError) {
-      console.error('❌ Erro no método alternativo:', altError);
-      console.log('');
-      console.log('🛠️  SOLUÇÃO MANUAL:');
-      console.log('1. Acesse o Supabase Dashboard');
-      console.log('2. Vá para SQL Editor');
-      console.log('3. Execute o SQL abaixo:');
-      console.log('');
-      console.log('--- COPIE E EXECUTE NO SQL EDITOR ---');
-      console.log(metricsSQL + '\n\n' + indexesSQL + '\n\n' + rlsSQL + '\n\n' + dataSQL);
-      console.log('--- FIM DO SQL ---');
+
     }
   }
 }
@@ -219,9 +202,8 @@ async function executeDirectSQL() {
       ])
       .select();
 
-    console.log('✅ Dados inseridos com sucesso:', data);
   } catch (error) {
-    console.error('❌ Erro na inserção direta:', error);
+
   }
 }
 

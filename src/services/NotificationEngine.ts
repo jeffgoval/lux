@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NotificationEngine - Sistema Multi-Canal de Notificações
  * Suporte a WhatsApp (Meta API), SMS (Twilio), Email (SendGrid) e Push
  */
@@ -337,7 +337,7 @@ export class NotificationEngine {
       return await this.processNotification(notification.id, request);
 
     } catch (error) {
-      console.error('Erro ao enviar notificação:', error);
+
       return [{
         id: 'error',
         success: false,
@@ -703,7 +703,7 @@ export class NotificationEngine {
         cost: result.cost
       });
     } catch (error) {
-      console.error('Erro ao registrar delivery:', error);
+
     }
   }
 
@@ -733,7 +733,7 @@ export class NotificationEngine {
         await this.updateDeliveryStatus(deliveryReport);
       }
     } catch (error) {
-      console.error('Erro ao processar webhook:', error);
+
     }
   }
 

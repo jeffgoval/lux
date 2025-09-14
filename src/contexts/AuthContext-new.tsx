@@ -1,4 +1,4 @@
-// AuthContext NOVO - sem Supabase, sem RLS, sem dor de cabeça!
+﻿// AuthContext NOVO - sem Supabase, sem RLS, sem dor de cabeça!
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { apiClient, User, LoginData, RegisterData } from '@/services/api-client';
 
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             apiClient.clearToken();
           }
         } catch (error) {
-          console.error('Erro ao verificar autenticação:', error);
+
           apiClient.clearToken();
         }
       }
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiClient.logout();
     } catch (error) {
-      console.error('Erro no logout:', error);
+
     } finally {
       setUser(null);
     }
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(response.data.user);
         }
       } catch (error) {
-        console.error('Erro ao atualizar perfil:', error);
+
       }
     }
   };

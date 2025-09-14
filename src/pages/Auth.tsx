@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,17 +8,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
+
+  console.log('Auth component rendered, isLogin:', isLogin);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { signIn, signUp, isAuthenticated } = useAuth();
+  const { login, register, isAuthenticated } = useSecureAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,7 +42,7 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
+        const { error } = await login({ email, password });
         if (error) {
           setError(error.message);
         } else {
@@ -53,8 +58,18 @@ export default function Auth() {
           return;
         }
 
-        const { error } = await signUp(email, password);
-        
+        if (password !== confirmPassword) {
+          setError('As senhas não coincidem');
+          return;
+        }
+
+        if (!acceptTerms) {
+          setError('É necessário aceitar os termos de uso');
+          return;
+        }
+
+        const { error } = await register({ email, password });
+
         if (error) {
           setError(error.message);
         } else {
@@ -75,6 +90,8 @@ export default function Auth() {
   const resetForm = () => {
     setEmail('');
     setPassword('');
+    setConfirmPassword('');
+    setAcceptTerms(false);
     setError('');
   };
 
@@ -100,24 +117,15 @@ export default function Auth() {
           </CardHeader>
           
           <CardContent>
-            <Tabs value={isLogin ? 'login' : 'signup'} className="w-full">
+            <Tabs value={isLogin ? 'login' : 'signup'} onValueChange={(value) => {
+              setIsLogin(value === 'login');
+              resetForm();
+            }} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger 
-                  value="login" 
-                  onClick={() => {
-                    setIsLogin(true);
-                    resetForm();
-                  }}
-                >
+                <TabsTrigger value="login">
                   Login
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="signup"
-                  onClick={() => {
-                    setIsLogin(false);
-                    resetForm();
-                  }}
-                >
+                <TabsTrigger value="signup">
                   Cadastro
                 </TabsTrigger>
               </TabsList>
@@ -179,6 +187,11 @@ export default function Auth() {
               </TabsContent>
 
               <TabsContent value="signup">
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Crie sua conta gratuita e comece a usar o sistema em menos de 2 minutos!
+                  </p>
+                </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
@@ -193,7 +206,7 @@ export default function Auth() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
+                    <Label htmlFor="signup-password">Senha *</Label>
                     <div className="relative">
                       <Input
                         id="signup-password"
@@ -216,6 +229,29 @@ export default function Auth() {
                     </div>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm-password">Confirmar Senha *</Label>
+                    <Input
+                      id="signup-confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Digite a senha novamente"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="accept-terms"
+                      checked={acceptTerms}
+                      onCheckedChange={(checked) => setAcceptTerms(checked === true)}
+                    />
+                    <Label htmlFor="accept-terms" className="text-sm">
+                      Aceito os <a href="#" className="text-primary underline">termos de uso</a> e <a href="#" className="text-primary underline">política de privacidade</a>
+                    </Label>
+                  </div>
+
                   {error && (
                     <Alert variant="destructive">
                       <AlertDescription>{error}</AlertDescription>
@@ -229,7 +265,7 @@ export default function Auth() {
                         Criando conta...
                       </>
                     ) : (
-                      'Criar conta'
+                      'Criar Conta Gratuita'
                     )}
                   </Button>
                 </form>

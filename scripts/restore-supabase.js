@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * Script de Restauração do Supabase
@@ -58,56 +58,47 @@ function listAvailableBackups() {
 
     return files;
   } catch (error) {
-    console.error('❌ Erro ao listar backups:', error.message);
+
     return [];
   }
 }
 
 // Mostrar backups disponíveis
 function displayBackups(backups) {
-  console.log('\n📋 Backups disponíveis:\n');
-  
+
   if (backups.length === 0) {
-    console.log('❌ Nenhum backup encontrado no diretório:', CONFIG.backupDir);
+
     return;
   }
   
   backups.forEach((backup, index) => {
     const sizeMB = (backup.size / 1024 / 1024).toFixed(2);
     const dateStr = backup.date.toLocaleString('pt-BR');
-    
-    console.log(`${index + 1}. ${backup.name}`);
-    console.log(`   📊 Tipo: ${backup.type} | Tamanho: ${sizeMB} MB`);
-    console.log(`   🕒 Data: ${dateStr}`);
-    console.log('');
+
   });
 }
 
 // Executar comando com confirmação
 async function runCommand(command, description, requireConfirmation = true) {
   try {
-    console.log(`\n🔄 ${description}...`);
-    
+
     if (requireConfirmation) {
       const confirm = await askQuestion('⚠️  Esta operação irá SUBSTITUIR os dados atuais. Continuar? (sim/não): ');
       if (confirm.toLowerCase() !== 'sim' && confirm.toLowerCase() !== 's') {
-        console.log('❌ Operação cancelada pelo usuário.');
+
         return false;
       }
     }
-    
-    console.log('🔄 Executando restauração...');
+
     const output = execSync(command, { 
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe']
     });
-    
-    console.log(`✅ ${description} concluído`);
+
     return true;
     
   } catch (error) {
-    console.error(`❌ Erro em ${description}:`);
-    console.error(error.message);
+
     return false;
   }
 }
@@ -137,12 +128,10 @@ async function restoreWithSupabaseCLI(backupFile) {
 
 // Restaurar backup via psql (para produção)
 async function restoreWithPsql(backupFile, connectionString) {
-  console.log('\n⚠️  ATENÇÃO: Você está restaurando em PRODUÇÃO!');
-  console.log('Esta operação irá SUBSTITUIR TODOS os dados do banco de produção.');
-  
+
   const confirm = await askQuestion('Digite "CONFIRMO" para continuar: ');
   if (confirm !== 'CONFIRMO') {
-    console.log('❌ Operação cancelada.');
+
     return false;
   }
   
@@ -158,8 +147,7 @@ async function restoreWithPsql(backupFile, connectionString) {
 // Verificar integridade do backup
 function verifyBackup(backupFile) {
   try {
-    console.log('🔍 Verificando integridade do backup...');
-    
+
     const content = fs.readFileSync(backupFile, 'utf8');
     
     // Verificações básicas
@@ -171,35 +159,31 @@ function verifyBackup(backupFile) {
     };
     
     if (!checks.hasContent) {
-      console.log('❌ Arquivo de backup está vazio');
+
       return false;
     }
     
     if (!checks.hasSqlCommands) {
-      console.log('❌ Arquivo não parece conter comandos SQL válidos');
+
       return false;
     }
     
     if (checks.fileSize < 100) {
-      console.log('❌ Arquivo muito pequeno, pode estar corrompido');
+
       return false;
     }
-    
-    console.log('✅ Backup parece válido');
-    console.log(`📊 Tamanho: ${(checks.fileSize / 1024 / 1024).toFixed(2)} MB`);
-    
+
     return true;
     
   } catch (error) {
-    console.error('❌ Erro ao verificar backup:', error.message);
+
     return false;
   }
 }
 
 // Função principal
 async function main() {
-  console.log('🔄 Script de Restauração do Supabase\n');
-  
+
   try {
     // Listar backups disponíveis
     const backups = listAvailableBackups();
@@ -214,7 +198,7 @@ async function main() {
     const selection = await askQuestion('Selecione o número do backup para restaurar (ou "q" para sair): ');
     
     if (selection.toLowerCase() === 'q') {
-      console.log('👋 Saindo...');
+
       rl.close();
       return;
     }
@@ -222,14 +206,13 @@ async function main() {
     const backupIndex = parseInt(selection) - 1;
     
     if (backupIndex < 0 || backupIndex >= backups.length) {
-      console.log('❌ Seleção inválida');
+
       rl.close();
       return;
     }
     
     const selectedBackup = backups[backupIndex];
-    console.log(`\n📁 Backup selecionado: ${selectedBackup.name}`);
-    
+
     // Verificar integridade
     if (!verifyBackup(selectedBackup.path)) {
       rl.close();
@@ -237,10 +220,7 @@ async function main() {
     }
     
     // Escolher ambiente
-    console.log('\n🎯 Selecione o ambiente de destino:');
-    console.log('1. Local (desenvolvimento)');
-    console.log('2. Produção (requer string de conexão)');
-    
+
     const envChoice = await askQuestion('Escolha (1 ou 2): ');
     
     let success = false;
@@ -254,7 +234,7 @@ async function main() {
       const connectionString = await askQuestion('Cole a string de conexão do banco de produção: ');
       
       if (!connectionString.trim()) {
-        console.log('❌ String de conexão é obrigatória');
+
         rl.close();
         return;
       }
@@ -262,20 +242,19 @@ async function main() {
       success = await restoreWithPsql(selectedBackup.path, connectionString);
       
     } else {
-      console.log('❌ Opção inválida');
+
       rl.close();
       return;
     }
     
     if (success) {
-      console.log('\n🎉 Restauração concluída com sucesso!');
-      console.log('💡 Verifique se todos os dados foram restaurados corretamente.');
+
     } else {
-      console.log('\n❌ Falha na restauração. Verifique os logs de erro acima.');
+
     }
     
   } catch (error) {
-    console.error('\n❌ Erro durante a restauração:', error.message);
+
   } finally {
     rl.close();
   }

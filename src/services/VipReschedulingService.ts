@@ -1,4 +1,4 @@
-/**
+﻿/**
  * VipReschedulingService - Serviço de Reagendamento VIP
  * Sistema especializado para reagendamentos sem penalidades para clientes VIP
  */
@@ -300,7 +300,7 @@ export class VipReschedulingService {
       };
 
     } catch (error) {
-      console.error('Erro no reagendamento VIP:', error);
+
       return {
         success: false,
         agendamentoId: request.agendamentoId,
@@ -355,7 +355,7 @@ export class VipReschedulingService {
       };
 
     } catch (error) {
-      console.error('Erro na execução do reagendamento:', error);
+
       throw error;
     }
   }
@@ -495,7 +495,7 @@ export class VipReschedulingService {
       .lte('data_reagendamento', fimMes.toISOString());
 
     if (error) {
-      console.error('Erro ao contar reagendamentos mensais:', error);
+
       return 0;
     }
 
@@ -523,16 +523,10 @@ export class VipReschedulingService {
   ): Promise<void> {
     try {
       // Enviar via NotificationEngine quando implementado
-      console.log('Enviando notificações de reagendamento:', {
-        cliente: cliente.nome,
-        de: agendamentoAtual.data_agendamento,
-        para: novoDateTime,
-        motivo
-      });
 
       // TODO: Implementar integração com NotificationEngine
     } catch (error) {
-      console.error('Erro ao enviar notificações:', error);
+
     }
   }
 }

@@ -1,7 +1,7 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+﻿import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 
 export interface OptimisticNavigationState {
   isNavigating: boolean;
@@ -29,7 +29,7 @@ export function useOptimisticNavigation(options: OptimisticNavigationOptions = {
   const navigate = useNavigate();
   const location = useLocation();
   const { recordNavigation, setNavigationError } = useNavigation();
-  const { currentRole, hasRole } = useAuth();
+  const { currentRole, hasRole } = useSecureAuth();
   
   const [state, setState] = useState<OptimisticNavigationState>({
     isNavigating: false,
@@ -70,14 +70,13 @@ export function useOptimisticNavigation(options: OptimisticNavigationOptions = {
     try {
       // This is where you would implement route-specific data preloading
       // For example, preload user data, menu items, etc.
-      console.log(`Preloading data for route: ${route}`);
-      
+
       // Simulate preloading delay
       await new Promise(resolve => setTimeout(resolve, 100));
       
       return true;
     } catch (error) {
-      console.error('Failed to preload route data:', error);
+
       return false;
     }
   }, [finalOptions.preloadData]);
@@ -127,7 +126,7 @@ export function useOptimisticNavigation(options: OptimisticNavigationOptions = {
 
       navigationTimeout.current = setTimeout(() => {
         if (state.isNavigating) {
-          console.warn('Navigation timeout reached');
+
           setState(prev => ({
             ...prev,
             error: 'Navigation timeout',
@@ -147,8 +146,7 @@ export function useOptimisticNavigation(options: OptimisticNavigationOptions = {
       return true;
 
     } catch (error) {
-      console.error('Optimistic navigation failed:', error);
-      
+
       setState(prev => ({
         ...prev,
         error: (error as Error).message,
@@ -177,7 +175,7 @@ export function useOptimisticNavigation(options: OptimisticNavigationOptions = {
   // Rollback to previous route
   const rollback = useCallback(() => {
     if (rollbackRoute.current && rollbackRoute.current !== location.pathname) {
-      console.log(`Rolling back navigation to: ${rollbackRoute.current}`);
+
       navigate(rollbackRoute.current, { replace: true });
     }
 

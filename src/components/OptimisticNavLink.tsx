@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useOptimisticNavigation } from '@/hooks/useOptimisticNavigation';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -53,7 +53,7 @@ export function OptimisticNavLink({
 
     // Check if user can navigate to this route
     if (!canNavigate(to)) {
-      console.warn(`Navigation to ${to} is not allowed for current user`);
+
       return;
     }
 
@@ -76,7 +76,7 @@ export function OptimisticNavLink({
       setPreloadStarted(true);
       // Trigger preload by attempting navigation with dry run
       // This would be implemented in the useOptimisticNavigation hook
-      console.log(`Preloading data for ${to} on hover`);
+
     }
   }, [isHovered, preloadData, preloadStarted, isActive, to]);
 
@@ -153,7 +153,7 @@ export function withOptimisticNavigation<P extends object>(
       e.preventDefault();
       
       if (!canNavigate(props.to)) {
-        console.warn(`Navigation to ${props.to} is not allowed`);
+
         return;
       }
 

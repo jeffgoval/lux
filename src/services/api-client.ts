@@ -1,4 +1,4 @@
-// Cliente API SIMPLES - substitui o Supabase
+﻿// Cliente API SIMPLES - substitui o Supabase
 // SEM RLS, SEM COMPLICAÇÃO!
 
 interface ApiResponse<T> {
@@ -78,7 +78,7 @@ class ApiClient {
 
       return data;
     } catch (error) {
-      console.error('API Error:', error);
+
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Erro desconhecido'

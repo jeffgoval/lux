@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+﻿import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
 export interface UserDataStatus {
@@ -25,11 +25,11 @@ export async function checkUserDataStatus(userId: string): Promise<UserDataStatu
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .maybeSingle();
 
     if (profileError && profileError.code !== 'PGRST116') {
-      console.error('Error checking profile:', profileError);
+
     }
 
     // Check roles
@@ -40,7 +40,7 @@ export async function checkUserDataStatus(userId: string): Promise<UserDataStatu
       .eq('ativo', true);
 
     if (roleError) {
-      console.error('Error checking roles:', roleError);
+
     }
 
     const hasProfile = !!profileData;
@@ -54,7 +54,7 @@ export async function checkUserDataStatus(userId: string): Promise<UserDataStatu
       isComplete: hasProfile && hasRole
     };
   } catch (error) {
-    console.error('Error checking user data status:', error);
+
     return {
       hasProfile: false,
       hasRole: false,
@@ -75,7 +75,7 @@ export async function recoverMissingUserData(userId: string): Promise<RecoveryRe
       roleCreated: false
     };
   } catch (error: any) {
-    console.error('Error recovering user data:', error);
+
     return {
       success: false,
       profileCreated: false,
@@ -101,13 +101,13 @@ export async function createMissingProfile(user: User): Promise<boolean> {
       });
 
     if (error) {
-      console.error('Error creating missing profile:', error);
+
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error creating missing profile:', error);
+
     return false;
   }
 }
@@ -127,13 +127,13 @@ export async function createMissingRole(userId: string): Promise<boolean> {
       });
 
     if (error) {
-      console.error('Error creating missing role:', error);
+
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error creating missing role:', error);
+
     return false;
   }
 }
@@ -142,11 +142,9 @@ export async function createMissingRole(userId: string): Promise<boolean> {
  * Comprehensive recovery function that tries multiple approaches
  */
 export async function comprehensiveUserDataRecovery(user: User): Promise<RecoveryResult> {
-  console.log('Starting comprehensive user data recovery for:', user.email);
 
   // First, check current status
   const status = await checkUserDataStatus(user.id);
-  console.log('Current user data status:', status);
 
   if (status.isComplete) {
     return {
@@ -159,11 +157,9 @@ export async function comprehensiveUserDataRecovery(user: User): Promise<Recover
   // Try using the database function first
   const dbRecovery = await recoverMissingUserData(user.id);
   if (dbRecovery.success) {
-    console.log('Database recovery successful:', dbRecovery);
+
     return dbRecovery;
   }
-
-  console.log('Database recovery failed, trying manual approach...');
 
   // Manual fallback approach
   let profileCreated = false;
@@ -238,7 +234,7 @@ export async function validateUserDataIntegrity(userId: string): Promise<{
       recommendations
     };
   } catch (error) {
-    console.error('Error validating user data integrity:', error);
+
     return {
       isValid: false,
       issues: ['Erro ao validar integridade dos dados'],

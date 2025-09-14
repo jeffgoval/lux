@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { performanceMonitor } from '@/utils/performanceMonitor';
 
@@ -182,12 +182,11 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
   const retryNavigation = () => {
     setNavigationState(prev => {
       if (prev.retryCount >= MAX_RETRY_COUNT) {
-        console.warn('Max retry count reached for navigation');
+
         return prev;
       }
 
       const newRetryCount = prev.retryCount + 1;
-      console.log(`Retrying navigation, attempt ${newRetryCount}`);
 
       // Try to navigate to the last successful route
       setTimeout(() => {
@@ -283,7 +282,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   (window as any).navigationDebug = {
     getStats: () => {
       // This will be populated when the context is used
-      console.log('Navigation stats will be available when NavigationProvider is mounted');
+
     }
   };
 }

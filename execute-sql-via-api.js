@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+﻿import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = "https://dvnyfwpphuuujhodqkko.supabase.co";
 const supabaseServiceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bnlmd3BwaHV1dWpob2Rxa2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NzAyMjcsImV4cCI6MjA3MzE0NjIyN30.sQyW-Jn9LrR5mfRpJSoPOm1ENOrApc6GUEQxgfRHzuk";
@@ -6,8 +6,7 @@ const supabaseServiceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function executeSQLStatements() {
-  console.log('🚀 Executando SQL via API do Supabase...');
-  
+
   const statements = [
     // 1. Criar tabela clinica_profissionais
     `CREATE TABLE IF NOT EXISTS public.clinica_profissionais (
@@ -138,38 +137,31 @@ async function executeSQLStatements() {
   
   for (let i = 0; i < statements.length; i++) {
     const statement = statements[i];
-    console.log(`\n📋 Executando statement ${i + 1}/${statements.length}...`);
-    
+
     try {
       // Usar rpc para executar SQL bruto
       const { error } = await supabase.rpc('exec_sql', { sql: statement });
       
       if (error) {
-        console.log(`❌ Erro no statement ${i + 1}:`, error.message);
+
         errorCount++;
       } else {
-        console.log(`✅ Statement ${i + 1} executado com sucesso`);
+
         successCount++;
       }
     } catch (error) {
-      console.log(`❌ Erro inesperado no statement ${i + 1}:`, error.message);
+
       errorCount++;
     }
     
     // Pequena pausa entre statements
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  
-  console.log(`\n🎯 Resumo da execução:`);
-  console.log(`✅ Sucessos: ${successCount}`);
-  console.log(`❌ Erros: ${errorCount}`);
-  console.log(`📊 Total: ${statements.length}`);
-  
+
   if (errorCount === 0) {
-    console.log(`\n🎉 Todas as tabelas e políticas foram criadas com sucesso!`);
-    console.log(`🚀 Agora teste o onboarding - deve funcionar completamente!`);
+
   } else {
-    console.log(`\n⚠️  Alguns erros ocorreram. Verifique os logs acima.`);
+
   }
 }
 

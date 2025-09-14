@@ -1,6 +1,4 @@
-#!/usr/bin/env node
-
-console.log('🚀 Iniciando backup do Supabase...');
+﻿#!/usr/bin/env node
 
 import fs from 'fs';
 import path from 'path';
@@ -14,8 +12,7 @@ const CONFIG = {
 const TABLES = ['profiles', 'organizations', 'clinics', 'user_roles', 'roles'];
 
 async function fetchTable(table) {
-  console.log(`🔄 Buscando tabela: ${table}`);
-  
+
   try {
     const response = await fetch(`${CONFIG.supabaseUrl}/rest/v1/${table}?select=*`, {
       headers: {
@@ -27,26 +24,25 @@ async function fetchTable(table) {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(`✅ ${table}: ${data.length} registros`);
+
       return { table, data, success: true };
     } else {
-      console.log(`⚠️  ${table}: Erro ${response.status}`);
+
       return { table, data: [], success: false, error: response.status };
     }
     
   } catch (error) {
-    console.log(`❌ ${table}: ${error.message}`);
+
     return { table, data: [], success: false, error: error.message };
   }
 }
 
 async function main() {
-  console.log('📋 Fazendo backup das tabelas principais...\n');
-  
+
   // Criar diretório se não existir
   if (!fs.existsSync(CONFIG.backupDir)) {
     fs.mkdirSync(CONFIG.backupDir, { recursive: true });
-    console.log('✅ Diretório de backup criado');
+
   }
   
   const backup = {
@@ -73,11 +69,7 @@ async function main() {
   fs.writeFileSync(filepath, JSON.stringify(backup, null, 2));
   
   const stats = fs.statSync(filepath);
-  
-  console.log(`\n🎉 Backup concluído!`);
-  console.log(`📁 Arquivo: ${filepath}`);
-  console.log(`📊 Total de registros: ${totalRecords}`);
-  console.log(`💾 Tamanho: ${(stats.size / 1024).toFixed(2)} KB`);
+
 }
 
 main().catch(console.error);

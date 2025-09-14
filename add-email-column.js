@@ -1,14 +1,5 @@
-console.log('🔧 Para adicionar a coluna email à tabela clinicas:');
-console.log('');
-console.log('1. Acesse: https://supabase.com/dashboard/project/dvnyfwpphuuujhodqkko/sql');
-console.log('2. Execute o seguinte SQL:');
-console.log('');
-console.log('-- Adicionar coluna email à tabela clinicas');
-console.log('ALTER TABLE public.clinicas ADD COLUMN IF NOT EXISTS email TEXT;');
-console.log('');
-console.log('-- Adicionar índice para melhor performance');
-console.log('CREATE INDEX IF NOT EXISTS idx_clinicas_email ON public.clinicas(email);');
-console.log('');
-console.log('3. Clique em "Run" para executar');
-console.log('');
-console.log('Depois disso, volte ao código e descomente a linha do email no OnboardingWizard.tsx');
+﻿
+
+');
+
+

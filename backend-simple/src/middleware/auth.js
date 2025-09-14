@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+﻿const jwt = require('jsonwebtoken');
 const { query } = require('../db/connection');
 
 // Middleware de autenticação SIMPLES - sem RLS
@@ -32,7 +32,7 @@ const authenticateToken = async (req, res, next) => {
     req.user = result.rows[0];
     next();
   } catch (error) {
-    console.error('Erro na autenticação:', error);
+
     return res.status(403).json({ 
       success: false, 
       error: 'Token inválido' 
@@ -62,7 +62,7 @@ const requireRole = (allowedRoles) => {
       req.userRoles = userRoles;
       next();
     } catch (error) {
-      console.error('Erro na verificação de role:', error);
+
       return res.status(500).json({ 
         success: false, 
         error: 'Erro interno do servidor' 

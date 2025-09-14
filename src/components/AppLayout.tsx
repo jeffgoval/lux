@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/contexts/AuthContext"
+import { useSecureAuth } from "@/contexts/SecureAuthContext"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -14,7 +14,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, title }: AppLayoutProps) {
-  const { profile, currentRole, signOut } = useAuth();
+  const { profile, currentRole, logout } = useSecureAuth();
 
   const getRoleLabel = (role: string) => {
     const roleLabels = {
@@ -29,7 +29,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    await logout();
   };
 
   return (

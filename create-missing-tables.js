@@ -1,109 +1,23 @@
-console.log('🚀 CRIANDO TABELAS NECESSÁRIAS PARA O ONBOARDING');
-console.log('');
-console.log('📋 Execute este SQL no Supabase para criar as tabelas que estão faltando:');
-console.log('');
-console.log('-- 1. Criar tabela de relacionamento clinica_profissionais');
-console.log('CREATE TABLE IF NOT EXISTS public.clinica_profissionais (');
-console.log('  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,');
-console.log('  clinica_id UUID NOT NULL REFERENCES public.clinicas(id) ON DELETE CASCADE,');
-console.log('  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,');
-console.log('  cargo TEXT NOT NULL DEFAULT \'Profissional\',');
-console.log('  especialidades TEXT[],');
-console.log('  ');
-console.log('  -- Informações de trabalho');
-console.log('  horario_trabalho JSONB,');
-console.log('  data_inicio DATE NOT NULL DEFAULT CURRENT_DATE,');
-console.log('  data_fim DATE,');
-console.log('  ');
-console.log('  -- Permissões');
-console.log('  pode_criar_prontuarios BOOLEAN DEFAULT false,');
-console.log('  pode_editar_prontuarios BOOLEAN DEFAULT false,');
-console.log('  pode_visualizar_financeiro BOOLEAN DEFAULT false,');
-console.log('  ');
-console.log('  -- Status');
-console.log('  ativo BOOLEAN NOT NULL DEFAULT true,');
-console.log('  criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),');
-console.log('  atualizado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),');
-console.log('  ');
-console.log('  -- Constraints');
-console.log('  UNIQUE(clinica_id, user_id)');
-console.log(');');
-console.log('');
-console.log('-- 2. Criar enum para tipos de procedimento');
-console.log('CREATE TYPE IF NOT EXISTS public.tipo_procedimento AS ENUM (');
-console.log('  \'consulta\',');
-console.log('  \'botox_toxina\',');
-console.log('  \'preenchimento\',');
-console.log('  \'harmonizacao_facial\',');
-console.log('  \'laser_ipl\',');
-console.log('  \'peeling\',');
-console.log('  \'tratamento_corporal\',');
-console.log('  \'skincare_avancado\',');
-console.log('  \'limpeza_pele\',');
-console.log('  \'outros\'');
-console.log(');');
-console.log('');
-console.log('-- 3. Criar tabela de templates de procedimentos');
-console.log('CREATE TABLE IF NOT EXISTS public.templates_procedimentos (');
-console.log('  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),');
-console.log('  tipo_procedimento tipo_procedimento NOT NULL,');
-console.log('  nome_template TEXT NOT NULL,');
-console.log('  descricao TEXT,');
-console.log('  ');
-console.log('  -- Configuração do template');
-console.log('  campos_obrigatorios JSONB DEFAULT \'{}\'::jsonb,');
-console.log('  campos_opcionais JSONB DEFAULT \'{}\'::jsonb,');
-console.log('  ');
-console.log('  -- Valores padrão');
-console.log('  duracao_padrao_minutos INTEGER DEFAULT 60,');
-console.log('  valor_base DECIMAL(10,2),');
-console.log('  ');
-console.log('  -- Status');
-console.log('  ativo BOOLEAN NOT NULL DEFAULT true,');
-console.log('  criado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),');
-console.log('  atualizado_em TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),');
-console.log('  criado_por UUID REFERENCES auth.users(id)');
-console.log(');');
-console.log('');
-console.log('-- 4. Criar índices');
-console.log('CREATE INDEX IF NOT EXISTS idx_clinica_profissionais_clinica ON public.clinica_profissionais(clinica_id);');
-console.log('CREATE INDEX IF NOT EXISTS idx_clinica_profissionais_user ON public.clinica_profissionais(user_id);');
-console.log('CREATE INDEX IF NOT EXISTS idx_templates_tipo ON public.templates_procedimentos(tipo_procedimento);');
-console.log('');
-console.log('-- 5. Criar triggers para atualizar timestamps');
-console.log('CREATE OR REPLACE FUNCTION public.update_updated_at_column()');
-console.log('RETURNS TRIGGER AS $$');
-console.log('BEGIN');
-console.log('  NEW.atualizado_em = now();');
-console.log('  RETURN NEW;');
-console.log('END;');
-console.log('$$ language \'plpgsql\';');
-console.log('');
-console.log('CREATE TRIGGER IF NOT EXISTS update_clinica_profissionais_updated_at');
-console.log('  BEFORE UPDATE ON public.clinica_profissionais');
-console.log('  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();');
-console.log('');
-console.log('CREATE TRIGGER IF NOT EXISTS update_templates_procedimentos_updated_at');
-console.log('  BEFORE UPDATE ON public.templates_procedimentos');
-console.log('  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();');
-console.log('');
-console.log('-- 6. Habilitar RLS nas novas tabelas');
-console.log('ALTER TABLE public.clinica_profissionais ENABLE ROW LEVEL SECURITY;');
-console.log('ALTER TABLE public.templates_procedimentos ENABLE ROW LEVEL SECURITY;');
-console.log('');
-console.log('-- 7. Criar políticas RLS permissivas para onboarding');
-console.log('CREATE POLICY "Allow onboarding clinica_profissionais"');
-console.log('ON public.clinica_profissionais');
-console.log('FOR ALL');
-console.log('USING (auth.uid() = user_id)');
-console.log('WITH CHECK (auth.uid() = user_id);');
-console.log('');
-console.log('CREATE POLICY "Allow onboarding templates_procedimentos"');
-console.log('ON public.templates_procedimentos');
-console.log('FOR ALL');
-console.log('USING (true)  -- Muito permissivo temporariamente');
-console.log('WITH CHECK (true);  -- Muito permissivo temporariamente');
-console.log('');
-console.log('🔗 Acesse: https://supabase.com/dashboard/project/dvnyfwpphuuujhodqkko/sql');
-console.log('');
-console.log('⚠️  IMPORTANTE: Execute TODO este SQL de uma vez para criar as tabelas necessárias!');
+﻿
+
+');
+
+');
+
+');
+
+');
+');
+');
+
+');
+
+');
+
+');
+
+ = user_id);');
+
+  -- Muito permissivo temporariamente');
+
+

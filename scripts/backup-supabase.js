@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * Script Automatizado de Backup do Supabase
@@ -26,7 +26,7 @@ const CONFIG = {
 function ensureBackupDir() {
   if (!fs.existsSync(CONFIG.backupDir)) {
     fs.mkdirSync(CONFIG.backupDir, { recursive: true });
-    console.log(`✅ Diretório de backup criado: ${CONFIG.backupDir}`);
+
   }
 }
 
@@ -44,16 +44,15 @@ function generateBackupFilename(type = 'full') {
 // Executar comando e capturar saída
 function runCommand(command, description) {
   try {
-    console.log(`🔄 ${description}...`);
+
     const output = execSync(command, { 
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe']
     });
-    console.log(`✅ ${description} concluído`);
+
     return output;
   } catch (error) {
-    console.error(`❌ Erro em ${description}:`);
-    console.error(error.message);
+
     throw error;
   }
 }
@@ -64,8 +63,7 @@ function checkSupabaseCLI() {
     execSync('supabase --version', { stdio: 'pipe' });
     return true;
   } catch (error) {
-    console.error('❌ Supabase CLI não encontrado!');
-    console.error('Instale com: npm install -g supabase');
+
     return false;
   }
 }
@@ -120,11 +118,11 @@ function cleanOldBackups() {
       
       filesToDelete.forEach(file => {
         fs.unlinkSync(file.path);
-        console.log(`🗑️  Backup antigo removido: ${file.name}`);
+
       });
     }
   } catch (error) {
-    console.warn('⚠️  Erro ao limpar backups antigos:', error.message);
+
   }
 }
 
@@ -138,12 +136,11 @@ function checkProjectLink() {
   } catch (error) {
     // Tentar linkar ao projeto
     try {
-      console.log('🔗 Linkando ao projeto Supabase...');
+
       execSync(`supabase link --project-ref ${CONFIG.projectId}`, { stdio: 'inherit' });
       return true;
     } catch (linkError) {
-      console.error('❌ Erro ao linkar projeto. Faça login primeiro:');
-      console.error('supabase login');
+
       return false;
     }
   }
@@ -152,8 +149,7 @@ function checkProjectLink() {
 
 // Função principal
 async function main() {
-  console.log('🚀 Iniciando backup automatizado do Supabase...\n');
-  
+
   // Verificações iniciais
   if (!checkSupabaseCLI()) {
     process.exit(1);
@@ -184,21 +180,16 @@ async function main() {
     // Verificar se o arquivo foi criado e tem conteúdo
     if (fs.existsSync(backupFile)) {
       const stats = fs.statSync(backupFile);
-      console.log(`\n✅ Backup criado com sucesso!`);
-      console.log(`📁 Arquivo: ${backupFile}`);
-      console.log(`📊 Tamanho: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`🕒 Data: ${stats.mtime.toLocaleString('pt-BR')}`);
+
     } else {
       throw new Error('Arquivo de backup não foi criado');
     }
     
     // Limpar backups antigos
     cleanOldBackups();
-    
-    console.log('\n🎉 Backup concluído com sucesso!');
-    
+
   } catch (error) {
-    console.error('\n❌ Erro durante o backup:', error.message);
+
     process.exit(1);
   }
 }

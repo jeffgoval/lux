@@ -1,12 +1,10 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * Agendador Simples de Backup
  * 
  * Executa backup em intervalos regulares
  */
-
-console.log('⏰ Agendador de Backup do Supabase');
 
 import { execSync } from 'child_process';
 import fs from 'fs';
@@ -20,8 +18,7 @@ const SCHEDULE = {
 function log(message) {
   const timestamp = new Date().toLocaleString('pt-BR');
   const logMessage = `[${timestamp}] ${message}`;
-  console.log(logMessage);
-  
+
   // Salvar em arquivo de log
   const logFile = './logs/backup-scheduler.log';
   

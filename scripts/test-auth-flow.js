@@ -1,9 +1,8 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * Test script to verify authentication flow
  */
-console.log('🔐 Testing Authentication Flow...\n');
 
 const testCases = [
   {
@@ -41,22 +40,8 @@ const testCases = [
   }
 ];
 
-console.log('📋 Expected Authentication Behavior:\n');
-
 testCases.forEach((test, index) => {
-  console.log(`${index + 1}. ${test.scenario}`);
-  console.log(`   Route: ${test.route}`);
-  console.log(`   Expected: ${test.expected}`);
-  console.log('');
+
 });
 
-console.log('🔧 Key Changes Made:');
-console.log('   ✅ Landing page is now the home route (/)');
-console.log('   ✅ Dashboard moved to /dashboard');
-console.log('   ✅ Auth redirects to /dashboard after login');
-console.log('   ✅ AuthGuard allows dashboard access without roles');
-console.log('   ✅ Role-specific routes still protected');
 
-console.log('\n🚀 Ready for testing!');
-console.log('   Run: npm run dev');
-console.log('   Test: Navigate to different routes and verify behavior');

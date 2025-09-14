@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 import { Database } from '@/integrations/supabase/types';
 
 type Clinica = Database['public']['Tables']['clinicas']['Row'];
@@ -9,12 +9,12 @@ export function useClinica() {
   const [clinica, setClinica] = useState<Clinica | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { profile, user } = useAuth();
+  const { profile, user } = useSecureAuth();
 
   useEffect(() => {
     const fetchClinica = async () => {
       // Use user.id as fallback if profile is not loaded yet
-      const userId = profile?.user_id || user?.id;
+      const userId = profile?.id || user?.id;
       
       if (!userId) {
         setLoading(false);
@@ -33,7 +33,7 @@ export function useClinica() {
           .maybeSingle();
 
         if (roleError) {
-          console.warn('Error fetching user roles:', roleError);
+
         }
 
         // If user has a clinic assigned, fetch it
@@ -45,7 +45,7 @@ export function useClinica() {
             .maybeSingle();
 
           if (clinicaError) {
-            console.error('Error fetching clinic by ID:', clinicaError);
+
             setError('Erro ao carregar dados da clínica');
           } else if (clinicaData) {
             setClinica(clinicaData);
@@ -86,7 +86,7 @@ export function useClinica() {
     };
 
     fetchClinica();
-  }, [profile?.user_id, user?.id]);
+  }, [profile?.id, user?.id]); // CORRIGIDO: usar profile.id em vez de profile.user_id
 
   return {
     clinica,

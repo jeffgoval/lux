@@ -1,38 +1,7 @@
-console.log('🚨 CORREÇÃO EMERGENCIAL - RLS muito permissivo para onboarding');
-console.log('');
-console.log('⚠️  Esta é uma solução temporária para permitir o onboarding funcionar.');
-console.log('   Depois que o onboarding estiver funcionando, você pode ajustar as políticas.');
-console.log('');
-console.log('📋 Execute este SQL no Supabase:');
-console.log('');
-console.log('-- SOLUÇÃO TEMPORÁRIA: Política muito permissiva');
-console.log('');
-console.log('-- 1. Remover todas as políticas existentes');
-console.log('DROP POLICY IF EXISTS "Users can create initial visitor role" ON public.user_roles;');
-console.log('DROP POLICY IF EXISTS "Users can create their initial role" ON public.user_roles;');
-console.log('DROP POLICY IF EXISTS "Users can update their own roles" ON public.user_roles;');
-console.log('DROP POLICY IF EXISTS "Users can create clinics" ON public.clinicas;');
-console.log('DROP POLICY IF EXISTS "Users can create their first clinic" ON public.clinicas;');
-console.log('DROP POLICY IF EXISTS "Users can view accessible clinics" ON public.clinicas;');
-console.log('DROP POLICY IF EXISTS "Users can view their clinics" ON public.clinicas;');
-console.log('');
-console.log('-- 2. Criar políticas muito permissivas para onboarding');
-console.log('CREATE POLICY "Allow onboarding user_roles"');
-console.log('ON public.user_roles');
-console.log('FOR ALL');
-console.log('USING (auth.uid() = user_id)');
-console.log('WITH CHECK (auth.uid() = user_id);');
-console.log('');
-console.log('CREATE POLICY "Allow onboarding clinicas"');
-console.log('ON public.clinicas');
-console.log('FOR ALL');
-console.log('USING (true)  -- Muito permissivo temporariamente');
-console.log('WITH CHECK (true);  -- Muito permissivo temporariamente');
-console.log('');
-console.log('-- 3. Garantir que RLS está habilitado');
-console.log('ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;');
-console.log('ALTER TABLE public.clinicas ENABLE ROW LEVEL SECURITY;');
-console.log('');
-console.log('🔗 Acesse: https://supabase.com/dashboard/project/dvnyfwpphuuujhodqkko/sql');
-console.log('');
-console.log('⚠️  LEMBRE-SE: Depois que o onboarding funcionar, ajuste as políticas para serem mais restritivas!');
+﻿
+
+ = user_id);');
+
+  -- Muito permissivo temporariamente');
+
+

@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
@@ -69,38 +69,29 @@ app.use(errorHandlerMiddleware);
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
+
   process.exit(0);
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('='.repeat(50));
-  console.log(`🚀 Clínica Backend Started Successfully`);
-  console.log(`📍 Port: ${PORT}`);
-  console.log(`🌐 Host: 0.0.0.0`);
-  console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`⏰ Started at: ${new Date().toISOString()}`);
-  console.log(`🎉 Sem RLS, sem dor de cabeça!`);
-  console.log('='.repeat(50));
-  
+
   // Test database connection on startup
   if (process.env.DATABASE_URL) {
-    console.log('🔍 Testing database connection...');
+
     const { query } = require('./db/connection');
     query('SELECT NOW() as current_time')
       .then(result => {
-        console.log('✅ Database connected successfully');
-        console.log(`⏰ DB Time: ${result.rows[0].current_time}`);
+
       })
       .catch(err => {
-        console.error('❌ Database connection failed:', err.message);
+
       });
   } else {
-    console.warn('⚠️  DATABASE_URL not set');
+
   }
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface RoleData {
@@ -59,7 +59,7 @@ export function useRoleData() {
       setRoles(staticRoles);
     } catch (err: any) {
       setError(err.message || 'Erro inesperado ao buscar roles');
-      console.error('Error fetching roles:', err);
+
     } finally {
       setLoading(false);
     }

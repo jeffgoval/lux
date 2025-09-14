@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -8,8 +8,7 @@ const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUz
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function createRolesTable() {
-  console.log('🏗️  Creating roles table...\n');
-  
+
   try {
     // Create the roles table
     const { error: createError } = await supabase.rpc('exec_sql', {
@@ -28,19 +27,6 @@ async function createRolesTable() {
     });
     
     if (createError) {
-      console.log('❌ Error creating table:', createError.message);
-      console.log('\n📋 Manual SQL to run in Supabase SQL Editor:');
-      console.log(`
--- Create roles table
-CREATE TABLE IF NOT EXISTS roles (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  nome VARCHAR(50) UNIQUE NOT NULL,
-  descricao TEXT,
-  nivel_acesso INTEGER DEFAULT 1,
-  ativo BOOLEAN DEFAULT true,
-  criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
 -- Insert default roles
 INSERT INTO roles (nome, descricao, nivel_acesso) VALUES
@@ -62,9 +48,7 @@ CREATE POLICY "Anyone can view roles" ON roles
       `);
       return false;
     }
-    
-    console.log('✅ Roles table created successfully');
-    
+
     // Insert default roles
     const { error: insertError } = await supabase
       .from('roles')
@@ -82,12 +66,10 @@ CREATE POLICY "Anyone can view roles" ON roles
       });
     
     if (insertError) {
-      console.log('❌ Error inserting roles:', insertError.message);
+
       return false;
     }
-    
-    console.log('✅ Default roles inserted successfully');
-    
+
     // Verify creation
     const { data: roles, error: selectError } = await supabase
       .from('roles')
@@ -95,19 +77,18 @@ CREATE POLICY "Anyone can view roles" ON roles
       .order('nivel_acesso', { ascending: false });
     
     if (selectError) {
-      console.log('❌ Error verifying roles:', selectError.message);
+
       return false;
     }
-    
-    console.log('\n📋 Created roles:');
+
     roles.forEach(role => {
-      console.log(`   ✅ ${role.nome}: ${role.descricao} (nível ${role.nivel_acesso})`);
+
     });
     
     return true;
     
   } catch (error) {
-    console.log('❌ Unexpected error:', error.message);
+
     return false;
   }
 }
@@ -115,9 +96,9 @@ CREATE POLICY "Anyone can view roles" ON roles
 createRolesTable()
   .then(success => {
     if (success) {
-      console.log('\n🎉 Roles table setup completed successfully!');
+
     } else {
-      console.log('\n⚠️  Please run the SQL manually in Supabase dashboard');
+
     }
   })
   .catch(console.error);

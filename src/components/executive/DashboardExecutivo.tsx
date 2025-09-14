@@ -1,4 +1,4 @@
-/**
+﻿/**
  * DashboardExecutivo - Dashboard completo com métricas, charts e exportações
  */
 
@@ -113,10 +113,10 @@ export const DashboardExecutivo: React.FC = () => {
   const handleExport = async (format: 'pdf' | 'csv' | 'xlsx') => {
     try {
       // Implementar exportação
-      console.log(`Exporting dashboard as ${format}`);
+
       // TODO: Implementar lógica de exportação
     } catch (error) {
-      console.error('Error exporting dashboard:', error);
+
     }
   };
 
@@ -124,7 +124,7 @@ export const DashboardExecutivo: React.FC = () => {
     try {
       await forceRefresh();
     } catch (error) {
-      console.error('Error refreshing dashboard:', error);
+
     }
   };
 

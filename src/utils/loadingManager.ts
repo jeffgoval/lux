@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Centralized loading state manager to prevent infinite loading states
  */
 
@@ -34,12 +34,11 @@ class LoadingManager {
             isLoading: true,
             startTime: Date.now(),
             timeout: setTimeout(() => {
-                console.warn(`Loading timeout for ${key} after ${timeout}ms`);
+
                 this.stopLoading(key);
             }, timeout)
         };
 
-        console.log(`Loading started for: ${key}`);
     }
 
     stopLoading(key: string): void {
@@ -49,7 +48,6 @@ class LoadingManager {
             }
 
             const duration = Date.now() - this.states[key].startTime;
-            console.log(`Loading stopped for: ${key} (${duration}ms)`);
 
             delete this.states[key];
         }
@@ -65,7 +63,7 @@ class LoadingManager {
     }
 
     forceStopAll(): void {
-        console.warn('Force stopping all loading states');
+
         Object.keys(this.states).forEach(key => {
             this.stopLoading(key);
         });
@@ -79,7 +77,7 @@ class LoadingManager {
         });
 
         staleKeys.forEach(key => {
-            console.warn(`Cleaning up stale loading state: ${key}`);
+
             this.stopLoading(key);
         });
     }

@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+﻿import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
 /**
@@ -10,7 +10,6 @@ export async function forceUserSetup(user: User): Promise<{
   roleCreated: boolean;
   error?: string;
 }> {
-  console.log('🔧 Forcing user setup for:', user.email);
 
   try {
     let profileCreated = false;
@@ -20,13 +19,12 @@ export async function forceUserSetup(user: User): Promise<{
     const { data: existingProfile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .maybeSingle();
 
     // Create profile if missing
     if (!existingProfile) {
-      console.log('📝 Creating missing profile...');
-      
+
       // Check if this is a completely new user or an existing user with missing profile
       // If user has metadata from signup, it's likely a new user
       const isNewUser = !user.user_metadata?.nome_completo && !user.user_metadata?.completed_onboarding;
@@ -42,7 +40,7 @@ export async function forceUserSetup(user: User): Promise<{
         });
 
       if (profileError) {
-        console.error('❌ Error creating profile:', profileError);
+
         return {
           success: false,
           profileCreated: false,
@@ -52,9 +50,9 @@ export async function forceUserSetup(user: User): Promise<{
       }
       
       profileCreated = true;
-      console.log('✅ Profile created successfully');
+
     } else {
-      console.log('✅ Profile already exists');
+
     }
 
     // Check if role exists
@@ -66,7 +64,7 @@ export async function forceUserSetup(user: User): Promise<{
 
     // Create role if missing
     if (!existingRoles || existingRoles.length === 0) {
-      console.log('👑 Creating missing role...');
+
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert({
@@ -77,7 +75,7 @@ export async function forceUserSetup(user: User): Promise<{
         });
 
       if (roleError) {
-        console.error('❌ Error creating role:', roleError);
+
         return {
           success: false,
           profileCreated,
@@ -87,9 +85,9 @@ export async function forceUserSetup(user: User): Promise<{
       }
       
       roleCreated = true;
-      console.log('✅ Role created successfully');
+
     } else {
-      console.log('✅ Role already exists');
+
     }
 
     return {
@@ -99,7 +97,7 @@ export async function forceUserSetup(user: User): Promise<{
     };
 
   } catch (error: any) {
-    console.error('❌ Error in forceUserSetup:', error);
+
     return {
       success: false,
       profileCreated: false,
@@ -118,7 +116,7 @@ export async function checkUserNeedsSetup(userId: string): Promise<boolean> {
     const { data: profile } = await supabase
       .from('profiles')
       .select('id')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .maybeSingle();
 
     // Check roles
@@ -130,7 +128,7 @@ export async function checkUserNeedsSetup(userId: string): Promise<boolean> {
 
     return !profile || !roles || roles.length === 0;
   } catch (error) {
-    console.error('Error checking if user needs setup:', error);
+
     return true; // Assume needs setup if we can't check
   }
 }

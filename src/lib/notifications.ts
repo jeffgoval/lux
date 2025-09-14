@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Sistema de notificações push e em tempo real
  */
 
@@ -52,7 +52,7 @@ class NotificationManager {
   // Solicitar permissão para notificações
   async requestPermission(): Promise<boolean> {
     if (!('Notification' in window)) {
-      console.warn('Este navegador não suporta notificações push');
+
       return false;
     }
 
@@ -68,7 +68,7 @@ class NotificationManager {
         return false;
       }
     } catch (error) {
-      console.error('Erro ao solicitar permissão para notificações:', error);
+
       toast.error('Erro ao ativar notificações');
       return false;
     }
@@ -79,9 +79,9 @@ class NotificationManager {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       try {
         this.registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker registrado com sucesso');
+
       } catch (error) {
-        console.error('Erro ao registrar service worker:', error);
+
       }
     }
   }
@@ -89,7 +89,7 @@ class NotificationManager {
   // Mostrar notificação local
   async showNotification(data: PushNotificationData): Promise<void> {
     if (!this.permission.granted) {
-      console.warn('Permissão para notificações não concedida');
+
       return;
     }
 
@@ -116,8 +116,7 @@ class NotificationManager {
         });
       }
     } catch (error) {
-      console.error('Erro ao mostrar notificação:', error);
-      
+
       // Fallback para toast
       toast.error(`${data.title}: ${data.body}`);
     }
@@ -244,12 +243,12 @@ class NotificationManager {
       if (this.permission.granted) {
         this.setupCriticalAlerts();
         this.setupMetricsAlerts();
-        console.log('Sistema de notificações inicializado');
+
       } else {
-        console.log('Permissão para notificações não concedida');
+
       }
     } catch (error) {
-      console.error('Erro ao inicializar sistema de notificações:', error);
+
     }
   }
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 interface InfiniteLoadingDetectorOptions {
@@ -73,7 +73,7 @@ export function useInfiniteLoadingDetector(
       // Set warning timeout
       warningTimeoutRef.current = setTimeout(() => {
         if (isLoading && !hasWarned) {
-          console.warn(`Loading taking longer than expected: ${warningDuration}ms`);
+
           setHasWarned(true);
           onWarning?.();
           
@@ -92,26 +92,24 @@ export function useInfiniteLoadingDetector(
       // Set maximum timeout
       maxTimeoutRef.current = setTimeout(() => {
         if (isLoading && !hasDetectedInfinite) {
-          console.error(`Infinite loading detected after ${maxDuration}ms`);
+
           setHasDetectedInfinite(true);
           onInfiniteLoading?.();
           
           if (autoRecover) {
-            toast.error('Loading infinito detectado', {
-              description: 'A página não conseguiu carregar. Tente recarregar ou voltar ao dashboard.',
-              action: {
-                label: 'Recarregar',
-                onClick: () => window.location.reload()
-              },
-              duration: 10000
-            });
+            // Log silently instead of showing toast
+            console.warn('Loading infinito detectado, tentando recuperação automática');
+            // Attempt silent recovery
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
           }
         }
       }, maxDuration);
     }
 
     return cleanup;
-  }, [isLoading, hasWarned, hasDetectedInfinite, warningDuration, maxDuration, onWarning, onInfiniteLoading, autoRecover]);
+  }, [isLoading]); // SIMPLIFICADA: apenas isLoading como dependência
 
   // Cleanup on unmount
   useEffect(() => {
@@ -137,13 +135,9 @@ export function usePageLoadingDetector(isLoading: boolean) {
     warningDuration: 6000, // 6 seconds warning
     autoRecover: true,
     onInfiniteLoading: () => {
-      console.error('Page loading timeout detected');
-      
+
       // Log current state for debugging
-      console.log('Current URL:', window.location.href);
-      console.log('Loading state:', isLoading);
-      console.log('User agent:', navigator.userAgent);
-      
+
       // Attempt recovery
       setTimeout(() => {
         if (window.location.pathname === '/') {
@@ -154,7 +148,7 @@ export function usePageLoadingDetector(isLoading: boolean) {
       }, 2000);
     },
     onWarning: () => {
-      console.warn('Page loading taking longer than expected');
+
     }
   });
 }
@@ -166,14 +160,13 @@ export function useAuthLoadingDetector(isLoading: boolean) {
     warningDuration: 5000, // 5 seconds warning
     autoRecover: true,
     onInfiniteLoading: () => {
-      console.error('Auth loading timeout detected');
-      
+
       // Clear auth cache and redirect
       try {
         localStorage.removeItem('supabase.auth.token');
         sessionStorage.clear();
       } catch (error) {
-        console.error('Error clearing auth storage:', error);
+
       }
       
       setTimeout(() => {

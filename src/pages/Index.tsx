@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Plus, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalendarHeader } from "@/components/CalendarHeader";
@@ -84,11 +84,11 @@ const Index = () => {
   };
 
   const handleEditAppointment = (appointment: any) => {
-    console.log('Editar agendamento:', appointment);
+
   };
 
   const handleDeleteAppointment = (id: string) => {
-    console.log('Deletar agendamento:', id);
+
   };
 
   // Converter mock appointments para o formato esperado pelos componentes

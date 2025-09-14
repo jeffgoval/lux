@@ -1,4 +1,4 @@
-export interface RetryConfig {
+﻿export interface RetryConfig {
   maxRetries: number;
   baseDelay: number;
   maxDelay: number;
@@ -68,8 +68,6 @@ export async function retryWithBackoff<T>(
         finalConfig.maxDelay
       );
 
-      console.log(`Retry attempt ${attempt + 1} failed, waiting ${delay}ms before retry:`, lastError.message);
-      
       // Wait before next attempt
       await new Promise(resolve => setTimeout(resolve, delay));
     }
@@ -127,7 +125,7 @@ export async function retryWithStrategy<T>(
       
       // Check if we should retry based on custom logic
       if (shouldRetry && !shouldRetry(lastError, attempt)) {
-        console.log(`Custom retry logic says don't retry for error:`, lastError.message);
+
         break;
       }
       
@@ -141,8 +139,6 @@ export async function retryWithStrategy<T>(
       const jitter = Math.random() * 0.1 * baseDelay; // Add up to 10% jitter
       const delay = Math.min(baseDelay + jitter, finalConfig.maxDelay);
 
-      console.log(`Retry attempt ${attempt + 1} failed, waiting ${Math.round(delay)}ms before retry:`, lastError.message);
-      
       // Wait before next attempt
       await new Promise(resolve => setTimeout(resolve, delay));
     }

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * useMetrics - Hook para consumo de métricas em tempo real
  * Integra com React Query para cache eficiente e atualizações automáticas
  */
@@ -111,7 +111,7 @@ export const useMetrics = () => {
       const { data, error } = await supabase.functions.invoke('metrics-aggregator');
       
       if (error) {
-        console.error('Error forcing metrics refresh:', error);
+
         throw error;
       }
       
@@ -120,7 +120,7 @@ export const useMetrics = () => {
       
       return data;
     } catch (error) {
-      console.error('Error in forceRefresh:', error);
+
       throw error;
     }
   };
@@ -231,7 +231,7 @@ async function getCurrentSnapshot(): Promise<MetricsSnapshot | null> {
 
     return data || null;
   } catch (error) {
-    console.error('Error fetching current snapshot:', error);
+
     throw error;
   }
 }
@@ -261,7 +261,7 @@ async function getAllKPIs(): Promise<{
       monthly: grouped?.monthly || []
     };
   } catch (error) {
-    console.error('Error fetching KPI metrics:', error);
+
     throw error;
   }
 }
@@ -279,7 +279,7 @@ async function getMetricsByPeriod(period: PeriodFilter): Promise<MetricsSnapshot
 
     return data || [];
   } catch (error) {
-    console.error('Error fetching metrics by period:', error);
+
     throw error;
   }
 }
@@ -359,7 +359,7 @@ async function getChartData(period: 'week' | 'month' | 'quarter' | 'year'): Prom
 
     return chartData;
   } catch (error) {
-    console.error('Error fetching chart data:', error);
+
     throw error;
   }
 }
@@ -393,7 +393,7 @@ async function getMetricsComparison(
       growth
     };
   } catch (error) {
-    console.error('Error fetching metrics comparison:', error);
+
     throw error;
   }
 }
@@ -463,7 +463,7 @@ async function getAggregatedKPIs(period: PeriodFilter): Promise<KPIMetrics | nul
       updated_at: new Date().toISOString()
     };
   } catch (error) {
-    console.error('Error getting aggregated KPIs:', error);
+
     throw error;
   }
 }
@@ -486,7 +486,7 @@ async function getMetricAlerts(): Promise<Array<{
 
     return data || [];
   } catch (error) {
-    console.error('Error fetching metric alerts:', error);
+
     throw error;
   }
 }

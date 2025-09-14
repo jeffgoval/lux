@@ -1,4 +1,4 @@
-/**
+﻿/**
  * VipConcierge - Concierge Virtual para Clientes VIP
  * Interface de chat inteligente com assistência personalizada 24h
  */
@@ -127,26 +127,26 @@ const quickActions: QuickAction[] = [
     id: 'schedule',
     label: 'Novo Agendamento',
     icon: Calendar,
-    action: () => console.log('Novo agendamento'),
+    action: () => ,
     premium: true
   },
   {
     id: 'reschedule',
     label: 'Reagendar',
     icon: Clock,
-    action: () => console.log('Reagendar')
+    action: () => 
   },
   {
     id: 'credits',
     label: 'Meus Créditos',
     icon: CreditCard,
-    action: () => console.log('Ver créditos')
+    action: () => 
   },
   {
     id: 'support',
     label: 'Suporte VIP',
     icon: Phone,
-    action: () => console.log('Suporte VIP'),
+    action: () => ,
     premium: true
   }
 ];

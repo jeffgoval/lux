@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,7 +80,7 @@ export function AuditoriaTimeline() {
 
       setAuditorias(mockAuditorias);
     } catch (error) {
-      console.error('Erro ao carregar auditoria:', error);
+
       toast.error('Erro ao carregar dados de auditoria');
     } finally {
       setLoading(false);

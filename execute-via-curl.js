@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+﻿import { execSync } from 'child_process';
 
 const supabaseUrl = "https://dvnyfwpphuuujhodqkko.supabase.co";
 const supabaseServiceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bnlmd3BwaHV1dWpob2Rxa2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NzAyMjcsImV4cCI6MjA3MzE0NjIyN30.sQyW-Jn9LrR5mfRpJSoPOm1ENOrApc6GUEQxgfRHzuk";
@@ -27,8 +27,6 @@ USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
 `;
 
-console.log('🚀 Executando SQL via curl...');
-
 try {
   // Usar curl para executar SQL diretamente
   const curlCommand = `curl -X POST "${supabaseUrl}/rest/v1/rpc/exec_sql" ` +
@@ -37,17 +35,11 @@ try {
     `-H "apikey: ${supabaseServiceKey}" ` +
     `-d "{\\"sql\\": \\"${sql.replace(/"/g, '\\"').replace(/\n/g, '\\n')}\\"}"`;
 
-  console.log('📋 Executando comando curl...');
   const result = execSync(curlCommand, { encoding: 'utf8' });
-  console.log('✅ Resultado:', result);
-  
+
 } catch (error) {
-  console.log('❌ Erro com curl:', error.message);
-  
+
   // Fallback: mostrar instruções manuais
-  console.log('\n📋 EXECUTE ESTE SQL MANUALMENTE no Supabase:');
-  console.log('🔗 https://supabase.com/dashboard/project/dvnyfwpphuuujhodqkko/sql');
-  console.log('\n' + sql);
+
 }
 
-console.log('\n🎯 Depois de executar o SQL, teste o onboarding novamente!');

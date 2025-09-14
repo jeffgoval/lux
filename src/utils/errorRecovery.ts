@@ -1,4 +1,4 @@
-import { User } from '@supabase/supabase-js';
+﻿import { User } from '@supabase/supabase-js';
 
 export enum ErrorSeverity {
   LOW = 'low',
@@ -267,26 +267,24 @@ class ErrorRecoveryManager {
   }
 
   async attemptRecovery(error: AppError): Promise<boolean> {
-    console.log(`Attempting recovery for error: ${error.message}`);
-    
+
     const automaticActions = error.recoveryActions
       .filter(action => action.automatic)
       .sort((a, b) => a.priority - b.priority);
 
     for (const action of automaticActions) {
       try {
-        console.log(`Trying recovery action: ${action.label}`);
+
         const success = await action.action();
         if (success) {
-          console.log(`Recovery successful with action: ${action.label}`);
+
           return true;
         }
       } catch (actionError) {
-        console.error(`Recovery action failed: ${action.label}`, actionError);
+
       }
     }
 
-    console.log('Automatic recovery failed');
     return false;
   }
 

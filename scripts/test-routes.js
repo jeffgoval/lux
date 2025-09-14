@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 import { spawn } from 'child_process';
 import fetch from 'node-fetch';
@@ -32,8 +32,7 @@ class RouteValidator {
    * Test all routes for accessibility
    */
   async testAllRoutes() {
-    console.log(`🧪 Testing routes on ${this.baseUrl}...\n`);
-    
+
     const results = [];
     
     for (const route of this.routes) {
@@ -42,10 +41,9 @@ class RouteValidator {
       
       const status = result.accessible ? '✅' : '❌';
       const statusCode = result.status || 'N/A';
-      console.log(`${status} ${route} (${statusCode})`);
-      
+
       if (result.error) {
-        console.log(`   Error: ${result.error}`);
+
       }
     }
     
@@ -94,37 +92,25 @@ class RouteValidator {
    * Print test summary
    */
   printSummary(results) {
-    console.log('\n📊 ROUTE TEST SUMMARY');
-    console.log('='.repeat(40));
-    
+
     const accessible = results.filter(r => r.accessible).length;
     const total = results.length;
     const failed = results.filter(r => !r.accessible);
-    
-    console.log(`Total routes tested: ${total}`);
-    console.log(`Accessible: ${accessible}`);
-    console.log(`Failed: ${total - accessible}`);
-    console.log(`Success rate: ${((accessible / total) * 100).toFixed(1)}%`);
-    
+
     if (failed.length > 0) {
-      console.log('\n❌ FAILED ROUTES:');
+
       failed.forEach(route => {
-        console.log(`   ${route.path}: ${route.error}`);
+
       });
     }
-    
-    console.log('\n💡 NOTES:');
-    console.log('   - All routes should return 200 for SPAs');
-    console.log('   - 404 errors indicate server configuration issues');
-    console.log('   - Non-existent routes should return 200 but show 404 page');
+
   }
 
   /**
    * Start local preview server and test routes
    */
   async testWithPreview() {
-    console.log('🚀 Starting preview server...');
-    
+
     return new Promise((resolve, reject) => {
       const preview = spawn('npm', ['run', 'preview'], {
         stdio: 'pipe',
@@ -135,12 +121,10 @@ class RouteValidator {
       
       preview.stdout.on('data', async (data) => {
         const output = data.toString();
-        console.log(output);
-        
+
         if (output.includes('Local:') && !serverReady) {
           serverReady = true;
-          console.log('✅ Preview server ready!\n');
-          
+
           // Wait a moment for server to fully start
           setTimeout(async () => {
             try {
@@ -156,7 +140,7 @@ class RouteValidator {
       });
       
       preview.stderr.on('data', (data) => {
-        console.error(`Preview error: ${data}`);
+
       });
       
       preview.on('close', (code) => {

@@ -1,0 +1,22 @@
+--- OnboardingWizard.tsx.original
++++ OnboardingWizard.tsx.fixed
+@@ -305,12 +305,14 @@
+ 
+       const clinicaPayload: any = {
+         nome: data.nomeClinica,
+-        cnpj: data.cnpj || null,
+-        endereco: enderecoJson,
+-        telefone_principal: data.telefoneClinica || null,
+-        email_contato: data.emailClinica || null,
+-        horario_funcionamento: horarioFuncionamento
++        // Campos temporariamente removidos até migração ser aplicada
++        // cnpj: data.cnpj || null,
++        // endereco: enderecoJson,
++        // telefone_principal: data.telefoneClinica || null,
++        // email_contato: data.emailClinica || null,
++        // horario_funcionamento: horarioFuncionamento
+       };
++      
++      console.log('AVISO: Alguns campos foram removidos temporariamente (cnpj, endereco, etc.)');
+ 
+       console.log('Attempting to create clinic with payload:', clinicaPayload);

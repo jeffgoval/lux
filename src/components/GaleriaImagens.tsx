@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,7 @@ export function GaleriaImagens() {
       // Simular carregamento de imagens
       setImagens([]);
     } catch (error) {
-      console.error('Erro ao carregar imagens:', error);
+
       toast.error('Erro ao carregar galeria de imagens');
     } finally {
       setLoading(false);
@@ -81,7 +81,7 @@ export function GaleriaImagens() {
         toast.success(`${file.name} carregado com sucesso`);
       }
     } catch (error) {
-      console.error('Erro no upload:', error);
+
       toast.error('Erro ao fazer upload das imagens');
     }
   };

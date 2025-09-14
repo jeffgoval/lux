@@ -1,4 +1,4 @@
-/**
+﻿/**
  * RevenueOptimizer - Sistema de Otimização de Receita
  * Engine inteligente para maximizar receita através de pricing dinâmico,
  * upselling e otimização de agenda
@@ -195,7 +195,7 @@ export class RevenueOptimizer {
       };
 
     } catch (error) {
-      console.error('Erro no cálculo de pricing dinâmico:', error);
+
       return {
         precoSugerido: servico.precoBase,
         precoOriginal: servico.precoBase,
@@ -322,7 +322,7 @@ export class RevenueOptimizer {
         .slice(0, 5);
 
     } catch (error) {
-      console.error('Erro na sugestão de upselling:', error);
+
       return [];
     }
   }
@@ -432,7 +432,7 @@ export class RevenueOptimizer {
       };
 
     } catch (error) {
-      console.error('Erro na análise de receita:', error);
+
       return {
         receitaAtual: 0,
         receitaPotencial: 0,
@@ -510,7 +510,7 @@ export class RevenueOptimizer {
       };
 
     } catch (error) {
-      console.error('Erro no cálculo de métricas de demanda:', error);
+
       return {
         ocupacaoAtual: 50,
         demandaHistorica: 0,

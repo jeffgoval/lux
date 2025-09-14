@@ -1,4 +1,4 @@
-/**
+﻿/**
  * IntelligentAlertsEngine - Sistema de Alertas Inteligentes
  * Engine de detecção proativa com análise estatística e machine learning
  */
@@ -309,10 +309,9 @@ export class IntelligentAlertsEngine {
       
       // Iniciar monitoramento
       await this.startMonitoring();
-      
-      console.log('IntelligentAlertsEngine initialized successfully');
+
     } catch (error) {
-      console.error('Failed to initialize IntelligentAlertsEngine:', error);
+
     }
   }
 
@@ -347,7 +346,7 @@ export class IntelligentAlertsEngine {
         });
       });
     } catch (error) {
-      console.error('Error loading alert rules:', error);
+
     }
   }
 
@@ -372,7 +371,7 @@ export class IntelligentAlertsEngine {
         });
       });
     } catch (error) {
-      console.error('Error loading active alerts:', error);
+
     }
   }
 
@@ -388,8 +387,7 @@ export class IntelligentAlertsEngine {
     this.scheduleChecks('real-time', 60 * 1000);    // 1 minuto
     this.scheduleChecks('hourly', 60 * 60 * 1000);  // 1 hora
     this.scheduleChecks('daily', 24 * 60 * 60 * 1000); // 24 horas
-    
-    console.log('Alert monitoring started');
+
   }
 
   /**
@@ -402,7 +400,7 @@ export class IntelligentAlertsEngine {
       try {
         await this.checkAlertsByFrequency(frequency);
       } catch (error) {
-        console.error(`Error checking ${frequency} alerts:`, error);
+
       }
       
       setTimeout(check, interval);
@@ -423,7 +421,7 @@ export class IntelligentAlertsEngine {
       try {
         await this.evaluateRule(rule);
       } catch (error) {
-        console.error(`Error evaluating rule ${rule.id}:`, error);
+
       }
     }
   }
@@ -765,8 +763,7 @@ export class IntelligentAlertsEngine {
     // Atualizar contadores da regra
     rule.triggerCount++;
     rule.lastTriggered = new Date();
-    
-    console.log(`Alert triggered: ${alert.title} (${alert.severity})`);
+
   }
 
   /**
@@ -790,7 +787,7 @@ export class IntelligentAlertsEngine {
             break;
         }
       } catch (error) {
-        console.error(`Error executing action ${action.type}:`, error);
+
       }
     }
   }
@@ -811,7 +808,7 @@ export class IntelligentAlertsEngine {
     };
 
     // TODO: Implementar notificação para recipients específicos
-    console.log(`Notification sent for alert: ${alert.title}`);
+
   }
 
   /**
@@ -828,7 +825,7 @@ export class IntelligentAlertsEngine {
 
   private async increaseReminderFrequency(): Promise<void> {
     // Implementar lógica para aumentar frequência de lembretes
-    console.log('Auto-fix: Increasing reminder frequency');
+
   }
 
   private async sendEmailAction(action: AlertAction, alert: Alert): Promise<void> {
@@ -922,7 +919,7 @@ export class IntelligentAlertsEngine {
    */
   stopMonitoring(): void {
     this.isRunning = false;
-    console.log('Alert monitoring stopped');
+
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode, useState, useCallback } from 'react';
+﻿import React, { Component, ErrorInfo, ReactNode, useState, useCallback } from 'react';
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,8 +30,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Global Error Boundary caught an error:', error, errorInfo);
-    
+
     // Create error in recovery system
     const appError = errorRecoveryManager.createError(
       error.message || 'Unexpected application error',
@@ -69,7 +68,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
         }, 1000);
       }
     } catch (recoveryError) {
-      console.error('Recovery attempt failed:', recoveryError);
+
     } finally {
       this.setState({ isRecovering: false });
     }
@@ -96,8 +95,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   handleReportError = () => {
     if (this.state.errorId) {
       const errorReport = errorRecoveryManager.generateErrorReport();
-      console.log('Error Report:', errorReport);
-      
+
       // In a real app, you would send this to your error reporting service
       alert('Relatório de erro gerado no console. Por favor, contate o suporte técnico.');
     }
@@ -105,104 +103,27 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-                <AlertTriangle className="h-6 w-6 text-destructive" />
-              </div>
-              <CardTitle className="text-xl">Oops! Algo deu errado</CardTitle>
-              <CardDescription>
-                Ocorreu um erro inesperado na aplicação. Nossa equipe foi notificada.
-              </CardDescription>
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              {this.state.isRecovering && (
-                <div className="text-center text-sm text-muted-foreground">
-                  <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-2" />
-                  Tentando recuperar automaticamente...
-                </div>
-              )}
-              
-              <div className="grid grid-cols-1 gap-2">
-                <Button 
-                  onClick={this.handleRetry}
-                  disabled={this.state.isRecovering}
-                  className="w-full"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Tentar Novamente
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={this.handleGoHome}
-                  className="w-full"
-                >
-                  <Home className="h-4 w-4 mr-2" />
-                  Ir para Dashboard
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={this.handleReload}
-                  className="w-full"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Recarregar Página
-                </Button>
-              </div>
+      // Log do erro apenas no console (desenvolvimento)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error Boundary capturou erro:', this.state.error);
+        console.error('Component Stack:', this.state.errorInfo?.componentStack);
+      }
 
-              {process.env.NODE_ENV === 'development' && (
-                <div className="space-y-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={this.handleReportError}
-                    className="w-full text-xs"
-                  >
-                    <Bug className="h-3 w-3 mr-2" />
-                    Gerar Relatório de Erro
-                  </Button>
-                  
-                  {this.state.error && (
-                    <details className="text-xs">
-                      <summary className="cursor-pointer text-muted-foreground mb-2">
-                        Detalhes técnicos
-                      </summary>
-                      <div className="bg-muted p-3 rounded text-xs font-mono overflow-auto max-h-40">
-                        <div className="mb-2">
-                          <strong>Erro:</strong> {this.state.error.message}
-                        </div>
-                        {this.state.error.stack && (
-                          <div className="mb-2">
-                            <strong>Stack:</strong>
-                            <pre className="whitespace-pre-wrap text-xs">
-                              {this.state.error.stack}
-                            </pre>
-                          </div>
-                        )}
-                        {this.state.errorInfo?.componentStack && (
-                          <div>
-                            <strong>Component Stack:</strong>
-                            <pre className="whitespace-pre-wrap text-xs">
-                              {this.state.errorInfo.componentStack}
-                            </pre>
-                          </div>
-                        )}
-                      </div>
-                    </details>
-                  )}
-                </div>
-              )}
-              
-              <div className="text-center text-xs text-muted-foreground">
-                ID do Erro: {this.state.errorId?.slice(-8)}
-              </div>
-            </CardContent>
-          </Card>
+      // Tentar recuperação automática silenciosa
+      if (!this.state.isRecovering) {
+        setTimeout(() => {
+          this.handleRetry();
+        }, 100);
+
+        this.setState({ isRecovering: true });
+      }
+
+      // Mostrar apenas um loading discreto
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+          </div>
         </div>
       );
     }
@@ -216,8 +137,7 @@ export function useErrorHandler() {
   const [error, setError] = useState<Error | null>(null);
 
   const handleError = useCallback((error: Error, context?: any) => {
-    console.error('Component error:', error, context);
-    
+
     const appError = errorRecoveryManager.createError(
       error.message,
       ErrorCategory.UI,

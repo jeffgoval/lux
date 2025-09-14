@@ -1,4 +1,4 @@
-const { Pool } = require('pg');
+﻿const { Pool } = require('pg');
 
 // Conexão simples com PostgreSQL - sem complicação
 const pool = new Pool({
@@ -12,10 +12,10 @@ const query = async (text, params) => {
   try {
     const res = await pool.query(text, params);
     const duration = Date.now() - start;
-    console.log('Query executada:', { text, duration, rows: res.rowCount });
+
     return res;
   } catch (error) {
-    console.error('Erro na query:', error);
+
     throw error;
   }
 };

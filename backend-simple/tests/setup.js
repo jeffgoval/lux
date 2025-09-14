@@ -1,4 +1,4 @@
-// =====================================================
+﻿// =====================================================
 // TEST SETUP AND CONFIGURATION
 // Global test setup for Jest
 // =====================================================
@@ -11,7 +11,7 @@ process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-only';
 
 // Use test database if available, otherwise use main database
 if (!process.env.TEST_DATABASE_URL && process.env.DATABASE_URL) {
-  console.warn('Warning: TEST_DATABASE_URL not set, using main DATABASE_URL for tests');
+
   process.env.TEST_DATABASE_URL = process.env.DATABASE_URL;
 }
 
@@ -41,7 +41,7 @@ afterAll(() => {
 
 // Global error handler for unhandled promises
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+
 });
 
 // Ensure auth schema exists for tests
@@ -68,13 +68,12 @@ const ensureAuthSchema = async () => {
           updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
         )
       `);
-      
-      console.log('Test database schema verified');
+
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('Failed to setup test database schema:', error);
+
     throw error;
   } finally {
     await pool.end();

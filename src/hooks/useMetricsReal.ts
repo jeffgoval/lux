@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { 
@@ -51,7 +51,7 @@ export function useMetrics(): UseMetricsReturn {
 
       setCurrentMetrics(data || null);
     } catch (err) {
-      console.error('Erro ao buscar métricas atuais:', err);
+
       throw err;
     }
   }
@@ -70,7 +70,7 @@ export function useMetrics(): UseMetricsReturn {
 
       setKpiMetrics(data || []);
     } catch (err) {
-      console.error('Erro ao buscar KPIs:', err);
+
       throw err;
     }
   }
@@ -89,7 +89,7 @@ export function useMetrics(): UseMetricsReturn {
 
       setAlerts(data || []);
     } catch (err) {
-      console.error('Erro ao buscar alertas:', err);
+
       throw err;
     }
   }
@@ -141,7 +141,7 @@ export function useMetrics(): UseMetricsReturn {
 
       toast.success('Alerta reconhecido com sucesso');
     } catch (err) {
-      console.error('Erro ao reconhecer alerta:', err);
+
       toast.error('Erro ao reconhecer alerta');
     }
   }

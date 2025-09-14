@@ -1,4 +1,4 @@
-/**
+﻿/**
  * VIPSchedulingService - Serviço de Agendamento Especializado para Clientes VIP
  * Sistema especializado para gestão automática de priorização e agendamentos premium
  */
@@ -196,7 +196,7 @@ export class VIPSchedulingService {
       };
 
     } catch (error) {
-      console.error('Erro no agendamento VIP:', error);
+
       return {
         success: false,
         message: 'Erro interno no sistema de agendamento VIP'
@@ -322,12 +322,10 @@ export class VIPSchedulingService {
       };
 
     } catch (error) {
-      console.error('Erro na realocação:', error);
+
       return null;
     }
   }
-
-
 
   /**
    * Aplica benefícios especiais para clientes VIP
@@ -603,8 +601,6 @@ export class VIPSchedulingService {
 
     return null;
   }
-
-
 
   private async upgradeToPremiumRoom(agendamentoId: string): Promise<void> {
     await supabase

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * Teste de Conexão com Supabase
@@ -10,9 +10,7 @@ const CONFIG = {
 };
 
 async function testConnection() {
-  console.log('🔍 Testando conexão com Supabase...');
-  console.log('URL:', CONFIG.supabaseUrl);
-  
+
   try {
     const response = await fetch(`${CONFIG.supabaseUrl}/rest/v1/profiles?select=*&limit=1`, {
       headers: {
@@ -22,21 +20,16 @@ async function testConnection() {
       }
     });
 
-    console.log('Status:', response.status);
-    console.log('Status Text:', response.statusText);
-    
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ Conexão OK!');
-      console.log('Dados recebidos:', data.length, 'registros');
-      console.log('Primeiro registro:', data[0] || 'Nenhum');
+
     } else {
       const errorText = await response.text();
-      console.error('❌ Erro na resposta:', errorText);
+
     }
     
   } catch (error) {
-    console.error('❌ Erro na requisição:', error.message);
+
   }
 }
 

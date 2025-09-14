@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * Agendador de Backups Automáticos do Supabase
@@ -32,9 +32,7 @@ const SCHEDULE_CONFIG = {
 function log(message) {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] ${message}`;
-  
-  console.log(logMessage);
-  
+
   // Salvar em arquivo de log
   const logFile = path.join('./logs', 'backup-scheduler.log');
   

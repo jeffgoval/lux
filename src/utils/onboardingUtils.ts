@@ -1,4 +1,4 @@
-import { UserProfile, UserRoleContext } from '@/contexts/AuthContext';
+﻿import { UserProfile, UserRoleContext } from '@/contexts/AuthContext';
 
 export interface OnboardingStatus {
   needsOnboarding: boolean;
@@ -54,7 +54,6 @@ export function checkOnboardingStatus(
 
   // Profile exists but no roles - this is more nuanced
   if (roles.length === 0) {
-
 
     // If profile has basic info filled out, user might not need full onboarding
     // Para usuários existentes que foram criados automaticamente, ser mais flexível
@@ -194,16 +193,16 @@ export async function markOnboardingComplete(userId: string): Promise<boolean> {
     const { error } = await supabase
       .from('profiles')
       .update({ primeiro_acesso: false })
-      .eq('user_id', userId);
+      .eq('id', userId);
 
     if (error) {
-      console.error('Failed to mark onboarding as complete:', error);
+
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error marking onboarding complete:', error);
+
     return false;
   }
 }

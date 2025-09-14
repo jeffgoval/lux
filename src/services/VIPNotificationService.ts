@@ -1,4 +1,4 @@
-/**
+﻿/**
  * VIPNotificationService - Serviço de Notificações Especializadas para VIP
  * Sistema de comunicação premium para clientes VIP e gerência
  */
@@ -264,7 +264,7 @@ export class VIPNotificationService {
       };
 
     } catch (error) {
-      console.error('Erro ao enviar notificação VIP:', error);
+
       return {
         success: false,
         canal: request.destinatario.preferenciasContato?.canal || 'whatsapp',
@@ -630,9 +630,7 @@ export class VIPNotificationService {
     urgente: boolean
   ): Promise<{ enviado: boolean; erro?: string }> {
     // Implementar integração com WhatsApp Business API
-    console.log('Enviando WhatsApp para:', destinatario.preferenciasContato?.telefone);
-    console.log('Mensagem:', mensagem.corpo);
-    
+
     // Simular envio bem-sucedido
     return { enviado: true };
   }
@@ -643,9 +641,7 @@ export class VIPNotificationService {
     urgente: boolean
   ): Promise<{ enviado: boolean; erro?: string }> {
     // Implementar integração com provedor de SMS
-    console.log('Enviando SMS para:', destinatario.preferenciasContato?.telefone);
-    console.log('Mensagem:', mensagem.corpo);
-    
+
     return { enviado: true };
   }
 
@@ -655,10 +651,7 @@ export class VIPNotificationService {
     urgente: boolean
   ): Promise<{ enviado: boolean; erro?: string }> {
     // Implementar integração com provedor de email
-    console.log('Enviando email para:', destinatario.preferenciasContato?.email);
-    console.log('Assunto:', mensagem.titulo);
-    console.log('Corpo:', mensagem.corpo);
-    
+
     return { enviado: true };
   }
 
@@ -668,10 +661,7 @@ export class VIPNotificationService {
     urgente: boolean
   ): Promise<{ enviado: boolean; erro?: string }> {
     // Implementar push notification
-    console.log('Enviando push notification para:', destinatario.id);
-    console.log('Título:', mensagem.titulo);
-    console.log('Corpo:', mensagem.corpo);
-    
+
     return { enviado: true };
   }
 

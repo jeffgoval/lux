@@ -1,5 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
-import { generateAuthDebugReport } from './authDebugger';
+﻿import { supabase } from '@/integrations/supabase/client';
+import { generateAuthDebugReport } from './auth';
 import { getAuthCacheStats } from './authCache';
 import { errorRecoveryManager } from './errorRecovery';
 
@@ -337,7 +337,7 @@ class HealthCheckManager {
       const report = await this.runAllChecks();
       return report.overallStatus !== 'error';
     } catch (error) {
-      console.error('Quick health check failed:', error);
+
       return false;
     }
   }
@@ -357,13 +357,12 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   setTimeout(async () => {
     try {
       const report = await runSystemHealthCheck();
-      console.log('🏥 System Health Check:', report);
-      
+
       if (report.overallStatus === 'error') {
-        console.warn('⚠️ System health issues detected:', report.checks.filter(c => c.status === 'error'));
+
       }
     } catch (error) {
-      console.error('Health check failed:', error);
+
     }
   }, 3000);
 

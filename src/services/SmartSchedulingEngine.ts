@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartSchedulingEngine - Engine Inteligente de Agendamento
  * Sistema avançado para otimização automática de agendamentos
  * com detecção de conflitos e sugestões inteligentes
@@ -113,7 +113,7 @@ export class SmartSchedulingEngine {
       );
 
       if (error) {
-        console.error('Erro ao buscar horários disponíveis:', error);
+
         return [];
       }
 
@@ -145,7 +145,7 @@ export class SmartSchedulingEngine {
       return slots.slice(0, 10);
 
     } catch (error) {
-      console.error('Erro no findOptimalSlot:', error);
+
       return [];
     }
   }
@@ -172,7 +172,7 @@ export class SmartSchedulingEngine {
       );
 
       if (error) {
-        console.error('Erro na validação:', error);
+
         return {
           temConflitos: true,
           conflitos: [{
@@ -226,7 +226,7 @@ export class SmartSchedulingEngine {
       };
 
     } catch (error) {
-      console.error('Erro no detectConflicts:', error);
+
       return {
         temConflitos: true,
         conflitos: [{
@@ -323,7 +323,7 @@ export class SmartSchedulingEngine {
       };
 
     } catch (error) {
-      console.error('Erro na otimização da agenda:', error);
+
       return {
         otimizacoesSugeridas: [],
         melhoriaEstimada: {
@@ -488,7 +488,7 @@ export class SmartSchedulingEngine {
         .slice(0, 5);
 
     } catch (error) {
-      console.error('Erro ao buscar alternativas:', error);
+
       return [];
     }
   }

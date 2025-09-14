@@ -1,15 +1,13 @@
-import { useAuth } from "@/contexts/AuthContext";
+import { useSecureAuth } from "@/contexts/SecureAuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, FileText, Settings } from "lucide-react";
 
 import { LoadingFallback } from '@/components/LoadingFallback';
-import { useAuthLoadingDetector } from '@/hooks/useInfiniteLoadingDetector';
 
 export default function Dashboard() {
-  const { currentRole, isLoading } = useAuth();
-  
-  // Detect infinite loading
-  useAuthLoadingDetector(isLoading);
+  const { currentRole, isLoading } = useSecureAuth();
+
+  // DESABILITADO: useAuthLoadingDetector causava loops infinitos
 
   if (isLoading) {
     return (

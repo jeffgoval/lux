@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { query, transaction } = require('../db/connection');
@@ -81,7 +81,7 @@ router.post('/login', validateLoginData, asyncErrorHandler(async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erro no login:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
@@ -146,7 +146,7 @@ router.post('/register', validateRegistrationData, asyncErrorHandler(async (req,
     });
 
   } catch (error) {
-    console.error('Erro no registro:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
@@ -173,7 +173,7 @@ router.get('/me', authenticateToken, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Erro ao buscar usuário:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'

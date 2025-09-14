@@ -1,11 +1,10 @@
-import fetch from 'node-fetch';
+﻿import fetch from 'node-fetch';
 
 const supabaseUrl = "https://dvnyfwpphuuujhodqkko.supabase.co";
 const supabaseServiceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bnlmd3BwaHV1dWpob2Rxa2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NzAyMjcsImV4cCI6MjA3MzE0NjIyN30.sQyW-Jn9LrR5mfRpJSoPOm1ENOrApc6GUEQxgfRHzuk";
 
 async function executeSQLDirect() {
-  console.log('🚀 Executando SQL via API REST do Supabase...');
-  
+
   const sqlStatements = `
 -- 1. Criar tabela clinica_profissionais
 CREATE TABLE IF NOT EXISTS public.clinica_profissionais (
@@ -143,43 +142,33 @@ ALTER TABLE public.profissionais ENABLE ROW LEVEL SECURITY;
     });
     
     if (!response.ok) {
-      console.log('❌ Erro na requisição:', response.status, response.statusText);
+
       const errorText = await response.text();
-      console.log('❌ Detalhes do erro:', errorText);
-      
+
       // Tentar abordagem alternativa - usar CLI do Supabase
-      console.log('\n🔄 Tentando abordagem alternativa via CLI...');
+
       await trySupabaseCLI(sqlStatements);
     } else {
       const result = await response.json();
-      console.log('✅ SQL executado com sucesso!');
-      console.log('📋 Resultado:', result);
+
     }
     
   } catch (error) {
-    console.error('❌ Erro ao executar SQL:', error.message);
-    
+
     // Tentar abordagem alternativa
-    console.log('\n🔄 Tentando abordagem alternativa via CLI...');
+
     await trySupabaseCLI(sqlStatements);
   }
 }
 
 async function trySupabaseCLI(sqlStatements) {
-  console.log('📝 Criando arquivo SQL temporário...');
-  
+
   // Salvar SQL em arquivo temporário
   const fs = await import('fs');
   const tempSqlFile = 'temp_onboarding_setup.sql';
   
   fs.writeFileSync(tempSqlFile, sqlStatements);
-  console.log(`✅ Arquivo criado: ${tempSqlFile}`);
-  
-  console.log('\n🚀 Para executar via CLI do Supabase:');
-  console.log(`1. Execute: supabase db reset --linked`);
-  console.log(`2. Ou execute: psql -h db.dvnyfwpphuuujhodqkko.supabase.co -U postgres -d postgres -f ${tempSqlFile}`);
-  console.log('\n📋 Ou copie o conteúdo do arquivo e execute no SQL Editor do Supabase:');
-  console.log('🔗 https://supabase.com/dashboard/project/dvnyfwpphuuujhodqkko/sql');
+
 }
 
 executeSQLDirect();

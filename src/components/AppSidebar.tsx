@@ -1,6 +1,6 @@
 import { CalendarDays, Users, Briefcase, Package, Wrench, DollarSign, MessageSquare, FileText, Home, Search, Settings, LogOut, Loader2, BarChart3, Bell, Zap } from "lucide-react"
 import { useLocation } from "react-router-dom"
-import { useAuth } from "@/contexts/AuthContext"
+import { useSecureAuth } from "@/contexts/SecureAuthContext"
 import { useClinica } from "@/hooks/useClinica"
 import { Database } from "@/integrations/supabase/types"
 import { useMemo } from "react"
@@ -110,7 +110,7 @@ const allNavItems = [
 export function AppSidebar() {
   const { state } = useSidebar()
   const collapsed = state === "collapsed"
-  const { currentRole, signOut, isRolesLoading, isAuthenticated, profile } = useAuth()
+  const { currentRole, logout, isLoading, isAuthenticated, profile } = useSecureAuth()
   const { clinica } = useClinica()
   const location = useLocation()
   const currentPath = location.pathname
@@ -118,21 +118,21 @@ export function AppSidebar() {
   // Memoized navigation items filtering with progressive disclosure
   const mainNavItems = useMemo(() => {
     // If roles are still loading, show basic items only
-    if (isRolesLoading || !currentRole) {
+    if (isLoading || !currentRole) {
       return allNavItems.filter(item => item.alwaysShow || item.priority <= 2);
     }
-    
+
     // Filter based on current role and sort by priority
     return allNavItems
       .filter(item => item.alwaysShow || (currentRole && item.roles.includes(currentRole)))
       .sort((a, b) => a.priority - b.priority);
-  }, [currentRole, isRolesLoading])
+  }, [currentRole, isLoading])
 
   // Loading state for menu items
-  const isMenuLoading = isRolesLoading && isAuthenticated && !!profile
+  const isMenuLoading = isLoading && isAuthenticated && !!profile
 
   const handleSignOut = async () => {
-    await signOut()
+    await logout()
   }
 
   const isActive = (path: string) => {

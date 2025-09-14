@@ -1,5 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
-import { generateAuthDebugReport, logAuthDebugReport } from './authDebugger';
+﻿import { supabase } from '@/integrations/supabase/client';
+import { generateAuthDebugReport, logAuthDebugReport } from './auth';
 import { checkUserDataStatus, comprehensiveUserDataRecovery } from './userDataRecovery';
 
 export interface SignupTestResult {
@@ -132,7 +132,7 @@ async function testBasicOperations(userId: string, results: SignupTestResult[]) 
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .single();
     
     results.push({
@@ -197,7 +197,7 @@ async function testBasicOperations(userId: string, results: SignupTestResult[]) 
  */
 export async function cleanupTestUser(userId: string): Promise<boolean> {
   if (process.env.NODE_ENV !== 'development') {
-    console.warn('Cleanup only available in development mode');
+
     return false;
   }
   
@@ -206,12 +206,11 @@ export async function cleanupTestUser(userId: string): Promise<boolean> {
     // For now, just clean up the related data
     
     await supabase.from('user_roles').delete().eq('user_id', userId);
-    await supabase.from('profiles').delete().eq('user_id', userId);
-    
-    console.log('Test user data cleaned up');
+    await supabase.from('profiles').delete().eq('id', userId);
+
     return true;
   } catch (error) {
-    console.error('Error cleaning up test user:', error);
+
     return false;
   }
 }
@@ -222,30 +221,23 @@ export async function cleanupTestUser(userId: string): Promise<boolean> {
 export async function runSignupTest(email?: string): Promise<void> {
   const testEmail = email || `test-${Date.now()}@example.com`;
   const testPassword = 'test123456';
-  
-  console.group('🧪 Signup Flow Test');
-  console.log('Testing with:', testEmail);
-  
+
   const results = await testSignupFlow(testEmail, testPassword);
-  
-  console.log('📊 Test Results:');
+
   results.forEach((result, index) => {
     const icon = result.success ? '✅' : '❌';
-    console.log(`${icon} ${index + 1}. ${result.step}`, result.error || result.details);
+
   });
   
   const successCount = results.filter(r => r.success).length;
   const totalCount = results.length;
-  
-  console.log(`\n📈 Summary: ${successCount}/${totalCount} steps passed`);
-  
+
   // Log debug report if available
   const finalResult = results[results.length - 1];
   if (finalResult?.debugReport) {
     logAuthDebugReport(finalResult.debugReport);
   }
-  
-  console.groupEnd();
+
 }
 
 // Development helper

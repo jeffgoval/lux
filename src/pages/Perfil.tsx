@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,15 +15,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSystemRoles } from '@/hooks/useSystemRoles';
 import { toast } from 'sonner';
 import { LoadingFallback } from '@/components/LoadingFallback';
-import { useAuthLoadingDetector } from '@/hooks/useInfiniteLoadingDetector';
 
 export default function Perfil() {
-  const { user, profile, roles, currentRole, isLoading } = useAuth();
+  const { user, profile, roles, currentRole, isLoading } = useSecureAuth();
   const { getRoleDisplayName, getRoleColor } = useSystemRoles();
   const navigate = useNavigate();
-  
-  // Detect infinite loading
-  useAuthLoadingDetector(isLoading);
+
+  // DESABILITADO: useAuthLoadingDetector causava loops infinitos
   
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);

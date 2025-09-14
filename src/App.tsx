@@ -3,9 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { SecureAuthProvider } from "@/contexts/SecureAuthContext";
 import { NavigationProvider } from "@/contexts/NavigationContext";
-import { FastAuthGuard } from "./components/FastAuthGuard";
+import { SecureAuthGuard } from "./components/SecureAuthGuard";
 import { GlobalErrorBoundary } from "./components/GlobalErrorBoundary";
 import { AppLayout } from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
@@ -18,7 +18,7 @@ import Equipamentos from "./pages/Equipamentos";
 import Financeiro from "./pages/Financeiro";
 import Comunicacao from "./pages/Comunicacao";
 import Prontuarios from "./pages/Prontuarios";
-import Auth from "./pages/Auth";
+import SecureAuth from "./pages/SecureAuth";
 import Perfil from "./pages/Perfil";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -26,13 +26,12 @@ import Landing from "./pages/Landing";
 import { DashboardExecutivo } from "./components/executive/DashboardExecutivo";
 import { AlertsDashboard } from "./components/alerts/AlertsDashboard";
 import { OnboardingWizard } from "./components/OnboardingWizard";
-import { LoadingDebugPanel } from "./components/LoadingDebugPanel";
 const queryClient = new QueryClient();
 
 const App = () => (
   <GlobalErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+      <SecureAuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -41,155 +40,154 @@ const App = () => (
               <Routes>
             {/* Public routes */}
             <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={<SecureAuth />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             
             {/* Protected routes */}
-            <Route 
-              path="/onboarding" 
+            <Route
+              path="/onboarding"
               element={
-                <FastAuthGuard>
+                <SecureAuthGuard allowOnboarding={true}>
                   <OnboardingWizard />
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/perfil" 
+            <Route
+              path="/perfil"
               element={
-                <FastAuthGuard>
+                <SecureAuthGuard>
                   <Perfil />
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
-                <FastAuthGuard>
+                <SecureAuthGuard>
                   <AppLayout>
                     <Dashboard />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/agendamento" 
+            <Route
+              path="/agendamento"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'recepcionistas']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'receptionist']}>
                   <AppLayout>
                     <Index />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/clientes" 
+            <Route
+              path="/clientes"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'professional', 'receptionist']}>
                   <AppLayout>
                     <Clientes />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/clientes/:id" 
+            <Route
+              path="/clientes/:id"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'professional', 'receptionist']}>
                   <AppLayout>
                     <ClienteDetalhes />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/servicos" 
+            <Route
+              path="/servicos"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'professional']}>
                   <AppLayout>
                     <Servicos />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/produtos" 
+            <Route
+              path="/produtos"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
                   <AppLayout>
                     <Produtos />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/equipamentos" 
+            <Route
+              path="/equipamentos"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
                   <AppLayout>
                     <Equipamentos />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/financeiro" 
+            <Route
+              path="/financeiro"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
                   <AppLayout>
                     <Financeiro />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/comunicacao" 
+            <Route
+              path="/comunicacao"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'recepcionistas']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'receptionist']}>
                   <AppLayout>
                     <Comunicacao />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/prontuarios" 
+            <Route
+              path="/prontuarios"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente', 'profissionais']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'professional']}>
                   <AppLayout>
                     <Prontuarios />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/executivo" 
+            <Route
+              path="/executivo"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
                   <AppLayout title="Dashboard Executivo">
                     <DashboardExecutivo />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
-            <Route 
-              path="/alertas" 
+            <Route
+              path="/alertas"
               element={
-                <FastAuthGuard requiredRoles={['super_admin', 'proprietaria', 'gerente']}>
+                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
                   <AppLayout title="Alertas Inteligentes">
                     <AlertsDashboard />
                   </AppLayout>
-                </FastAuthGuard>
-              } 
+                </SecureAuthGuard>
+              }
             />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-              <LoadingDebugPanel />
             </NavigationProvider>
           </BrowserRouter>
         </TooltipProvider>
-      </AuthProvider>
+      </SecureAuthProvider>
     </QueryClientProvider>
   </GlobalErrorBoundary>
 );

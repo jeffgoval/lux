@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AlertsDashboard - Dashboard para visualização e gerenciamento de alertas
  */
 
@@ -81,7 +81,7 @@ export const AlertsDashboard: React.FC = () => {
       setMetrics(metricsData);
       
     } catch (error) {
-      console.error('Error loading alerts data:', error);
+
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,7 @@ export const AlertsDashboard: React.FC = () => {
       await intelligentAlertsEngine.acknowledgeAlert(alertId, 'current-user-id');
       await loadAlertsData();
     } catch (error) {
-      console.error('Error acknowledging alert:', error);
+
     }
   };
 
@@ -142,7 +142,7 @@ export const AlertsDashboard: React.FC = () => {
       await intelligentAlertsEngine.resolveAlert(alertId, 'current-user-id');
       await loadAlertsData();
     } catch (error) {
-      console.error('Error resolving alert:', error);
+
     }
   };
 

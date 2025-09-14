@@ -1,12 +1,10 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 /**
  * Script Final de Backup do Supabase
  * 
  * Faz backup de todas as tabelas acessíveis via API
  */
-
-console.log('🚀 Backup Automático do Supabase');
 
 import fs from 'fs';
 import path from 'path';
@@ -62,7 +60,7 @@ async function fetchTable(table) {
 function ensureBackupDir() {
   if (!fs.existsSync(CONFIG.backupDir)) {
     fs.mkdirSync(CONFIG.backupDir, { recursive: true });
-    console.log('✅ Diretório de backup criado');
+
   }
 }
 
@@ -82,17 +80,16 @@ function cleanOldBackups() {
       
       filesToDelete.forEach(file => {
         fs.unlinkSync(file.path);
-        console.log(`🗑️  Removido: ${file.name}`);
+
       });
     }
   } catch (error) {
-    console.warn('⚠️  Erro ao limpar backups:', error.message);
+
   }
 }
 
 async function main() {
-  console.log('📋 Iniciando backup das tabelas...\n');
-  
+
   ensureBackupDir();
   
   const backup = {
@@ -118,10 +115,10 @@ async function main() {
     if (result.success) {
       backup.summary.successfulTables++;
       backup.summary.totalRecords += result.count;
-      console.log(`✅ ${result.count} registros`);
+
     } else {
       backup.summary.errors.push(`${table}: ${result.error}`);
-      console.log(`❌ Erro ${result.error}`);
+
     }
   }
   
@@ -142,23 +139,15 @@ async function main() {
   cleanOldBackups();
   
   // Relatório final
-  console.log(`\n🎉 Backup concluído!`);
-  console.log(`📁 Arquivo: ${filename}`);
-  console.log(`📊 Resumo:`);
-  console.log(`   - Tabelas testadas: ${backup.summary.totalTables}`);
-  console.log(`   - Tabelas com sucesso: ${backup.summary.successfulTables}`);
-  console.log(`   - Total de registros: ${backup.summary.totalRecords}`);
-  console.log(`   - Tamanho do arquivo: ${(stats.size / 1024).toFixed(2)} KB`);
-  
+
   if (backup.summary.errors.length > 0) {
-    console.log(`\n⚠️  Tabelas não encontradas ou sem acesso:`);
-    backup.summary.errors.forEach(error => console.log(`   - ${error}`));
+
+    backup.summary.errors.forEach(error => );
   }
-  
-  console.log(`\n💡 Para restaurar: use o arquivo JSON ou importe via Supabase Dashboard`);
+
 }
 
 main().catch(error => {
-  console.error('\n❌ Erro durante o backup:', error.message);
+
   process.exit(1);
 });

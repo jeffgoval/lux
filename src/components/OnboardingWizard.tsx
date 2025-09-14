@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecureAuth } from '@/contexts/SecureAuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useForceProfile } from '@/hooks/useForceProfile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,8 +80,9 @@ export function OnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [sessionValid, setSessionValid] = useState(true);
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile } = useSecureAuth();
   const navigate = useNavigate();
+  const { creating } = useForceProfile();
 
   const [data, setData] = useState<OnboardingData>({
     nomeCompleto: '',
@@ -122,7 +124,7 @@ export function OnboardingWizard() {
       const { data: { session }, error } = await supabase.auth.getSession();
 
       if (error || !session) {
-        console.error('Session validation failed:', error);
+
         setSessionValid(false);
         return false;
       }
@@ -130,7 +132,7 @@ export function OnboardingWizard() {
       setSessionValid(true);
       return true;
     } catch (error) {
-      console.error('Error validating session:', error);
+
       setSessionValid(false);
       return false;
     }
@@ -149,16 +151,11 @@ export function OnboardingWizard() {
   // Redirect to login if session becomes invalid
   useEffect(() => {
     if (!sessionValid) {
-      toast.error('Sessão expirada', {
-        description: 'Sua sessão expirou. Você será redirecionado para fazer login.'
+      // Silently redirect without showing error toast
+      navigate('/auth', {
+        state: { from: '/onboarding' },
+        replace: true
       });
-
-      setTimeout(() => {
-        navigate('/auth', {
-          state: { from: '/onboarding' },
-          replace: true
-        });
-      }, 2000);
     }
   }, [sessionValid, navigate]);
 
@@ -204,22 +201,19 @@ export function OnboardingWizard() {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !session) {
       setLoading(false);
-      toast.error('Sessão expirada', {
-        description: 'Por favor, faça login novamente para continuar.'
-      });
+      // Silently redirect without showing error toast
       navigate('/auth');
       return;
     }
 
     try {
       // 1. Criar/atualizar profile diretamente
-      console.log('Creating/updating profile for user:', user.id);
 
       // Primeiro, verificar se o profile já existe
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (existingProfile) {
@@ -229,10 +223,9 @@ export function OnboardingWizard() {
           .update({
             nome_completo: data.nomeCompleto
           })
-          .eq('user_id', user.id);
+          .eq('id', user.id);
 
         if (profileError) {
-          console.error('Profile update error:', profileError);
           throw new Error(`Erro ao atualizar perfil: ${profileError.message}`);
         }
       } else {
@@ -246,13 +239,11 @@ export function OnboardingWizard() {
           });
 
         if (profileError) {
-          console.error('Profile creation error:', profileError);
           throw new Error(`Erro ao criar perfil: ${profileError.message}`);
         }
       }
 
       // 1.1. Criar/verificar role de proprietária
-      console.log('Creating/verifying proprietaria role...');
 
       const { data: existingRole } = await supabase
         .from('user_roles')
@@ -272,7 +263,6 @@ export function OnboardingWizard() {
           });
 
         if (roleError) {
-          console.error('Role creation error:', roleError);
           throw new Error(`Erro ao criar role: ${roleError.message}`);
         }
       }
@@ -310,7 +300,6 @@ export function OnboardingWizard() {
         horario_funcionamento: horarioFuncionamento
       };
 
-      console.log('Attempting to create clinic with payload:', clinicaPayload);
 
       // Create clinic directly
       const { data: clinicaResponse, error: clinicaError } = await supabase
@@ -320,14 +309,12 @@ export function OnboardingWizard() {
         .single();
 
       if (clinicaError) {
-        console.error('Clinic creation error:', clinicaError);
         throw new Error(`Erro ao criar clínica: ${clinicaError.message}`);
       }
 
       const clinicaId = clinicaResponse.id;
 
       // 3.1. Atualizar user_roles com clinica_id imediatamente após criar a clínica
-      console.log('Updating user role with clinic_id:', clinicaId);
       const { error: updateRoleError } = await supabase
         .from('user_roles')
         .update({
@@ -337,18 +324,14 @@ export function OnboardingWizard() {
         .eq('role', 'proprietaria');
 
       if (updateRoleError) {
-        console.error('Role update error:', updateRoleError);
-        console.error('Full role update error:', JSON.stringify(updateRoleError, null, 2));
         if (updateRoleError.code === '42501') {
           throw new Error('Erro de permissão ao atualizar role. Tente fazer logout e login novamente.');
         }
         throw new Error(`Erro ao atualizar role: ${updateRoleError.message}`);
       }
-      console.log('User role updated successfully');
 
       // 4. Criar profissional e vincular à clínica
-      console.log('Creating professional...');
-      
+
       if (data.souEuMesma) {
         // Se é o próprio usuário, criar entrada na tabela profissionais
         const { error: profissionalError } = await supabase
@@ -359,7 +342,6 @@ export function OnboardingWizard() {
           });
 
         if (profissionalError && profissionalError.code !== '23505') {
-          console.error('Professional creation error:', profissionalError);
           throw new Error(`Erro ao criar profissional: ${profissionalError.message}`);
         }
 
@@ -378,7 +360,6 @@ export function OnboardingWizard() {
           });
 
         if (clinicaProfissionalError) {
-          console.error('Clinic professional relation error:', clinicaProfissionalError);
           throw new Error(`Erro ao vincular profissional à clínica: ${clinicaProfissionalError.message}`);
         }
       } else {
@@ -394,16 +375,12 @@ export function OnboardingWizard() {
           });
 
         if (clinicaProfissionalError) {
-          console.error('External professional relation error:', clinicaProfissionalError);
           throw new Error(`Erro ao criar vínculo do profissional: ${clinicaProfissionalError.message}`);
         }
       }
       
-      console.log('Professional created and linked successfully');
-
       // 5. Criar template de procedimento
-      console.log('Creating procedure template...');
-      
+
       const precoNumerico = parseFloat(data.precoServico.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
       
       const { error: templateError } = await supabase
@@ -414,20 +391,18 @@ export function OnboardingWizard() {
           descricao: data.descricaoServico || null,
           duracao_padrao_minutos: data.duracaoServico,
           valor_base: precoNumerico,
-          campos_obrigatorios: JSON.stringify({
+          campos_obrigatorios: {
             duracao_minutos: { type: "number", required: true, default: data.duracaoServico },
             valor_procedimento: { type: "number", required: true, default: precoNumerico }
-          }),
-          campos_opcionais: JSON.stringify({
+          },
+          campos_opcionais: {
             observacoes: { type: "text" },
             retorno_recomendado: { type: "date" }
-          }),
-          criado_por: user.id
+          }
         });
 
       if (templateError) {
-        console.error('Template creation error:', templateError);
-        console.error('Full template error:', JSON.stringify(templateError, null, 2));
+
         if (templateError.code === '23505') {
           throw new Error('Um template com este nome já existe.');
         } else if (templateError.code === '42501') {
@@ -435,49 +410,49 @@ export function OnboardingWizard() {
         }
         throw new Error(`Erro ao criar template de procedimento: ${templateError.message}`);
       }
-      console.log('Procedure template created successfully');
 
-      // 6. Marcar onboarding como completo (skip if column doesn't exist)
-      console.log('Completing onboarding...');
-      try {
-        const { error: completeOnboardingError } = await supabase
-          .from('profiles')
-          .update({ primeiro_acesso: false })
-          .eq('user_id', user.id);
+      // 6. Marcar onboarding como completo - OBRIGATÓRIO
+      const { data: updateData, error: completeOnboardingError } = await supabase
+        .from('profiles')
+        .update({ primeiro_acesso: false })
+        .eq('id', user.id)
+        .select();
 
-        if (completeOnboardingError) {
-          console.warn('Could not update primeiro_acesso (column may not exist):', completeOnboardingError.message);
-        } else {
-          console.log('Onboarding marked as complete');
-        }
-      } catch (error) {
-        console.warn('primeiro_acesso column may not exist, skipping update');
+      if (completeOnboardingError) {
+        throw new Error(`Erro ao finalizar onboarding: ${completeOnboardingError.message}`);
       }
-      
+
+      // Verificar se realmente atualizou
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('profiles')
+        .select('primeiro_acesso')
+        .eq('id', user.id)
+        .single();
+
+      if (verifyError) {
+        console.log('⚠️ Erro ao verificar atualização:', verifyError);
+      } else if (verifyData.primeiro_acesso !== false) {
+        throw new Error('Falha ao marcar onboarding como completo');
+      }
+
       toast.success('Configuração inicial concluída com sucesso!');
 
-      // Atualizar o profile context
-      console.log('Refreshing profile...');
-      await refreshProfile();
-      console.log('Profile refreshed');
+      // Aguardar um pouco para garantir que os dados foram salvos
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Final session validation before redirect
-      console.log('Validating final session...');
-      const finalSessionCheck = await validateSession();
-      console.log('Final session check result:', finalSessionCheck);
+      toast.success('Configuração inicial concluída com sucesso!');
 
-      if (finalSessionCheck) {
-        console.log('Redirecting to dashboard...');
-        navigate('/dashboard');
-      } else {
-        console.log('Session invalid, redirecting to auth...');
-        toast.error('Sessão perdida', {
-          description: 'Configuração salva, mas você precisa fazer login novamente.'
-        });
-        navigate('/auth');
+      // Forçar atualização do contexto
+      if (typeof refreshProfile === 'function') {
+        await refreshProfile();
       }
+
+      // Aguardar um pouco para o contexto ser atualizado
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Navegação simples para dashboard
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
-      console.error('Erro no onboarding:', error);
 
       let errorMessage = 'Erro ao finalizar configuração';
       let errorDescription = 'Tente novamente.';
@@ -506,13 +481,8 @@ export function OnboardingWizard() {
         errorDescription = error.message;
       }
 
-      toast.error(errorMessage, {
-        description: errorDescription,
-        action: shouldRetry ? {
-          label: 'Tentar novamente',
-          onClick: () => finishOnboarding()
-        } : undefined
-      });
+      // Log error silently instead of showing toast
+      console.error('Erro no onboarding:', errorMessage, errorDescription);
 
       // If session is invalid, redirect to login
       if (!shouldRetry && (error.message?.includes('Sessão') || error.message?.includes('JWT'))) {
@@ -521,7 +491,7 @@ export function OnboardingWizard() {
         }, 2000);
       }
     } finally {
-      console.log('Onboarding process finished, setting loading to false');
+
       setLoading(false);
     }
   };
@@ -949,6 +919,21 @@ export function OnboardingWizard() {
 
   const progress = (currentStep / STEPS.length) * 100;
 
+  // Show profile creation message
+  if (creating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+        <div className="w-full max-w-md text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold mb-2">Configurando seu perfil</h2>
+          <p className="text-muted-foreground">
+            Preparando seu ambiente de onboarding...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Show session expired message if session is invalid
   if (!sessionValid) {
     return (
@@ -1054,3 +1039,4 @@ export function OnboardingWizard() {
     </div>
   );
 }
+

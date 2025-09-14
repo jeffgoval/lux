@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 import fs from 'fs';
 import path from 'path';
@@ -25,8 +25,7 @@ class Diagnostic404 {
    * Run complete diagnostic analysis
    */
   async runDiagnosis() {
-    console.log('🔍 Starting 404 Error Diagnosis...\n');
-    
+
     this.validateDistFolder();
     this.checkIndexHtml();
     this.verifyAssetPaths();
@@ -41,8 +40,7 @@ class Diagnostic404 {
    * Validate dist folder exists and has proper structure
    */
   validateDistFolder() {
-    console.log('📁 Checking dist folder...');
-    
+
     const distPath = path.join(projectRoot, 'dist');
     
     if (!fs.existsSync(distPath)) {
@@ -59,16 +57,14 @@ class Diagnostic404 {
     const distContents = fs.readdirSync(distPath);
     this.results.buildStatus.distFolder = true;
     this.results.buildStatus.distContents = distContents;
-    
-    console.log(`✅ Dist folder exists with ${distContents.length} items`);
+
   }
 
   /**
    * Check if index.html exists and has proper content
    */
   checkIndexHtml() {
-    console.log('📄 Checking index.html...');
-    
+
     const indexPath = path.join(projectRoot, 'dist', 'index.html');
     
     if (!fs.existsSync(indexPath)) {
@@ -110,16 +106,14 @@ class Diagnostic404 {
         fix: 'Verify Vite build is including JS bundles'
       });
     }
-    
-    console.log(`✅ index.html exists (${indexContent.length} bytes)`);
+
   }
 
   /**
    * Verify asset paths and availability
    */
   verifyAssetPaths() {
-    console.log('🎨 Checking assets...');
-    
+
     const assetsPath = path.join(projectRoot, 'dist', 'assets');
     
     if (!fs.existsSync(assetsPath)) {
@@ -141,16 +135,14 @@ class Diagnostic404 {
       jsFiles: jsFiles.length,
       cssFiles: cssFiles.length
     };
-    
-    console.log(`✅ Found ${assets.length} assets (${jsFiles.length} JS, ${cssFiles.length} CSS)`);
+
   }
 
   /**
    * Validate Vercel configuration
    */
   validateVercelConfig() {
-    console.log('⚙️  Checking Vercel configuration...');
-    
+
     const vercelConfigPath = path.join(projectRoot, 'vercel.json');
     
     if (!fs.existsSync(vercelConfigPath)) {
@@ -181,7 +173,7 @@ class Diagnostic404 {
           fix: 'Add rewrite rule: {"source": "/(.*)", "destination": "/index.html"}'
         });
       } else {
-        console.log('✅ Vercel SPA rewrite rule found');
+
       }
       
     } catch (error) {
@@ -198,8 +190,7 @@ class Diagnostic404 {
    * Analyze route configuration in App.tsx
    */
   analyzeRouteConfiguration() {
-    console.log('🛣️  Analyzing route configuration...');
-    
+
     const appPath = path.join(projectRoot, 'src', 'App.tsx');
     
     if (!fs.existsSync(appPath)) {
@@ -241,8 +232,7 @@ class Diagnostic404 {
         severity: 'medium'
       });
     }
-    
-    console.log(`✅ Found ${routes.length} routes configured`);
+
   }
 
   /**
@@ -276,49 +266,42 @@ class Diagnostic404 {
    * Print diagnostic report
    */
   printReport() {
-    console.log('\n📊 DIAGNOSTIC REPORT');
-    console.log('='.repeat(50));
-    
+
     // Build Status
-    console.log('\n🏗️  BUILD STATUS:');
-    console.log(`Dist Folder: ${this.results.buildStatus.distFolder ? '✅' : '❌'}`);
-    console.log(`Index HTML: ${this.results.buildStatus.indexHtml ? '✅' : '❌'}`);
+
     if (this.results.buildStatus.assets) {
-      console.log(`Assets: ${this.results.buildStatus.assets.total} files`);
+
     }
     if (this.results.buildStatus.routes) {
-      console.log(`Routes: ${this.results.buildStatus.routes.length} configured`);
+
     }
     
     // Configuration Issues
     if (this.results.configurationIssues.length > 0) {
-      console.log('\n⚠️  CONFIGURATION ISSUES:');
+
       this.results.configurationIssues.forEach((issue, index) => {
         const icon = issue.severity === 'critical' ? '🚨' : issue.severity === 'high' ? '⚠️' : 'ℹ️';
-        console.log(`${icon} ${index + 1}. ${issue.message}`);
-        console.log(`   Fix: ${issue.fix}`);
+
       });
     }
     
     // Route Problems
     if (this.results.routeProblems.length > 0) {
-      console.log('\n🛣️  ROUTE PROBLEMS:');
+
       this.results.routeProblems.forEach((problem, index) => {
         const icon = problem.severity === 'critical' ? '🚨' : problem.severity === 'high' ? '⚠️' : 'ℹ️';
-        console.log(`${icon} ${index + 1}. ${problem.message}`);
+
       });
     }
     
     // Recommendations
     if (this.results.recommendations.length > 0) {
-      console.log('\n💡 RECOMMENDATIONS:');
+
       this.results.recommendations.forEach(rec => {
-        console.log(`   ${rec}`);
+
       });
     }
-    
-    console.log('\n' + '='.repeat(50));
-    console.log('Diagnosis complete! 🎉');
+
   }
 }
 

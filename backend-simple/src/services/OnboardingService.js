@@ -1,4 +1,4 @@
-// =====================================================
+﻿// =====================================================
 // ONBOARDING SERVICE CLASS
 // Encapsulates all onboarding logic with transaction management
 // =====================================================
@@ -466,7 +466,7 @@ class OnboardingService {
           };
 
           // Step 1: Create or update user profile
-          console.log('OnboardingService: Creating user profile...');
+
           const profileResult = await this.createUserProfile(client, userId, {
             email,
             nome_completo: onboardingData.nome_completo,
@@ -478,12 +478,12 @@ class OnboardingService {
           onboardingResult.profile = profileResult.data;
 
           // Step 2: Create user role (proprietaria)
-          console.log('OnboardingService: Creating user role...');
+
           const roleResult = await this.createUserRole(client, userId, 'proprietaria');
           onboardingResult.userRole = roleResult.data;
 
           // Step 3: Create clinic
-          console.log('OnboardingService: Creating clinic...');
+
           const clinicResult = await this.createClinic(client, userId, {
             nome: onboardingData.clinica_nome,
             cnpj: onboardingData.clinica_cnpj,
@@ -499,11 +499,11 @@ class OnboardingService {
           onboardingResult.clinic = clinicResult.data;
 
           // Step 4: Update user role with clinic ID
-          console.log('OnboardingService: Updating user role with clinic ID...');
+
           await this.updateUserRoleWithClinic(client, userId, onboardingResult.clinic.id);
 
           // Step 5: Create professional profile
-          console.log('OnboardingService: Creating professional profile...');
+
           const professionalResult = await this.createProfessional(client, userId, {
             registro_profissional: onboardingData.registro_profissional,
             tipo_registro: onboardingData.tipo_registro,
@@ -516,7 +516,7 @@ class OnboardingService {
           onboardingResult.professional = professionalResult.data;
 
           // Step 6: Link professional to clinic
-          console.log('OnboardingService: Linking professional to clinic...');
+
           const linkResult = await this.linkProfessionalToClinic(
             client, 
             userId, 
@@ -530,7 +530,7 @@ class OnboardingService {
           onboardingResult.clinicProfessional = linkResult.data;
 
           // Step 7: Create default procedure templates
-          console.log('OnboardingService: Creating default templates...');
+
           const templatesResult = await this.createDefaultTemplates(
             client, 
             userId, 
@@ -539,7 +539,6 @@ class OnboardingService {
           );
           onboardingResult.templates = templatesResult.data;
 
-          console.log('OnboardingService: Onboarding completed successfully');
           return onboardingResult;
         });
       }, {
@@ -558,8 +557,7 @@ class OnboardingService {
       };
 
     } catch (error) {
-      console.error('OnboardingService: Error during onboarding:', error);
-      
+
       // Process error through error handler
       const processedError = ErrorHandler.processError(error);
       throw processedError;
@@ -623,7 +621,7 @@ class OnboardingService {
       };
 
     } catch (error) {
-      console.error(`OnboardingService: Error retrying step ${step}:`, error);
+
       const processedError = ErrorHandler.processError(error);
       throw processedError;
     }

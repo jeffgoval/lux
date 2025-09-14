@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -8,8 +8,7 @@ const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUz
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkRolesTable() {
-  console.log('🔍 Checking for roles table...\n');
-  
+
   // Check if roles table exists
   const { data, error } = await supabase
     .from('roles')
@@ -17,19 +16,6 @@ async function checkRolesTable() {
     .limit(5);
   
   if (error) {
-    console.log('❌ Roles table not found:', error.message);
-    console.log('\n📝 Creating roles table SQL:');
-    console.log(`
--- Create roles table
-CREATE TABLE IF NOT EXISTS roles (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  nome VARCHAR(50) UNIQUE NOT NULL,
-  descricao TEXT,
-  nivel_acesso INTEGER DEFAULT 1,
-  ativo BOOLEAN DEFAULT true,
-  criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
 -- Insert default roles
 INSERT INTO roles (nome, descricao, nivel_acesso) VALUES
@@ -50,10 +36,9 @@ CREATE POLICY "Anyone can view roles" ON roles
   FOR SELECT USING (true);
 `);
   } else {
-    console.log('✅ Roles table exists');
-    console.log('📋 Current roles:');
+
     data.forEach(role => {
-      console.log(`   - ${role.nome}: ${role.descricao} (nível ${role.nivel_acesso})`);
+
     });
   }
 }

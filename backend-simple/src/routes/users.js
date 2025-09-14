@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const { query } = require('../db/connection');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 
@@ -37,7 +37,7 @@ router.get('/profile', async (req, res) => {
       data: result.rows[0]
     });
   } catch (error) {
-    console.error('Erro ao buscar perfil:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
@@ -70,7 +70,7 @@ router.put('/profile', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Erro ao atualizar perfil:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
@@ -112,7 +112,7 @@ router.get('/clinica/:clinicaId', requireRole(['proprietaria', 'gerente', 'super
     });
 
   } catch (error) {
-    console.error('Erro ao listar usuários da clínica:', error);
+
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'

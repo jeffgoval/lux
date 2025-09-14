@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Diagnostics utility to help identify loading issues
  */
 
@@ -46,9 +46,9 @@ class LoadingDiagnostics {
 
     // Log warnings for problematic loadings
     if (duration > this.INFINITE_LOADING_THRESHOLD) {
-      console.error(`🚨 Infinite loading detected in ${component}:`, diagnostic);
+
     } else if (duration > this.LONG_LOADING_THRESHOLD) {
-      console.warn(`⚠️ Long loading detected in ${component}:`, diagnostic);
+
     }
   }
 
@@ -187,7 +187,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   setInterval(() => {
     const issues = checkLoadingIssues();
     if (issues.length > 0) {
-      console.warn('🔍 Loading issues detected:', issues);
+
     }
   }, 30000);
 }

@@ -1,4 +1,4 @@
-interface PerformanceMetric {
+﻿interface PerformanceMetric {
   name: string;
   value: number;
   timestamp: number;
@@ -108,7 +108,7 @@ class PerformanceMonitor {
       this.observers.set('measure', measureObserver);
 
     } catch (error) {
-      console.warn('Failed to setup performance observers:', error);
+
     }
   }
 
@@ -145,7 +145,7 @@ class PerformanceMonitor {
     if (process.env.NODE_ENV === 'development') {
       const benchmark = this.benchmarks.get(name);
       if (benchmark && value > benchmark.warning) {
-        console.warn(`⚠️ Slow operation detected: ${name} took ${value}ms (target: ${benchmark.target}ms)`);
+
       }
     }
   }
@@ -305,7 +305,7 @@ class PerformanceMonitor {
       try {
         performance.measure(name, startMark, endMark);
       } catch (error) {
-        console.warn('Failed to create performance measure:', error);
+
       }
     }
   }
@@ -363,10 +363,9 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   setInterval(() => {
     const report = getPerformanceReport();
     if (report.summary.totalMetrics > 10) {
-      console.log('📊 Performance Report:', report.summary);
-      
+
       if (report.summary.recommendations.length > 0) {
-        console.warn('💡 Performance Recommendations:', report.summary.recommendations);
+
       }
     }
   }, 30000);

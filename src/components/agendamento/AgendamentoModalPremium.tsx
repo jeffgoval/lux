@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AgendamentoModalPremium - Modal Avançado de Agendamento
  * Interface sofisticada com validação em tempo real, integração com prontuário
  * e sugestões inteligentes de serviços
@@ -337,7 +337,7 @@ export const AgendamentoModalPremium: React.FC<AgendamentoModalProps> = ({
         setShowConflictResolver(true);
       }
     } catch (error) {
-      console.error('Erro na validação de conflitos:', error);
+
     } finally {
       setValidatingConflicts(false);
     }
@@ -362,7 +362,7 @@ export const AgendamentoModalPremium: React.FC<AgendamentoModalProps> = ({
       
       setUpsellingSuggestions(suggestions);
     } catch (error) {
-      console.error('Erro ao carregar sugestões de upselling:', error);
+
     }
   };
 
@@ -403,7 +403,7 @@ export const AgendamentoModalPremium: React.FC<AgendamentoModalProps> = ({
         descontoAplicado: pricing.desconto
       }));
     } catch (error) {
-      console.error('Erro no cálculo de pricing:', error);
+
     } finally {
       setLoadingPricing(false);
     }
