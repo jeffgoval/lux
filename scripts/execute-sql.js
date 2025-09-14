@@ -3,8 +3,8 @@
 import { readFileSync } from 'fs';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://dvnyfwpphuuujhodqkko.supabase.co';
-const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bnlmd3BwaHV1dWpob2Rxa2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NzAyMjcsImV4cCI6MjA3MzE0NjIyN30.sQyW-Jn9LrR5mfRpJSoPOm1ENOrApc6GUEQxgfRHzuk';
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'REMOVED_FOR_SECURITY';
+const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'REMOVED_FOR_SECURITY';
 
 // Service role key for admin operations (you'll need to provide this)
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

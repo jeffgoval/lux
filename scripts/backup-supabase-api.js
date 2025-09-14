@@ -13,13 +13,22 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load environment variables
+import dotenv from 'dotenv';
+dotenv.config();
+
 // Configurações do Supabase (do seu .env)
 const CONFIG = {
-  supabaseUrl: 'https://dvnyfwpphuuujhodqkko.supabase.co',
-  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bnlmd3BwaHV1dWpob2Rxa2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NzAyMjcsImV4cCI6MjA3MzE0NjIyN30.sQyW-Jn9LrR5mfRpJSoPOm1ENOrApc6GUEQxgfRHzuk',
+  supabaseUrl: process.env.VITE_SUPABASE_URL,
+  supabaseKey: process.env.VITE_SUPABASE_ANON_KEY,
   backupDir: './backups',
   maxBackups: 10
 };
+
+if (!CONFIG.supabaseUrl || !CONFIG.supabaseKey) {
+  console.error('❌ Missing Supabase environment variables');
+  process.exit(1);
+}
 
 // Tabelas principais para backup
 const TABLES_TO_BACKUP = [

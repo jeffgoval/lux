@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 ﻿#!/usr/bin/env node
 
 /**
@@ -10,8 +12,8 @@ import fs from 'fs';
 import path from 'path';
 
 const CONFIG = {
-  supabaseUrl: 'https://dvnyfwpphuuujhodqkko.supabase.co',
-  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2bnlmd3BwaHV1dWpob2Rxa2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1NzAyMjcsImV4cCI6MjA3MzE0NjIyN30.sQyW-Jn9LrR5mfRpJSoPOm1ENOrApc6GUEQxgfRHzuk',
+  supabaseUrl: 'REMOVED_FOR_SECURITY',
+  supabaseKey: 'REMOVED_FOR_SECURITY',
   backupDir: './backups',
   maxBackups: 10
 };

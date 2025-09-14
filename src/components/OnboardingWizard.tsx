@@ -440,8 +440,6 @@ export function OnboardingWizard() {
       // Aguardar um pouco para garantir que os dados foram salvos
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      toast.success('Configuração inicial concluída com sucesso!');
-
       // Forçar atualização do contexto
       if (typeof refreshProfile === 'function') {
         await refreshProfile();
