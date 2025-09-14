@@ -1,0 +1,208 @@
+{
+  "expected_tables": {
+    "profiles": {
+      "description": "Perfil do usuário (1:1 com auth.users)",
+      "primary_key": "id",
+      "foreign_keys": ["user_id -> auth.users(id)"],
+      "columns": [
+        "id UUID PRIMARY KEY",
+        "user_id UUID UNIQUE NOT NULL REFERENCES auth.users(id)",
+        "nome_completo TEXT NOT NULL",
+        "email TEXT NOT NULL",
+        "telefone TEXT",
+        "avatar_url TEXT",
+        "cpf TEXT",
+        "data_nascimento DATE",
+        "endereco JSONB",
+        "ativo BOOLEAN DEFAULT true NOT NULL",
+        "primeiro_acesso BOOLEAN DEFAULT true NOT NULL",
+        "configuracoes_usuario JSONB DEFAULT '{}'::jsonb",
+        "criado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL"
+      ],
+      "dependencies": []
+    },
+    "user_roles": {
+      "description": "Roles por clínica (N:N)",
+      "primary_key": "id",
+      "foreign_keys": [
+        "user_id -> auth.users(id)",
+        "clinica_id -> clinicas(id)",
+        "organizacao_id -> organizacoes(id)"
+      ],
+      "columns": [
+        "id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE",
+        "organizacao_id UUID",
+        "clinica_id UUID",
+        "role user_role_type NOT NULL",
+        "ativo BOOLEAN DEFAULT true NOT NULL",
+        "data_inicio DATE DEFAULT CURRENT_DATE NOT NULL",
+        "data_fim DATE",
+        "observacoes TEXT",
+        "criado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "criado_por UUID NOT NULL"
+      ],
+      "dependencies": ["organizacoes", "clinicas"]
+    },
+    "organizacoes": {
+      "description": "Grupos de clínicas (opcional)",
+      "primary_key": "id",
+      "foreign_keys": ["criado_por -> auth.users(id)"],
+      "columns": [
+        "id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "nome TEXT NOT NULL",
+        "cnpj TEXT",
+        "razao_social TEXT",
+        "nome_fantasia TEXT",
+        "plano plano_type DEFAULT 'basico' NOT NULL",
+        "email TEXT",
+        "telefone TEXT",
+        "website TEXT",
+        "endereco JSONB",
+        "inscricao_estadual TEXT",
+        "inscricao_municipal TEXT",
+        "atividade_principal TEXT",
+        "data_fundacao DATE",
+        "configuracoes JSONB DEFAULT '{}'::jsonb",
+        "limite_clinicas INTEGER DEFAULT 1",
+        "limite_usuarios INTEGER DEFAULT 10",
+        "recursos_habilitados TEXT[] DEFAULT ARRAY['prontuarios', 'agenda', 'estoque']",
+        "ativo BOOLEAN DEFAULT true NOT NULL",
+        "verificado BOOLEAN DEFAULT false NOT NULL",
+        "data_verificacao TIMESTAMP WITH TIME ZONE",
+        "criado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "criado_por UUID NOT NULL REFERENCES auth.users(id)"
+      ],
+      "dependencies": []
+    },
+    "clinicas": {
+      "description": "Clínicas individuais",
+      "primary_key": "id",
+      "foreign_keys": [
+        "organizacao_id -> organizacoes(id)",
+        "criado_por -> auth.users(id)"
+      ],
+      "columns": [
+        "id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "organizacao_id UUID REFERENCES organizacoes(id) ON DELETE CASCADE",
+        "nome TEXT NOT NULL",
+        "cnpj TEXT",
+        "endereco_rua TEXT",
+        "endereco_numero TEXT",
+        "endereco_complemento TEXT",
+        "endereco_bairro TEXT",
+        "endereco_cidade TEXT",
+        "endereco_estado TEXT",
+        "endereco_cep TEXT",
+        "endereco_pais TEXT DEFAULT 'Brasil'",
+        "telefone TEXT",
+        "email TEXT",
+        "website TEXT",
+        "whatsapp TEXT",
+        "especialidades TEXT[]",
+        "horario_funcionamento JSONB",
+        "capacidade_atendimento INTEGER",
+        "numero_salas INTEGER",
+        "registro_anvisa TEXT",
+        "alvara_funcionamento TEXT",
+        "licenca_sanitaria TEXT",
+        "responsavel_tecnico_nome TEXT",
+        "responsavel_tecnico_registro TEXT",
+        "configuracoes JSONB DEFAULT '{}'::jsonb",
+        "aceita_convenios BOOLEAN DEFAULT false",
+        "convenios_aceitos TEXT[]",
+        "ativo BOOLEAN DEFAULT true NOT NULL",
+        "verificado BOOLEAN DEFAULT false NOT NULL",
+        "data_verificacao TIMESTAMP WITH TIME ZONE",
+        "criado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "criado_por UUID REFERENCES auth.users(id)"
+      ],
+      "dependencies": ["organizacoes"]
+    },
+    "clinica_profissionais": {
+      "description": "Profissionais por clínica",
+      "primary_key": "id",
+      "foreign_keys": [
+        "clinica_id -> clinicas(id)",
+        "user_id -> auth.users(id)",
+        "criado_por -> auth.users(id)"
+      ],
+      "columns": [
+        "id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "clinica_id UUID NOT NULL REFERENCES clinicas(id) ON DELETE CASCADE",
+        "user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE",
+        "cargo TEXT NOT NULL",
+        "especialidades especialidade_medica[]",
+        "horario_trabalho JSONB",
+        "disponibilidade_agenda JSONB",
+        "carga_horaria_semanal INTEGER",
+        "permissoes JSONB DEFAULT '{}'::jsonb",
+        "pode_criar_prontuarios BOOLEAN DEFAULT false",
+        "pode_editar_prontuarios BOOLEAN DEFAULT false",
+        "pode_visualizar_financeiro BOOLEAN DEFAULT false",
+        "pode_gerenciar_estoque BOOLEAN DEFAULT false",
+        "tipo_vinculo TEXT",
+        "data_inicio DATE DEFAULT CURRENT_DATE NOT NULL",
+        "data_fim DATE",
+        "salario_base DECIMAL(10,2)",
+        "comissao_percentual DECIMAL(5,2)",
+        "ativo BOOLEAN DEFAULT true NOT NULL",
+        "criado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "criado_por UUID NOT NULL REFERENCES auth.users(id)"
+      ],
+      "dependencies": ["clinicas"]
+    },
+    "especialidades_medicas": {
+      "description": "Especialidades disponíveis",
+      "primary_key": "id",
+      "foreign_keys": [],
+      "columns": [
+        "id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "nome TEXT UNIQUE NOT NULL",
+        "descricao TEXT",
+        "ativo BOOLEAN DEFAULT true NOT NULL",
+        "criado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL"
+      ],
+      "dependencies": []
+    },
+    "templates_procedimentos": {
+      "description": "Templates reutilizáveis",
+      "primary_key": "id",
+      "foreign_keys": ["clinica_id -> clinicas(id)"],
+      "columns": [
+        "id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "clinica_id UUID REFERENCES clinicas(id) ON DELETE CASCADE",
+        "tipo_procedimento TEXT",
+        "nome_template TEXT NOT NULL",
+        "descricao TEXT",
+        "duracao_padrao_minutos INTEGER DEFAULT 60",
+        "valor_base DECIMAL(10,2)",
+        "campos_obrigatorios JSONB DEFAULT '{}'::jsonb",
+        "campos_opcionais JSONB DEFAULT '{}'::jsonb",
+        "ativo BOOLEAN DEFAULT true NOT NULL",
+        "criado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL",
+        "atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL"
+      ],
+      "dependencies": ["clinicas"]
+    }
+  },
+  "required_enums": [
+    "plano_type AS ENUM ('basico', 'premium', 'enterprise')",
+    "user_role_type AS ENUM ('super_admin', 'proprietaria', 'gerente', 'profissionais', 'recepcionistas', 'visitante', 'cliente')",
+    "especialidade_medica AS ENUM ('dermatologia', 'cirurgia_plastica', 'medicina_estetica', 'fisioterapia_estetica', 'nutricao', 'psicologia', 'enfermagem_estetica', 'biomedicina_estetica')",
+    "status_convite AS ENUM ('pendente', 'aceito', 'recusado', 'cancelado', 'expirado')",
+    "tipo_procedimento AS ENUM ('botox_toxina', 'preenchimento', 'harmonizacao_facial', 'laser_ipl', 'peeling', 'tratamento_corporal', 'skincare_avancado', 'outro')",
+    "status_prontuario AS ENUM ('ativo', 'arquivado', 'transferido')"
+  ],
+  "required_functions": [
+    "validate_email(email TEXT) RETURNS BOOLEAN",
+    "validate_cpf(cpf TEXT) RETURNS BOOLEAN",
+    "validate_cnpj(cnpj TEXT) RETURNS BOOLEAN",
+    "update_updated_at_column() RETURNS TRIGGER",
+    "generate_secure_token(length INTEGER) RETURNS TEXT"
+  ]
+}

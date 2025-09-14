@@ -1,0 +1,92 @@
+{
+  "timestamp": "2025-09-14T10:15:04.055Z",
+  "supabase_url": "https://shzbgjooydruspqajjkf.supabase.co",
+  "tables": {
+    "profiles": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "user_roles": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "organizacoes": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "clinicas": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "clinica_profissionais": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "especialidades_medicas": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "templates_procedimentos": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "prontuarios": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "sessoes_atendimento": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "imagens_medicas": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "consentimentos_digitais": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "auditoria_medica": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "profissionais_especialidades": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "convites": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "user_sessions": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    },
+    "salas_clinica": {
+      "exists": false,
+      "reason": "other_error",
+      "error": "Invalid API key"
+    }
+  },
+  "summary": {
+    "expected": 16,
+    "existing": 0,
+    "missing": 16,
+    "errors": 16
+  }
+}
