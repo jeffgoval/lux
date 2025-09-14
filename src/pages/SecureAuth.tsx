@@ -313,6 +313,7 @@ export default function SecureAuth() {
                     <Input
                       id="register-email"
                       type="email"
+                      autoComplete="email"
                       value={registerData.email}
                       onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
                       placeholder="seu@email.com"
@@ -327,6 +328,7 @@ export default function SecureAuth() {
                       <Input
                         id="register-password"
                         type={showPassword ? 'text' : 'password'}
+                        autoComplete="new-password"
                         value={registerData.password}
                         onChange={(e) => setRegisterData(prev => ({ ...prev, password: e.target.value }))}
                         placeholder="Mínimo 6 caracteres"
@@ -351,6 +353,7 @@ export default function SecureAuth() {
                     <Input
                       id="register-confirm-password"
                       type="password"
+                      autoComplete="new-password"
                       value={registerData.confirmPassword}
                       onChange={(e) => setRegisterData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                       placeholder="Digite a senha novamente"

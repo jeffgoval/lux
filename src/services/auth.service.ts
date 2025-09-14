@@ -17,6 +17,7 @@ import {
 } from '@/types/auth.types';
 import { AUTH_CONFIG } from '@/config/auth.config';
 import { UserAdapter, ClinicAdapter, RoleAdapter } from '@/services/schema-adapter';
+import { authLogger } from '@/utils/logger';
 
 // ============================================================================
 // CLASSE PRINCIPAL DO SERVIÇO DE AUTENTICAÇÃO
@@ -41,7 +42,7 @@ export class AuthService {
    */
   async login(credentials: LoginCredentials): Promise<AuthResult> {
     try {
-      console.log('🔐 Iniciando login com adaptador...');
+      authLogger.info('Iniciando login com adaptador...');
 
       // Validar credenciais antes de processar
       const validation = this.validateLoginCredentials(credentials);
@@ -56,14 +57,14 @@ export class AuthService {
       const user = await UserAdapter.findByEmail(credentials.email);
 
       if (!user) {
-        console.log('❌ Usuário não encontrado:', credentials.email);
+        authLogger.warn('Usuário não encontrado:', credentials.email);
         return {
           success: false,
           error: 'Credenciais inválidas'
         };
       }
 
-      console.log('✅ Usuário encontrado:', user.id);
+      authLogger.info('Usuário encontrado:', user.id);
 
       // Por enquanto, vamos simular validação de senha
       // TODO: Implementar validação real de senha quando tivermos hash
@@ -76,7 +77,7 @@ export class AuthService {
 
       // Buscar roles do usuário
       const roles = await RoleAdapter.findByUserId(user.id);
-      console.log('👥 Roles encontrados:', roles.length);
+      authLogger.info('Roles encontrados:', roles.length);
 
       // Buscar clínicas acessíveis
       const clinicAccess: UserClinicAccess[] = [];
@@ -93,7 +94,7 @@ export class AuthService {
         }
       }
 
-      console.log('🏢 Clínicas acessíveis:', clinicAccess.length);
+      authLogger.info('Clínicas acessíveis:', clinicAccess.length);
 
       // Gerar tokens simples (para desenvolvimento)
       const tokens: AuthTokens = {
@@ -130,7 +131,7 @@ export class AuthService {
       };
 
     } catch (error) {
-      console.error('❌ Erro no login:', error);
+      authLogger.error('Erro no login:', error);
 
       await this.logAuthEvent({
         eventType: AuthEventType.LOGIN_FAILED,
@@ -172,7 +173,7 @@ export class AuthService {
       return response;
 
     } catch (error) {
-      console.error('Registration error:', error);
+      authLogger.error('Registration error:', error);
       return {
         success: false,
         error: AUTH_CONFIG.ERROR_MESSAGES.GENERIC_ERROR
@@ -203,7 +204,7 @@ export class AuthService {
       }
 
     } catch (error) {
-      console.error('Logout error:', error);
+      authLogger.error('Logout error:', error);
     } finally {
       // Sempre limpar tokens locais
       await this.clearStoredTokens();
@@ -242,7 +243,7 @@ export class AuthService {
       return null;
 
     } catch (error) {
-      console.error('Token refresh error:', error);
+      authLogger.error('Token refresh error:', error);
       await this.clearStoredTokens();
       return null;
     }
@@ -282,7 +283,7 @@ export class AuthService {
       return response.success;
 
     } catch (error) {
-      console.error('Clinic switch error:', error);
+      authLogger.error('Clinic switch error:', error);
       return false;
     }
   }
@@ -308,7 +309,7 @@ export class AuthService {
       return response.user || null;
 
     } catch (error) {
-      console.error('Get current user error:', error);
+      authLogger.error('Get current user error:', error);
       return null;
     }
   }
@@ -457,11 +458,11 @@ export class AuthService {
         method: 'POST',
         body: JSON.stringify(logEntry)
       }).catch(error => {
-        console.warn('Failed to log auth event:', error);
+        authLogger.warn('Failed to log auth event:', error);
       });
 
     } catch (error) {
-      console.warn('Failed to create auth log:', error);
+      authLogger.warn('Failed to create auth log:', error);
     }
   }
 
@@ -475,7 +476,7 @@ export class AuthService {
       const encrypted = btoa(JSON.stringify(tokens));
       localStorage.setItem('auth_tokens', encrypted);
     } catch (error) {
-      console.error('Failed to store tokens:', error);
+      authLogger.error('Failed to store tokens:', error);
     }
   }
 
@@ -494,7 +495,7 @@ export class AuthService {
 
       return tokens;
     } catch (error) {
-      console.error('Failed to get stored tokens:', error);
+      authLogger.error('Failed to get stored tokens:', error);
       await this.clearStoredTokens();
       return null;
     }
@@ -504,7 +505,7 @@ export class AuthService {
     try {
       localStorage.removeItem('auth_tokens');
     } catch (error) {
-      console.error('Failed to clear tokens:', error);
+      authLogger.error('Failed to clear tokens:', error);
     }
   }
 }

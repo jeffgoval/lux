@@ -24,6 +24,8 @@ import {
   Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { authLogger } from '@/utils/logger';
+import { handleError, ErrorType } from '@/utils/errorHandler';
 
 interface OnboardingData {
   // Dados pessoais
@@ -430,7 +432,7 @@ export function OnboardingWizard() {
         .single();
 
       if (verifyError) {
-        console.log('⚠️ Erro ao verificar atualização:', verifyError);
+        authLogger.warn('Erro ao verificar atualização:', verifyError);
       } else if (verifyData.primeiro_acesso !== false) {
         throw new Error('Falha ao marcar onboarding como completo');
       }
@@ -451,39 +453,55 @@ export function OnboardingWizard() {
       // Navegação simples para dashboard
       navigate('/dashboard', { replace: true });
     } catch (error: any) {
+      // Usar sistema de tratamento de erros robusto
+      const appError = handleError(error, {
+        component: 'OnboardingWizard',
+        step: currentStep,
+        userId: user?.id
+      });
 
       let errorMessage = 'Erro ao finalizar configuração';
       let errorDescription = 'Tente novamente.';
-      let shouldRetry = true;
+      let shouldRetry = appError.recoverable;
 
-      // Handle specific error types
-      if (error.message?.includes('Sessão expirada')) {
-        errorMessage = 'Sessão expirada';
-        errorDescription = 'Sua sessão expirou. Você será redirecionado para fazer login novamente.';
-        shouldRetry = false;
-      } else if (error.code === '23505' || error.message?.includes('já existe')) {
-        errorMessage = 'Dados duplicados';
-        errorDescription = error.message || 'Alguns dados já existem no sistema.';
-      } else if (error.code === '42501' || error.message?.includes('permissão') || error.message?.includes('insufficient_privilege')) {
-        errorMessage = 'Erro de permissão';
-        errorDescription = 'Problema com permissões. Tente fazer logout e login novamente.';
-        shouldRetry = false;
-      } else if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
-        errorMessage = 'Sessão inválida';
-        errorDescription = 'Sua sessão não é mais válida. Faça login novamente.';
-        shouldRetry = false;
-      } else if (error.message?.includes('Network') || error.message?.includes('fetch')) {
-        errorMessage = 'Erro de conexão';
-        errorDescription = 'Problema de conexão. Verifique sua internet e tente novamente.';
-      } else if (error.message) {
-        errorDescription = error.message;
+      // Mensagens específicas baseadas no tipo de erro
+      switch (appError.type) {
+        case ErrorType.AUTHENTICATION:
+          errorMessage = 'Sessão expirada';
+          errorDescription = 'Sua sessão expirou. Você será redirecionado para fazer login novamente.';
+          shouldRetry = false;
+          break;
+        case ErrorType.AUTHORIZATION:
+          errorMessage = 'Erro de permissão';
+          errorDescription = 'Problema com permissões. Tente fazer logout e login novamente.';
+          shouldRetry = false;
+          break;
+        case ErrorType.VALIDATION:
+          errorMessage = 'Dados duplicados';
+          errorDescription = appError.message || 'Alguns dados já existem no sistema.';
+          break;
+        case ErrorType.NETWORK:
+          errorMessage = 'Erro de conexão';
+          errorDescription = 'Problema de conexão. Verifique sua internet e tente novamente.';
+          break;
+        case ErrorType.DATABASE:
+          errorMessage = 'Erro no sistema';
+          errorDescription = 'Problema temporário no banco de dados. Tente novamente em alguns instantes.';
+          break;
+        default:
+          errorDescription = appError.message;
       }
 
-      // Log error silently instead of showing toast
-      console.error('Erro no onboarding:', errorMessage, errorDescription);
+      // Log error com contexto estruturado
+      authLogger.error('Erro no onboarding:', {
+        errorMessage,
+        errorDescription,
+        appError,
+        shouldRetry
+      });
 
-      // If session is invalid, redirect to login
-      if (!shouldRetry && (error.message?.includes('Sessão') || error.message?.includes('JWT'))) {
+      // Redirecionar se necessário
+      if (!shouldRetry && (appError.type === ErrorType.AUTHENTICATION || appError.type === ErrorType.AUTHORIZATION)) {
         setTimeout(() => {
           navigate('/auth');
         }, 2000);

@@ -21,6 +21,7 @@ import {
 import { authService } from '@/services/auth.service';
 import { AUTH_CONFIG } from '@/config/auth.config';
 import { supabase } from '@/lib/supabase';
+import { authLogger } from '@/utils/logger';
 
 // ============================================================================
 // ESTADO INICIAL E REDUCER
@@ -138,8 +139,12 @@ export function SecureAuthProvider({ children }: SecureAuthProviderProps) {
 
   useEffect(() => {
     let isMounted = true;
+    let isInitialized = false;
 
     const initializeAuth = async () => {
+      if (isInitialized) return; // Prevenir múltiplas inicializações
+      isInitialized = true;
+
       try {
         // Usar Supabase diretamente para verificar autenticação
         const { data: { user }, error } = await supabase.auth.getUser();
@@ -157,7 +162,7 @@ export function SecureAuthProvider({ children }: SecureAuthProviderProps) {
           }
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        authLogger.error('Auth initialization error:', error);
         if (isMounted) {
           dispatch({ type: 'LOGOUT' });
         }
@@ -169,7 +174,7 @@ export function SecureAuthProvider({ children }: SecureAuthProviderProps) {
     return () => {
       isMounted = false;
     };
-  }, []); // REMOVIDA DEPENDÊNCIA refreshAuth que causava loop
+  }, []); // Dependência vazia para executar apenas uma vez
 
   // ==========================================================================
   // MÉTODOS DE AUTENTICAÇÃO
@@ -322,7 +327,7 @@ export function SecureAuthProvider({ children }: SecureAuthProviderProps) {
       ]);
 
       if (profileResult.error) {
-        console.error('Erro ao buscar profile:', profileResult.error);
+        authLogger.error('Erro ao buscar profile:', profileResult.error);
         dispatch({ type: 'LOGOUT' });
         return false;
       }
@@ -359,11 +364,11 @@ export function SecureAuthProvider({ children }: SecureAuthProviderProps) {
 
       return true;
     } catch (error) {
-      console.error('Auth refresh error:', error);
+      authLogger.error('Auth refresh error:', error);
       dispatch({ type: 'LOGOUT' });
       return false;
     }
-  }, []);
+  }, []); // Dependência vazia para evitar loops
 
   // ==========================================================================
   // MÉTODOS MULTI-TENANT
@@ -385,7 +390,7 @@ export function SecureAuthProvider({ children }: SecureAuthProviderProps) {
 
       return success;
     } catch (error) {
-      console.error('Clinic switch error:', error);
+      authLogger.error('Clinic switch error:', error);
       return false;
     }
   }, [state.availableClinics]);
@@ -491,7 +496,7 @@ export function SecureAuthProvider({ children }: SecureAuthProviderProps) {
         });
       }
     } catch (error) {
-      console.error('Erro ao buscar profile:', error);
+      authLogger.error('Erro ao buscar profile:', error);
     }
   }, [state.user, state.roles, state.tokens, state.currentClinic, state.availableClinics]);
 
