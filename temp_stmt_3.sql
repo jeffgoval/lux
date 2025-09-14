@@ -1,1 +1,0 @@
-CREATE INDEX IF NOT EXISTS idx_profiles_ativo ON profiles(ativo);
