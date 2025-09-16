@@ -1,101 +1,189 @@
-# 404 Error Diagnostic Tools
+# 📚 Scripts de Configuração do Banco de Dados Appwrite
 
-This directory contains diagnostic tools to help identify and resolve HTTP 404 errors in the React SPA.
+Este diretório contém todos os scripts necessários para criar a estrutura completa do banco de dados no Appwrite para o sistema Luxe Flow de clínicas de estética premium.
 
-## Available Tools
+## 📋 Visão Geral
 
-### 1. diagnose-404.js
-Comprehensive diagnostic tool that analyzes:
-- Build output (dist folder, index.html, assets)
-- Server configuration (vercel.json)
-- Route configuration (App.tsx)
-- Provides recommendations for fixes
+O sistema é composto por **32 collections** organizadas em **9 módulos funcionais**, com arquitetura multi-tenant, segurança LGPD e integração com IA.
 
-**Usage:**
+## 🚀 Como Executar
+
+### Opção 1: Setup Completo (Recomendado)
+
+Execute o script mestre que rodará todos os outros na ordem correta:
+
+```powershell
+cd C:\Users\jonra\estetic\luxe-flow-appoint
+.\scripts\setup-complete-database.ps1
+```
+
+Este script irá:
+1. Verificar pré-requisitos (Appwrite CLI instalado e logado)
+2. Criar todas as collections com atributos
+3. Configurar índices para otimização
+4. Aplicar permissões básicas
+5. Exibir resumo do que foi criado
+
+**Tempo estimado**: 15-20 minutos
+
+### Opção 2: Execução Individual
+
+Se preferir executar cada parte separadamente:
+
+```powershell
+# Parte 1: Módulos 1-3 (Identidade, Pacientes, Agendamentos)
+.\scripts\create-appwrite-collections.ps1
+
+# Parte 2: Módulos 4-6 (Prontuários, Financeiro, Estoque)
+.\scripts\create-appwrite-collections-part2.ps1
+
+# Parte 3: Módulos 7-9 (Comunicação, Analytics, Logs)
+.\scripts\create-appwrite-collections-part3.ps1
+
+# Configurar Permissões
+.\scripts\create-appwrite-permissions.ps1
+```
+
+## 📁 Estrutura dos Scripts
+
+### `setup-complete-database.ps1`
+Script mestre que executa todos os outros na ordem correta. Inclui:
+- Verificação de pré-requisitos
+- Execução sequencial dos scripts
+- Tratamento de erros
+- Resumo final
+
+### `create-appwrite-collections.ps1`
+Cria collections dos módulos 1-3:
+- **Módulo 1**: organizations, clinics, users_profile, user_roles
+- **Módulo 2**: patients
+- **Módulo 3**: services, appointments, waiting_list
+
+### `create-appwrite-collections-part2.ps1`
+Cria collections dos módulos 4-6:
+- **Módulo 4**: medical_records, medical_images, consent_forms
+- **Módulo 5**: transactions, commissions, payment_methods
+- **Módulo 6**: products, inventory_movements, suppliers, purchase_orders
+
+### `create-appwrite-collections-part3.ps1`
+Cria collections dos módulos 7-9:
+- **Módulo 7**: communication_templates, campaigns, notifications_log, segments
+- **Módulo 8**: kpi_definitions, analytics_data, reports
+- **Módulo 9**: integrations_config, audit_logs, system_logs, webhooks_log
+
+### `create-appwrite-permissions.ps1`
+Configura permissões ABAC básicas para todas as collections.
+
+## ⚙️ Pré-requisitos
+
+1. **Appwrite CLI instalado**
+   ```bash
+   npm install -g appwrite-cli
+   ```
+
+2. **Login no Appwrite**
+   ```bash
+   appwrite login
+   ```
+
+3. **Projeto configurado**
+   - Project ID: `68c841cf00032cd36a87`
+   - Endpoint: `https://nyc.cloud.appwrite.io/v1`
+
+## 🔧 Configuração
+
+Todos os scripts usam as seguintes configurações:
+
+```powershell
+$DATABASE_ID = "main"
+$PROJECT_ID = "68c841cf00032cd36a87"
+$ENDPOINT = "https://nyc.cloud.appwrite.io/v1"
+```
+
+Para alterar, edite as variáveis no início de cada script.
+
+## 📊 Collections Criadas
+
+### Total: 32 Collections
+
+| Módulo | Collections | Quantidade |
+|--------|------------|------------|
+| Identidade | organizations, clinics, users_profile, user_roles | 4 |
+| Pacientes | patients | 1 |
+| Agendamentos | services, appointments, waiting_list | 3 |
+| Prontuários | medical_records, medical_images, consent_forms | 3 |
+| Financeiro | transactions, commissions, payment_methods | 3 |
+| Estoque | products, inventory_movements, suppliers, purchase_orders | 4 |
+| Comunicação | communication_templates, campaigns, notifications_log, segments | 4 |
+| Analytics | kpi_definitions, analytics_data, reports | 3 |
+| Logs | integrations_config, audit_logs, system_logs, webhooks_log | 4 |
+
+## 🔐 Segurança
+
+- **Multi-tenant**: Isolamento por `tenantId` e `clinicId`
+- **LGPD**: Campos sensíveis marcados para criptografia
+- **Auditoria**: Logs completos em `audit_logs`
+- **Permissões**: ABAC configurado (necessita ajustes após Functions)
+
+## ❗ Observações Importantes
+
+1. **Permissões temporárias**: As permissões estão configuradas como `role:all` temporariamente. Ajuste após criar as Appwrite Functions.
+
+2. **Campos JSON**: Muitos campos complexos são armazenados como strings JSON. Parse será necessário no frontend.
+
+3. **Índices**: Mais de 100 índices foram criados para otimização. Monitor o desempenho e ajuste conforme necessário.
+
+4. **Limites de tamanho**: Alguns campos têm limites grandes (até 1MB). Considere otimizar se necessário.
+
+## 🚨 Troubleshooting
+
+### Erro: "Appwrite CLI não está instalado"
 ```bash
-npm run diagnose
+npm install -g appwrite-cli
 ```
 
-### 2. test-routes.js
-Route testing utility that validates all application routes:
-- Tests route accessibility
-- Identifies which routes return 404 errors
-- Can test against local preview server or deployed site
-
-**Usage:**
+### Erro: "Você não está logado no Appwrite"
 ```bash
-# Test against running server
-npm run test:routes
-
-# Test with local preview server (starts server automatically)
-npm run test:routes:preview
-
-# Test against specific URL
-node scripts/test-routes.js https://your-deployed-site.com
+appwrite login
 ```
 
-## Common Issues and Solutions
+### Erro: "Collection já existe"
+- Execute os scripts individualmente pulando os que já foram criados
+- Ou delete as collections existentes no console do Appwrite
 
-### 1. Missing dist folder
-**Symptom:** "Dist folder does not exist" error
-**Solution:** Run `npm run build` to generate the build output
+### Erro de timeout
+- Aumente o delay entre comandos editando `Start-Sleep -Seconds 1` nos scripts
+- Execute os scripts em partes menores
 
-### 2. Missing SPA rewrite rules
-**Symptom:** Routes return 404 in production but work locally
-**Solution:** Ensure vercel.json has proper rewrite rule:
-```json
-{
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
-```
+## 📝 Próximos Passos
 
-### 3. Build configuration issues
-**Symptom:** Assets not loading or incorrect paths
-**Solution:** Check vite.config.ts for proper base path and build settings
+Após executar os scripts:
 
-### 4. Route configuration problems
-**Symptom:** Specific routes not working
-**Solution:** Verify routes are properly defined in App.tsx with React Router
+1. **Verificar no Console**
+   - Acesse: https://cloud.appwrite.io/console/project-68c841cf00032cd36a87/databases
+   - Verifique se todas as collections foram criadas
 
-## Troubleshooting Workflow
+2. **Criar Appwrite Functions**
+   - Validação ABAC avançada
+   - Criptografia de dados sensíveis
+   - Triggers de negócio
+   - Integração com IA
 
-1. **Run Diagnosis:** `npm run diagnose`
-2. **Fix Critical Issues:** Address any critical configuration problems
-3. **Test Locally:** `npm run test:routes:preview`
-4. **Build and Deploy:** `npm run build` then deploy
-5. **Test Production:** `npm run test:routes https://your-site.com`
+3. **Configurar Storage**
+   - Criar bucket para arquivos
+   - Configurar permissões
 
-## Output Examples
+4. **Ajustar Permissões**
+   - Substituir `role:all` por permissões específicas
+   - Implementar validação por tenant
 
-### Successful Diagnosis
-```
-🔍 Starting 404 Error Diagnosis...
-✅ Dist folder exists with 6 items
-✅ index.html exists (2098 bytes)
-✅ Found 5 assets (4 JS, 1 CSS)
-✅ Vercel SPA rewrite rule found
-✅ Found 16 routes configured
-```
+5. **Popular Dados Iniciais**
+   - Criar script de seed
+   - Importar dados do Supabase
 
-### Route Test Results
-```
-🧪 Testing routes on http://localhost:8080...
-✅ / (200)
-✅ /landing (200)
-✅ /auth (200)
-❌ /agendamento (404)
-```
+## 📞 Suporte
 
-## Integration with Development Workflow
-
-These tools can be integrated into your CI/CD pipeline:
-- Run diagnosis before deployment
-- Test routes after deployment
-- Monitor route health in production
-
-For more information, see the main project documentation.
+Em caso de dúvidas ou problemas:
+- Verifique os logs detalhados dos scripts
+- Consulte a documentação do Appwrite
+- Revise o arquivo ESTRUTURA_BANCO_APPWRITE_COMPLETA.md

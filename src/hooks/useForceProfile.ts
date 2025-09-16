@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 export function useForceProfile() {

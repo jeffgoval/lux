@@ -1,514 +1,228 @@
 /**
- * 🔐 SERVIÇO DE AUTENTICAÇÃO SEGURO V2
+ * 🔐 SERVIÇO DE AUTENTICAÇÃO MIGRADO PARA APPWRITE
  * 
- * Implementação do core de autenticação com máxima segurança
+ * Serviço de autenticação que usa Appwrite mantendo compatibilidade
+ * com a interface existente para facilitar a migração
  */
 
-import {
-  AuthResult,
-  LoginCredentials,
-  RegisterData,
-  AuthTokens,
-  User,
-  UserClinicAccess,
-  AuthAuditLog,
-  AuthEventType,
-  SecurityContext
-} from '@/types/auth.types';
-import { AUTH_CONFIG } from '@/config/auth.config';
-import { UserAdapter, ClinicAdapter, RoleAdapter } from '@/services/schema-adapter';
+import { AuthResult, LoginCredentials, RegisterData } from '@/types/auth.types';
+import { unifiedAppwriteAuthService } from './unified-appwrite-auth.service';
 import { authLogger } from '@/utils/logger';
 
-// ============================================================================
-// CLASSE PRINCIPAL DO SERVIÇO DE AUTENTICAÇÃO
-// ============================================================================
-
-export class AuthService {
-  private readonly baseURL: string;
-  private readonly apiKey: string;
-
-  constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    this.apiKey = import.meta.env.VITE_API_KEY || '';
-  }
-
-  // ==========================================================================
-  // MÉTODOS DE AUTENTICAÇÃO
-  // ==========================================================================
-
-  /**
-   * Realiza login do usuário com validação rigorosa
-   * VERSÃO ADAPTADA PARA SCHEMA EXISTENTE
-   */
+export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResult> {
     try {
-      authLogger.info('Iniciando login com adaptador...');
+      authLogger.info('Tentando fazer login via Appwrite', { email: credentials.email });
+      
+      const result = await unifiedAppwriteAuthService.login(credentials);
 
-      // Validar credenciais antes de processar
-      const validation = this.validateLoginCredentials(credentials);
-      if (!validation.isValid) {
+      if (result.success) {
+        authLogger.info('Login realizado com sucesso via Appwrite');
+        
+        // Mapear para interface compatível
+        return {
+          success: true,
+          user: result.user ? {
+            id: result.user.$id,
+            email: result.user.email,
+            name: result.user.name,
+            emailVerified: result.user.emailVerification,
+            active: result.user.status,
+            createdAt: new Date(result.user.registration),
+            updatedAt: new Date(result.user.passwordUpdate),
+            loginAttempts: 0
+          } : undefined,
+          profile: result.profile ? {
+            id: result.profile.$id,
+            email: result.profile.email,
+            nome_completo: result.profile.nomeCompleto,
+            telefone: result.profile.telefone,
+            avatar_url: result.profile.avatarUrl,
+            primeiro_acesso: result.profile.primeiroAcesso,
+            onboarding_step: result.profile.onboardingStep,
+            onboarding_completed_at: result.profile.onboardingCompletedAt,
+            ativo: result.profile.ativo,
+            criado_em: result.profile.criadoEm,
+            atualizado_em: result.profile.atualizadoEm
+          } : undefined,
+          roles: result.roles?.map(role => ({
+            id: role.$id,
+            user_id: role.userId,
+            role: role.role as any,
+            clinica_id: role.clinicId,
+            ativo: role.ativo,
+            criado_em: role.criadoEm
+          })),
+          clinics: result.clinics?.map(clinic => ({
+            clinic: {
+              id: clinic.$id,
+              name: clinic.name,
+              ownerId: '', // Será preenchido conforme necessário
+              active: clinic.operationalStatus === 'active',
+              createdAt: clinic.criadoEm,
+              updatedAt: clinic.atualizadoEm,
+              settings: {
+                timezone: clinic.settings.timezone,
+                currency: 'BRL',
+                language: 'pt-BR',
+                features: []
+              }
+            },
+            role: result.roles?.[0]?.role as any || 'professional',
+            permissions: [],
+            active: true
+          })),
+          currentClinic: result.clinics?.[0] ? {
+            clinic: {
+              id: result.clinics[0].$id,
+              name: result.clinics[0].name,
+              ownerId: '',
+              active: result.clinics[0].operationalStatus === 'active',
+              createdAt: result.clinics[0].criadoEm,
+              updatedAt: result.clinics[0].atualizadoEm,
+              settings: {
+                timezone: result.clinics[0].settings.timezone,
+                currency: 'BRL',
+                language: 'pt-BR',
+                features: []
+              }
+            },
+            role: result.roles?.[0]?.role as any || 'professional',
+            permissions: [],
+            active: true
+          } : undefined
+        };
+      } else {
         return {
           success: false,
-          error: validation.error
+          error: result.error
         };
       }
-
-      // Buscar usuário usando o adaptador
-      const user = await UserAdapter.findByEmail(credentials.email);
-
-      if (!user) {
-        authLogger.warn('Usuário não encontrado:', credentials.email);
-        return {
-          success: false,
-          error: 'Credenciais inválidas'
-        };
-      }
-
-      authLogger.info('Usuário encontrado:', user.id);
-
-      // Por enquanto, vamos simular validação de senha
-      // TODO: Implementar validação real de senha quando tivermos hash
-      if (credentials.password.length < 3) {
-        return {
-          success: false,
-          error: 'Senha muito curta'
-        };
-      }
-
-      // Buscar roles do usuário
-      const roles = await RoleAdapter.findByUserId(user.id);
-      authLogger.info('Roles encontrados:', roles.length);
-
-      // Buscar clínicas acessíveis
-      const clinicAccess: UserClinicAccess[] = [];
-      for (const role of roles) {
-        const clinic = await ClinicAdapter.findById(role.clinic_id);
-        if (clinic) {
-          clinicAccess.push({
-            clinicId: clinic.id,
-            clinicName: clinic.name,
-            role: role.role,
-            permissions: [], // TODO: Implementar permissões
-            isActive: role.active
-          });
-        }
-      }
-
-      authLogger.info('Clínicas acessíveis:', clinicAccess.length);
-
-      // Gerar tokens simples (para desenvolvimento)
-      const tokens: AuthTokens = {
-        accessToken: `dev-token-${user.id}-${Date.now()}`,
-        refreshToken: `dev-refresh-${user.id}-${Date.now()}`,
-        expiresIn: 3600,
-        tokenType: 'Bearer'
-      };
-
-      // Armazenar tokens
-      await this.storeTokensSecurely(tokens);
-
-      // Log do evento
-      await this.logAuthEvent({
-        eventType: AuthEventType.LOGIN_SUCCESS,
-        userId: user.id,
-        success: true
-      });
-
-      return {
-        success: true,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          phone: user.phone,
-          role: roles[0]?.role || 'patient',
-          clinicAccess,
-          isActive: user.active,
-          emailVerified: true, // Assumir verificado por enquanto
-          lastLoginAt: new Date().toISOString()
-        },
-        tokens
-      };
-
     } catch (error) {
-      authLogger.error('Erro no login:', error);
-
-      await this.logAuthEvent({
-        eventType: AuthEventType.LOGIN_FAILED,
-        success: false,
-        errorMessage: error instanceof Error ? error.message : 'Erro desconhecido'
-      });
-
-      return {
-        success: false,
-        error: 'Erro interno do servidor'
+      authLogger.error('Erro inesperado no login', error);
+      return { 
+        success: false, 
+        error: 'Erro interno do servidor' 
       };
     }
-  }
+  },
 
-  /**
-   * Registra novo usuário com validação completa
-   */
-  async register(data: RegisterData): Promise<AuthResult> {
-    try {
-      // Validar dados de registro
-      const validation = this.validateRegistrationData(data);
-      if (!validation.isValid) {
-        return {
-          success: false,
-          error: validation.error
-        };
-      }
-
-      const securityContext = await this.getSecurityContext();
-
-      const response = await this.secureRequest<AuthResult>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          securityContext
-        })
-      });
-
-      return response;
-
-    } catch (error) {
-      authLogger.error('Registration error:', error);
-      return {
-        success: false,
-        error: AUTH_CONFIG.ERROR_MESSAGES.GENERIC_ERROR
-      };
-    }
-  }
-
-  /**
-   * Realiza logout seguro com revogação de tokens
-   */
   async logout(): Promise<void> {
     try {
-      const tokens = await this.getStoredTokens();
-      
-      if (tokens) {
-        // Revogar tokens no servidor
-        await this.secureRequest('/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${tokens.accessToken}`
-          }
-        });
-
-        await this.logAuthEvent({
-          eventType: AuthEventType.LOGOUT,
-          success: true
-        });
-      }
-
+      authLogger.info('Fazendo logout via Appwrite');
+      await unifiedAppwriteAuthService.logout();
+      authLogger.info('Logout realizado com sucesso via Appwrite');
     } catch (error) {
-      authLogger.error('Logout error:', error);
-    } finally {
-      // Sempre limpar tokens locais
-      await this.clearStoredTokens();
+      authLogger.error('Erro no logout', error);
+      throw error;
     }
-  }
+  },
 
-  /**
-   * Atualiza tokens usando refresh token
-   */
-  async refreshTokens(): Promise<AuthTokens | null> {
+  async register(data: RegisterData): Promise<AuthResult> {
     try {
-      const tokens = await this.getStoredTokens();
+      authLogger.info('Tentando registrar usuário via Appwrite', { email: data.email });
       
-      if (!tokens?.refreshToken) {
-        return null;
-      }
-
-      const response = await this.secureRequest<{ tokens: AuthTokens }>('/auth/refresh', {
-        method: 'POST',
-        body: JSON.stringify({
-          refreshToken: tokens.refreshToken
-        })
+      const result = await unifiedAppwriteAuthService.register({
+        email: data.email,
+        password: data.password,
+        nomeCompleto: data.name
       });
 
-      if (response.tokens) {
-        await this.storeTokensSecurely(response.tokens);
+      if (result.success) {
+        authLogger.info('Registro realizado com sucesso via Appwrite');
         
-        await this.logAuthEvent({
-          eventType: AuthEventType.TOKEN_REFRESH,
-          success: true
-        });
-
-        return response.tokens;
+        // Mapear para interface compatível
+        return {
+          success: true,
+          user: result.user ? {
+            id: result.user.$id,
+            email: result.user.email,
+            name: result.user.name,
+            emailVerified: result.user.emailVerification,
+            active: result.user.status,
+            createdAt: new Date(result.user.registration),
+            updatedAt: new Date(result.user.passwordUpdate),
+            loginAttempts: 0
+          } : undefined,
+          profile: result.profile ? {
+            id: result.profile.$id,
+            email: result.profile.email,
+            nome_completo: result.profile.nomeCompleto,
+            telefone: result.profile.telefone,
+            avatar_url: result.profile.avatarUrl,
+            primeiro_acesso: result.profile.primeiroAcesso,
+            onboarding_step: result.profile.onboardingStep,
+            onboarding_completed_at: result.profile.onboardingCompletedAt,
+            ativo: result.profile.ativo,
+            criado_em: result.profile.criadoEm,
+            atualizado_em: result.profile.atualizadoEm
+          } : undefined
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error
+        };
       }
-
-      return null;
-
     } catch (error) {
-      authLogger.error('Token refresh error:', error);
-      await this.clearStoredTokens();
-      return null;
+      authLogger.error('Erro inesperado no registro', error);
+      return { 
+        success: false, 
+        error: 'Erro interno do servidor' 
+      };
     }
-  }
+  },
 
-  // ==========================================================================
-  // MÉTODOS DE AUTORIZAÇÃO
-  // ==========================================================================
+  async refreshTokens(): Promise<AuthResult> {
+    try {
+      authLogger.info('Renovando sessão via Appwrite');
+      
+      const result = await unifiedAppwriteAuthService.refreshSession();
 
-  /**
-   * Troca de clínica ativa
-   */
+      if (result.success) {
+        authLogger.info('Sessão renovada com sucesso via Appwrite');
+        return {
+          success: true,
+          user: result.user ? {
+            id: result.user.$id,
+            email: result.user.email,
+            name: result.user.name,
+            emailVerified: result.user.emailVerification,
+            active: result.user.status,
+            createdAt: new Date(result.user.registration),
+            updatedAt: new Date(result.user.passwordUpdate),
+            loginAttempts: 0
+          } : undefined
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error
+        };
+      }
+    } catch (error) {
+      authLogger.error('Erro inesperado ao renovar sessão', error);
+      return { 
+        success: false, 
+        error: 'Erro interno do servidor' 
+      };
+    }
+  },
+
   async switchClinic(clinicId: string): Promise<boolean> {
     try {
-      const tokens = await this.getStoredTokens();
+      authLogger.info('Trocando clínica via Appwrite', { clinicId });
       
-      if (!tokens) {
-        return false;
+      const success = await unifiedAppwriteAuthService.switchClinic(clinicId);
+      
+      if (success) {
+        authLogger.info('Clínica trocada com sucesso via Appwrite');
       }
-
-      const response = await this.secureRequest<{ success: boolean }>('/auth/switch-clinic', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tokens.accessToken}`
-        },
-        body: JSON.stringify({ clinicId })
-      });
-
-      if (response.success) {
-        await this.logAuthEvent({
-          eventType: AuthEventType.CLINIC_SWITCH,
-          clinicId,
-          success: true
-        });
-      }
-
-      return response.success;
-
+      
+      return success;
     } catch (error) {
-      authLogger.error('Clinic switch error:', error);
+      authLogger.error('Erro ao trocar clínica', error);
       return false;
     }
   }
-
-  /**
-   * Obtém dados do usuário atual
-   */
-  async getCurrentUser(): Promise<User | null> {
-    try {
-      const tokens = await this.getStoredTokens();
-      
-      if (!tokens) {
-        return null;
-      }
-
-      const response = await this.secureRequest<{ user: User }>('/auth/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${tokens.accessToken}`
-        }
-      });
-
-      return response.user || null;
-
-    } catch (error) {
-      authLogger.error('Get current user error:', error);
-      return null;
-    }
-  }
-
-  // ==========================================================================
-  // MÉTODOS DE VALIDAÇÃO
-  // ==========================================================================
-
-  private validateLoginCredentials(credentials: LoginCredentials): { isValid: boolean; error?: string } {
-    if (!credentials.email || !credentials.password) {
-      return { isValid: false, error: 'Email e senha são obrigatórios' };
-    }
-
-    if (!this.isValidEmail(credentials.email)) {
-      return { isValid: false, error: 'Email inválido' };
-    }
-
-    if (credentials.password.length < AUTH_CONFIG.PASSWORD.MIN_LENGTH) {
-      return { isValid: false, error: `Senha deve ter pelo menos ${AUTH_CONFIG.PASSWORD.MIN_LENGTH} caracteres` };
-    }
-
-    return { isValid: true };
-  }
-
-  private validateRegistrationData(data: RegisterData): { isValid: boolean; error?: string } {
-    if (!data.email || !data.password || !data.name) {
-      return { isValid: false, error: 'Todos os campos são obrigatórios' };
-    }
-
-    if (!this.isValidEmail(data.email)) {
-      return { isValid: false, error: 'Email inválido' };
-    }
-
-    const passwordValidation = this.validatePassword(data.password);
-    if (!passwordValidation.isValid) {
-      return { isValid: false, error: passwordValidation.errors[0] };
-    }
-
-    if (!data.acceptTerms) {
-      return { isValid: false, error: 'É necessário aceitar os termos de uso' };
-    }
-
-    return { isValid: true };
-  }
-
-  private validatePassword(password: string): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-    const config = AUTH_CONFIG.PASSWORD;
-
-    if (password.length < config.MIN_LENGTH) {
-      errors.push(`Senha deve ter pelo menos ${config.MIN_LENGTH} caracteres`);
-    }
-
-    if (config.REQUIRE_UPPERCASE && !/[A-Z]/.test(password)) {
-      errors.push('Senha deve conter pelo menos uma letra maiúscula');
-    }
-
-    if (config.REQUIRE_LOWERCASE && !/[a-z]/.test(password)) {
-      errors.push('Senha deve conter pelo menos uma letra minúscula');
-    }
-
-    if (config.REQUIRE_NUMBERS && !/\d/.test(password)) {
-      errors.push('Senha deve conter pelo menos um número');
-    }
-
-    if (config.REQUIRE_SYMBOLS && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      errors.push('Senha deve conter pelo menos um símbolo');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
-
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
-
-  // ==========================================================================
-  // MÉTODOS UTILITÁRIOS
-  // ==========================================================================
-
-  private async secureRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    
-    const defaultHeaders = {
-      'Content-Type': 'application/json',
-      'X-API-Key': this.apiKey,
-      ...AUTH_CONFIG.SECURITY_HEADERS
-    };
-
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        ...defaultHeaders,
-        ...options.headers
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
-  private async getSecurityContext(): Promise<SecurityContext> {
-    return {
-      ipAddress: await this.getClientIP(),
-      userAgent: navigator.userAgent,
-      sessionId: this.generateSessionId(),
-      permissions: [],
-      rateLimitRemaining: 100 // Será atualizado pelo servidor
-    };
-  }
-
-  private async getClientIP(): Promise<string> {
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      return data.ip || 'unknown';
-    } catch {
-      return 'unknown';
-    }
-  }
-
-  private generateSessionId(): string {
-    return crypto.randomUUID();
-  }
-
-  private async logAuthEvent(event: Partial<AuthAuditLog>): Promise<void> {
-    try {
-      const securityContext = await this.getSecurityContext();
-      
-      const logEntry: Partial<AuthAuditLog> = {
-        ...event,
-        ipAddress: securityContext.ipAddress,
-        userAgent: securityContext.userAgent,
-        timestamp: new Date()
-      };
-
-      // Enviar log para o servidor (não bloquear se falhar)
-      this.secureRequest('/auth/audit-log', {
-        method: 'POST',
-        body: JSON.stringify(logEntry)
-      }).catch(error => {
-        authLogger.warn('Failed to log auth event:', error);
-      });
-
-    } catch (error) {
-      authLogger.warn('Failed to create auth log:', error);
-    }
-  }
-
-  // ==========================================================================
-  // GERENCIAMENTO SEGURO DE TOKENS
-  // ==========================================================================
-
-  private async storeTokensSecurely(tokens: AuthTokens): Promise<void> {
-    try {
-      // Armazenar em localStorage com criptografia básica
-      const encrypted = btoa(JSON.stringify(tokens));
-      localStorage.setItem('auth_tokens', encrypted);
-    } catch (error) {
-      authLogger.error('Failed to store tokens:', error);
-    }
-  }
-
-  private async getStoredTokens(): Promise<AuthTokens | null> {
-    try {
-      const encrypted = localStorage.getItem('auth_tokens');
-      if (!encrypted) return null;
-
-      const tokens = JSON.parse(atob(encrypted)) as AuthTokens;
-      
-      // Verificar se o token não expirou
-      if (new Date(tokens.expiresAt) <= new Date()) {
-        await this.clearStoredTokens();
-        return null;
-      }
-
-      return tokens;
-    } catch (error) {
-      authLogger.error('Failed to get stored tokens:', error);
-      await this.clearStoredTokens();
-      return null;
-    }
-  }
-
-  private async clearStoredTokens(): Promise<void> {
-    try {
-      localStorage.removeItem('auth_tokens');
-    } catch (error) {
-      authLogger.error('Failed to clear tokens:', error);
-    }
-  }
-}
-
-// Instância singleton do serviço
-export const authService = new AuthService();
+};

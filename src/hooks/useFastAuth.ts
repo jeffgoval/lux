@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role_type'];
@@ -27,7 +27,7 @@ export function useFastAuth(): FastAuthState {
     currentRole,
     isProfileLoading,
     isRolesLoading 
-  } = useSecureAuth();
+  } = useUnifiedAuth();
 
   return useMemo(() => {
     const isReady = !isLoading && !isProfileLoading && !isRolesLoading;

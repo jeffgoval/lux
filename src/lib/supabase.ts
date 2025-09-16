@@ -1,23 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
+/**
+ * 🗄️ SUPABASE CLIENT
+ * 
+ * Mock client for testing
+ */
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = {
   auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+    getUser: jest.fn(),
+    signUp: jest.fn(),
+    signInWithPassword: jest.fn(),
+    signOut: jest.fn()
   },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  }
-});
-
-export default supabase;
+  from: jest.fn(),
+  rpc: jest.fn()
+};

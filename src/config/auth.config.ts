@@ -46,7 +46,7 @@ export const AUTH_CONFIG = {
   SESSION: {
     COOKIE_NAME: 'luxe_auth_session',
     COOKIE_MAX_AGE: 7 * 24 * 60 * 60 * 1000, // 7 dias
-    COOKIE_SECURE: process.env.NODE_ENV === 'production',
+    COOKIE_SECURE: import.meta.env.PROD,
     COOKIE_HTTP_ONLY: true,
     COOKIE_SAME_SITE: 'strict' as const,
   },
@@ -102,26 +102,26 @@ export function validateAuthConfig(): void {
     'REDIS_URL',
   ];
 
-  const missing = requiredEnvVars.filter(envVar => !process.env[envVar]);
+  const missing = requiredEnvVars.filter(envVar => !import.meta.env[envVar]);
   
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
 
   // Validar chaves JWT
-  if (!process.env.JWT_PRIVATE_KEY?.includes('BEGIN PRIVATE KEY')) {
+  if (!import.meta.env.VITE_JWT_PRIVATE_KEY?.includes('BEGIN PRIVATE KEY')) {
     throw new Error('Invalid JWT_PRIVATE_KEY format');
   }
 
-  if (!process.env.JWT_PUBLIC_KEY?.includes('BEGIN PUBLIC KEY')) {
+  if (!import.meta.env.VITE_JWT_PUBLIC_KEY?.includes('BEGIN PUBLIC KEY')) {
     throw new Error('Invalid JWT_PUBLIC_KEY format');
   }
 }
 
 // Configuração específica por ambiente
 export function getEnvironmentConfig() {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isDevelopment = import.meta.env.DEV;
+  const isProduction = import.meta.env.PROD;
 
   return {
     ...AUTH_CONFIG,

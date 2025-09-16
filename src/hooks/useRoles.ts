@@ -1,8 +1,8 @@
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { UserRole, ROLE_PERMISSIONS } from '@/types/auth';
 
 export function useRoles() {
-  const { currentRole, roles, hasRole } = useSecureAuth();
+  const { currentRole, roles, hasRole } = useUnifiedAuth();
 
   const isAdmin = () => hasRole('super_admin');
   const isProprietaria = () => hasRole('proprietaria');

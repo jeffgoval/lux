@@ -1,2 +1,0 @@
--- Archived original migration due to unsupported syntax in remote environment.
--- Kept for history. Consolidated schema is provided in newer migrations.

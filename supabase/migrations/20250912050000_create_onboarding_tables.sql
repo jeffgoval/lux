@@ -1,2 +1,0 @@
--- Archived/neutralized: consolidated by newer migrations.
--- This migration is intentionally empty to avoid conflicts.

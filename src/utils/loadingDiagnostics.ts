@@ -174,7 +174,7 @@ export function useLoadingDiagnostics(component: string) {
 }
 
 // Development helper
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).loadingDiagnostics = {
     diagnostics: loadingDiagnostics,
     getReport: getLoadingReport,

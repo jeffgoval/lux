@@ -280,18 +280,18 @@ export class NotificationEngine {
   private readonly apiConfig = {
     whatsapp: {
       baseUrl: 'https://graph.facebook.com/v18.0',
-      accessToken: process.env.META_WHATSAPP_TOKEN,
-      phoneNumberId: process.env.META_PHONE_NUMBER_ID
+      accessToken: import.meta.env.VITE_META_WHATSAPP_TOKEN,
+      phoneNumberId: import.meta.env.VITE_META_PHONE_NUMBER_ID
     },
     twilio: {
-      accountSid: process.env.TWILIO_ACCOUNT_SID,
-      authToken: process.env.TWILIO_AUTH_TOKEN,
-      fromNumber: process.env.TWILIO_FROM_NUMBER
+      accountSid: import.meta.env.VITE_TWILIO_ACCOUNT_SID,
+      authToken: import.meta.env.VITE_TWILIO_AUTH_TOKEN,
+      fromNumber: import.meta.env.VITE_TWILIO_FROM_NUMBER
     },
     sendgrid: {
-      apiKey: process.env.SENDGRID_API_KEY,
-      fromEmail: process.env.SENDGRID_FROM_EMAIL,
-      fromName: process.env.SENDGRID_FROM_NAME || 'Luxe Flow'
+      apiKey: import.meta.env.VITE_SENDGRID_API_KEY,
+      fromEmail: import.meta.env.VITE_SENDGRID_FROM_EMAIL,
+      fromName: import.meta.env.VITE_SENDGRID_FROM_NAME || 'Luxe Flow'
     }
   };
 

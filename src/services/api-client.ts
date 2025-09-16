@@ -159,6 +159,91 @@ class ApiClient {
     });
   }
 
+  // ========== CLIENTES ==========
+  
+  async getClientes(filters?: {
+    categoria?: string[];
+    busca?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<{ clientes: any[]; total: number }>> {
+    const params = new URLSearchParams();
+    
+    if (filters?.categoria?.length) {
+      params.append('categoria', filters.categoria.join(','));
+    }
+    if (filters?.busca) {
+      params.append('busca', filters.busca);
+    }
+    if (filters?.page) {
+      params.append('page', filters.page.toString());
+    }
+    if (filters?.limit) {
+      params.append('limit', filters.limit.toString());
+    }
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `/clientes?${queryString}` : '/clientes';
+    
+    return this.request<{ clientes: any[]; total: number }>(endpoint);
+  }
+
+  async getCliente(id: string): Promise<ApiResponse<any>> {
+    return this.request<any>(`/clientes/${id}`);
+  }
+
+  async createCliente(data: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/clientes', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateCliente(id: string, data: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/clientes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCliente(id: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/clientes/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async uploadClienteAvatar(clienteId: string, file: File): Promise<ApiResponse<{ url: string }>> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    return this.request<{ url: string }>(`/clientes/${clienteId}/avatar`, {
+      method: 'POST',
+      body: formData,
+      headers: {}, // Remove Content-Type to let browser set it for FormData
+    });
+  }
+
+  async uploadClienteDocument(clienteId: string, file: File, type: string): Promise<ApiResponse<{ url: string; type: string }>> {
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('type', type);
+
+    return this.request<{ url: string; type: string }>(`/clientes/${clienteId}/documents`, {
+      method: 'POST',
+      body: formData,
+      headers: {}, // Remove Content-Type to let browser set it for FormData
+    });
+  }
+
+  async checkClienteEmailExists(email: string, excludeId?: string): Promise<ApiResponse<{ exists: boolean }>> {
+    const params = new URLSearchParams({ email });
+    if (excludeId) {
+      params.append('exclude', excludeId);
+    }
+    
+    return this.request<{ exists: boolean }>(`/clientes/check-email?${params.toString()}`);
+  }
+
   // ========== HELPERS ==========
   
   isAuthenticated(): boolean {

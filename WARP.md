@@ -1,645 +1,396 @@
 # WARP.md
 
-Este arquivo fornece orientação ao WARP (warp.dev) ao trabalhar com código neste repositório.
+Este arquivo fornece orientações ao WARP (warp.dev) ao trabalhar com código neste repositório.
 
----
+## ✨ Visão Geral Rápida
 
-## 📋 Índice
+O **Luxe Flow Appoint** é um sistema completo de gestão para clínicas estéticas que oferece funcionalidades como agendamentos, gerenciamento de clientes, controle de estoque, prontuários médicos e análise financeira. O sistema é multi-tenant, permitindo que múltiplas clínicas operem independentemente com suas próprias configurações, usuários e dados.
 
-1. [🚀 Getting Started](#-getting-started)
-2. [🏗️ Arquitetura do Sistema](#️-arquitetura-do-sistema)
-3. [🔐 Sistema de Autenticação](#-sistema-de-autenticação)
-4. [🗄️ Banco de Dados Supabase](#️-banco-de-dados-supabase)
-5. [🏥 Multi-Tenant: Clínicas](#-multi-tenant-clínicas)
-6. [🧪 Testes e Qualidade](#-testes-e-qualidade)
-7. [⚙️ Scripts e DevOps](#️-scripts-e-devops)
-8. [🤝 Guia de Desenvolvimento](#-guia-de-desenvolvimento)
+O projeto utiliza uma arquitetura moderna com React + TypeScript no frontend, Supabase como backend-as-a-service, sistema de autenticação robusto com diferentes níveis de acesso, e um complexo sistema de onboarding para novos usuários e clínicas.
 
----
-
-## 🚀 Getting Started
-
-### Stack Tecnológico
-- **Frontend**: React 18.3 + TypeScript + Vite
-- **UI/Design**: shadcn/ui + Tailwind CSS + Radix UI
-- **Backend**: Supabase (PostgreSQL + Auth + RLS)
-- **State Management**: Context API + Reducers
-- **Routing**: React Router DOM v6
-- **Testes**: Jest + React Testing Library
-- **Build/Deploy**: Vite + Vercel
-
-### Comandos Essenciais
+## 🚀 Início Rápido
 
 ```bash
-# Desenvolvimento
-npm run dev                    # Servidor dev (localhost:5173)
-npm run build                 # Build para produção
-npm run preview               # Preview do build (localhost:5174)
+# Clonar o repositório
+git clone <repository-url>
+cd luxe-flow-appoint
 
-# Testes e Qualidade
-npm run lint                  # ESLint
-npm test                      # Executar testes
-npm run test:auth             # Testar fluxo de autenticação
+# Configurar variáveis de ambiente
+cp .env.example .env
+# Preencher VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY
 
-# Database e Backend
-npm run check:db              # Verificar estrutura do banco
-npm run backup                # Backup do Supabase
-npm run diagnose              # Diagnóstico de problemas
+# Instalar dependências
+npm install
 
-# Validação de Build
-npm run build:validate        # Build + validação
-npm run test:routes           # Testar rotas (dev)
-npm run test:routes:preview   # Testar rotas (preview)
+# Configurar banco de dados (se necessário)
+npm run check:db
+
+# Iniciar desenvolvimento
+npm run dev
 ```
 
-### Estrutura de Diretórios
+O servidor de desenvolvimento estará disponível em `http://localhost:5173`.
 
-```
-src/
-├── components/           # Componentes React
-│   ├── ui/              # Componentes shadcn/ui base
-│   ├── auth/            # Componentes de autenticação
-│   └── executive/       # Dashboard executivo
-├── contexts/            # Context providers
-│   ├── AuthContext.tsx     # Sistema legacy
-│   └── SecureAuthContext.tsx # Sistema V2 otimizado
-├── hooks/               # Custom hooks
-│   ├── useOptimizedAuth.ts # Hook de auth V2
-│   └── useFastAuth.ts   # Verificações rápidas
-├── pages/               # Páginas da aplicação
-├── utils/               # Utilitários
-│   ├── auth-decision-engine.ts # Motor de decisão auth
-│   └── single-flight-manager.ts # Gerenciador de requisições
-├── integrations/        # Integrações externas
-│   └── supabase/        # Cliente e tipos Supabase
-└── __tests__/           # Testes unitários e E2E
-```
+## 🔄 Comandos de Desenvolvimento
 
----
+### Comandos Principais
 
-## 🏗️ Arquitetura do Sistema
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Inicia servidor Vite com HMR em `localhost:5173` |
+| `npm run build` | Build de produção |
+| `npm run build:dev` | Build em modo desenvolvimento |
+| `npm run preview` | Preview do build em `localhost:5174` |
+| `npm run lint` | Executa ESLint |
+| `npm test` | Executa testes Jest |
+| `npm run test:watch` | Testes em modo watch |
+| `npm run test:coverage` | Testes com cobertura |
 
-### Camadas da Aplicação
+### Scripts de Banco de Dados
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run check:db` | Verifica estrutura do banco |
+| `npm run check:roles` | Verifica tabela de roles |
+| `npm run create:roles` | Cria tabela de roles |
+| `npm run check:profiles` | Verifica estrutura de perfis |
+| `npm run fix:profiles` | Executa correções nos perfis |
+
+### Scripts de Backup
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run backup` | Backup completo do Supabase |
+| `npm run backup:schema` | Backup apenas do schema |
+| `npm run backup:data` | Backup apenas dos dados |
+| `npm run restore` | Restaura backup |
+
+### Scripts de Teste e Validação
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run test:routes` | Testa rotas do servidor de desenvolvimento |
+| `npm run test:auth` | Testa fluxo de autenticação |
+| `npm run test:user` | Testa criação de usuário |
+| `npm run test:policies` | Testa políticas de banco |
+| `npm run validate:build` | Valida build de produção |
+
+## 🏗️ Arquitetura de Alto Nível
 
 ```mermaid
 graph TB
-    UI[🎨 UI Layer - React + shadcn/ui]
-    STATE[📊 State Layer - Context + Reducers]
-    SERVICE[⚙️ Service Layer - Auth + API]
-    DATA[🗄️ Data Layer - Supabase + RLS]
+    UI[React UI Layer]
+    Context[Context Providers]
+    Services[Optimized Services]
+    Supabase[(Supabase)]
     
-    UI --> STATE
-    STATE --> SERVICE
-    SERVICE --> DATA
+    UI --> Context
+    Context --> Services
+    Services --> Supabase
     
-    subgraph "Performance Features"
-        SF[Single-Flight Manager]
-        AUTH_ENGINE[Auth Decision Engine]
-        CACHE[Auth Cache Manager]
+    subgraph "Frontend"
+        UI
+        Context
+        Services
     end
+    
+    subgraph "Backend (Supabase)"
+        Supabase
+        Auth[Supabase Auth]
+        DB[PostgreSQL]
+        Storage[File Storage]
+        RLS[Row Level Security]
+    end
+    
+    Supabase --> Auth
+    Supabase --> DB
+    Supabase --> Storage
+    DB --> RLS
 ```
 
-### Principais Padrões Implementados
+### Camadas da Aplicação
 
-1. **Single-Flight Pattern**: Evita requisições duplicadas
-2. **Auth Decision Engine**: Decisões determinísticas de roteamento  
-3. **Multi-Context Architecture**: Auth V1 (legacy) + V2 (otimizado)
-4. **Feature Flags**: Migração gradual entre sistemas
-5. **Error Recovery**: Sistema automático de recuperação
+1. **UI Layer**: Componentes React com shadcn/ui, roteamento com React Router
+2. **State Management**: Context API com `UnifiedAuthContext` e `SecureAuthContext`
+3. **Services**: Serviços otimizados com cache inteligente e batch operations
+4. **Backend**: Supabase com RLS, functions e triggers automáticos
 
-### Componentes de Alto Nível
+### Tecnologias Principais
 
-```typescript
-// Exemplo: Estrutura do Auth Router V2
-interface AuthDecision {
-  state: 'ANONYMOUS' | 'AUTHENTICATED_NEW' | 'AUTHENTICATED_EXISTING';
-  decision: 'REDIRECT_AUTH' | 'REDIRECT_ONBOARDING' | 'ALLOW_ACCESS';
-  reason: string;
-  redirectPath?: string;
-  performanceMs?: number;
-}
-```
+- **Frontend**: React 18, TypeScript, Vite, TailwindCSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **State**: Context API, TanStack Query
+- **Testes**: Jest, Testing Library
+- **Build**: Vite, ESBuild
 
----
+## 🔐 Autenticação e Autorização
 
-## 🔐 Sistema de Autenticação
+### Estados de Autenticação Determinísticos
 
-### Arquitetura Dual (V1 + V2)
-
-O sistema possui dois contextos de autenticação:
-
-1. **AuthContext** (Legacy): Sistema original com algumas limitações
-2. **SecureAuthContext** (V2): Sistema otimizado que resolve race conditions
-
-### Fluxo de Autenticação V2
+O sistema utiliza uma máquina de estados bem definida para evitar race conditions:
 
 ```mermaid
-sequenceDiagram
-    participant User
-    participant App
-    participant SecureAuth
-    participant Supabase
-    participant Database
+stateDiagram-v2
+    [*] --> ANONYMOUS
+    ANONYMOUS --> AUTHENTICATED_NEW: login/register
+    AUTHENTICATED_NEW --> ONBOARDING_IN_PROGRESS: start onboarding
+    ONBOARDING_IN_PROGRESS --> AUTHENTICATED_EXISTING: complete onboarding
+    AUTHENTICATED_EXISTING --> ANONYMOUS: logout
+    AUTHENTICATED_NEW --> ANONYMOUS: logout
+    ONBOARDING_IN_PROGRESS --> ANONYMOUS: logout
     
-    User->>App: Login/SignUp
-    App->>SecureAuth: dispatch(LOGIN_START)
-    SecureAuth->>Supabase: signIn/signUp
-    Supabase->>Database: Create user + trigger
-    Database-->>Supabase: Profile + Roles created
-    Supabase-->>SecureAuth: Auth success + user data
-    SecureAuth->>App: dispatch(LOGIN_SUCCESS)
-    App-->>User: Redirect to Dashboard/Onboarding
+    ANONYMOUS --> ERROR_STATE: error
+    AUTHENTICATED_NEW --> ERROR_STATE: error
+    ONBOARDING_IN_PROGRESS --> ERROR_STATE: error
+    ERROR_STATE --> ANONYMOUS: reset
 ```
 
-### Hooks de Autenticação
+### Contextos de Autenticação
+
+| Contexto | Propósito | Localização |
+|----------|-----------|-------------|
+| `UnifiedAuthContext` | Sistema principal de autenticação V2 | `src/contexts/UnifiedAuthContext.tsx` |
+| `SecureAuthContext` | Sistema legado com compatibilidade | `src/contexts/SecureAuthContext.tsx` |
+
+### Serviços de Autenticação
+
+- **`OptimizedAuthService`**: Reduz consultas ao banco para máximo 2 por login
+- **`authService`**: Serviço básico de autenticação
+- **Cache System**: TTL de 5 minutos com invalidação inteligente
+
+### Guards de Rota
 
 ```typescript
-// Hook principal V2 com feature flag
-const auth = useOptimizedAuth();
-
-// Hook para verificações rápidas
-const { isReady, canAccess, needsOnboarding } = useFastAuth();
-
-// Hook de emergência para debug
-const { cancelAllFlights, forceRefresh } = useAuthEmergencyControls();
+// Exemplo de uso do guard unificado
+<RequireRole roles={['super_admin', 'proprietaria']}>
+  <AppLayout>
+    <DashboardExecutivo />
+  </AppLayout>
+</RequireRole>
 ```
 
-### Estados de Autenticação
+## 🏢 Sistema Multi-Tenant e Roles
 
-| Estado | Descrição | Ação |
-|--------|-----------|------|
-| `ANONYMOUS` | Usuário não autenticado | Redirecionar para `/auth` |
-| `AUTHENTICATED_NEW` | Usuário novo (primeiro_acesso = true) | Redirecionar para `/onboarding` |
-| `AUTHENTICATED_EXISTING` | Usuário existente | Permitir acesso |
+### Hierarquia de Roles
 
-### Roles e Permissões
+1. **super_admin** - Acesso total ao sistema
+2. **proprietaria** - Proprietário da clínica
+3. **gerente** - Gerente da clínica
+4. **profissionais** - Profissionais de saúde/estética
+5. **recepcionistas** - Atendimento e agendamentos
+6. **visitante** - Acesso limitado
 
-```typescript
-enum UserRole {
-  'super_admin',
-  'proprietaria',      // Dona da clínica
-  'gerente',          // Gerente da clínica  
-  'profissionais',    // Médicos, enfermeiros
-  'recepcionistas',   // Atendimento
-  'visitante',        // Acesso limitado
-  'cliente'           // Paciente
-}
-```
-
----
-
-## 🗄️ Banco de Dados Supabase
-
-### Principais Tabelas
+### Estrutura de Tabelas Principais
 
 ```sql
--- Usuários e perfis
-profiles              -- Perfil do usuário (1:1 com auth.users)
-user_roles           -- Roles por clínica (N:N)
+-- Estrutura multi-tenant
+auth.users (Supabase Auth)
+├── profiles (1:1)
+├── user_roles (1:N) 
+└── profissionais (1:1)
 
--- Multi-tenancy  
-organizacoes         -- Grupos de clínicas (opcional)
-clinicas            -- Clínicas individuais
-clinica_profissionais -- Profissionais por clínica
-
--- Prontuários médicos
-prontuarios                 -- Prontuários principais
-sessoes_atendimento        -- Sessões de atendimento
-imagens_medicas           -- Imagens seguras
-consentimentos_digitais   -- Consentimentos com hash
-auditoria_medica         -- Log de auditoria
-
--- Templates e configuração
-templates_procedimentos   -- Templates reutilizáveis
-especialidades_medicas   -- Especialidades disponíveis
+organizacoes (opcional)
+└── clinicas (1:N)
+    ├── clinica_profissionais (N:N)
+    ├── templates_procedimentos (1:N)
+    └── user_roles (1:N)
 ```
 
-### Enums Importantes
+### Troca de Clínica
 
-```sql
--- Roles de usuário
-CREATE TYPE user_role_type AS ENUM (
-  'super_admin', 'proprietaria', 'gerente', 
-  'profissionais', 'recepcionistas', 'visitante', 'cliente'
-);
-
--- Tipos de procedimento
-CREATE TYPE tipo_procedimento AS ENUM (
-  'botox_toxina', 'preenchimento', 'harmonizacao_facial',
-  'laser_ipl', 'peeling', 'tratamento_corporal', 
-  'skincare_avancado', 'outro'
-);
-
--- Status do prontuário
-CREATE TYPE status_prontuario AS ENUM (
-  'ativo', 'arquivado', 'transferido'
-);
-```
-
-### Row Level Security (RLS)
-
-O sistema usa RLS para isolamento multi-tenant:
-
-```sql
--- Exemplo: Usuários só veem próprios dados
-CREATE POLICY "users_select_own" ON profiles
-  FOR SELECT USING (auth.uid() = user_id);
-
--- Exemplo: Acesso à clínica baseado em role
-CREATE POLICY "clinics_select_accessible" ON clinicas  
-  FOR SELECT USING (
-    id IN (
-      SELECT clinic_id FROM user_clinic_roles 
-      WHERE user_id = auth.uid() AND active = true
-    )
-  );
-```
-
-### Comandos de Migração e Seeds
-
-```bash
-# Reconstruir banco completo (cuidado!)
-psql -f REBUILD_DATABASE_COMPLETE.sql
-
-# Scripts utilitários do projeto
-npm run check:db              # Verificar estrutura
-npm run create:tables         # Criar tabelas faltantes  
-npm run backup:schema         # Backup apenas schema
-npm run backup:data           # Backup apenas dados
-
-# Scripts de seed e dados
-npm run seed:reference        # Inserir dados de referência
-npm run seed:dev              # Dados de desenvolvimento
-npm run seed:prod             # Dados de produção (apenas essenciais)
-npm run test:db               # Testes básicos de funcionalidade
-npm run validate:integrity    # Validar integridade do banco
-```
-
-### Estrutura de Seeds
-
-O sistema possui três tipos de seeds organizados por ambiente:
-
-```
-supabase/seed/
-├── reference-data/           # Dados essenciais (prod + dev)
-│   ├── 01_especialidades_medicas.sql
-│   ├── 02_categorias_procedimento.sql
-│   ├── 03_fabricantes_equipamento.sql
-│   └── 00_execute_all_reference_seeds.sql
-├── dev-sample/              # Dados fictícios (apenas dev)
-│   └── dev_sample_data.sql
-├── production/              # Dados essenciais (apenas prod)
-│   └── production_seeds.sql
-├── rls-audit-and-setup.sql  # Configuração RLS
-├── validate_database_integrity.sql # Validação
-└── test_basic_functionality.js     # Testes básicos
-```
-
----
-
-## 🏥 Multi-Tenant: Clínicas
-
-### Modelo de Dados
-
-```mermaid
-erDiagram
-    ORGANIZACOES ||--o{ CLINICAS : contains
-    CLINICAS ||--o{ USER_ROLES : has
-    USER_ROLES }o--|| PROFILES : belongs_to
-    CLINICAS ||--o{ PRONTUARIOS : owns
-    PRONTUARIOS ||--o{ SESSOES_ATENDIMENTO : has
-    SESSOES_ATENDIMENTO ||--o{ IMAGENS_MEDICAS : contains
-```
-
-### Isolamento de Dados
-
-- **Organizational Level**: `organizacao_id` nas tabelas principais
-- **Clinic Level**: `clinica_id` para isolamento por clínica  
-- **User Level**: RLS baseado em `auth.uid()` e roles
-
-### Onboarding de Nova Clínica
-
-1. Usuário faz signup (cria auth.users + profiles)
-2. Sistema detecta `primeiro_acesso = true`
-3. Redireciona para `/onboarding`
-4. OnboardingWizard coleta dados da clínica
-5. Cria registro em `clinicas` + `user_roles` com role `proprietaria`
-6. Atualiza `profiles.primeiro_acesso = false`
+O sistema permite que usuários com múltiplas clínicas alternem entre contextos:
 
 ```typescript
-// Exemplo: Criar clínica no onboarding
-const createClinic = async (data: OnboardingData) => {
-  const { data: clinic } = await supabase
-    .from('clinicas')
-    .insert({
-      nome: data.clinicName,
-      cnpj: data.cnpj,
-      endereco: data.address,
-      // ...
-    })
-    .select()
-    .single();
-    
-  // Criar role de proprietária
-  await supabase.from('user_roles').insert({
-    user_id: user.id,
-    clinica_id: clinic.id,
-    role: 'proprietaria'
-  });
-};
+// Trocar contexto de clínica
+const success = await switchClinic(clinicId);
 ```
 
----
+## 🗄️ Scripts de Banco de Dados
 
-## 🧪 Testes e Qualidade
+### Arquivos Principais
 
-### Stack de Testes
+| Arquivo | Propósito |
+|---------|-----------|
+| `database/complete-database-structure.sql` | Script principal de criação |
+| `database/verify-database-setup.sql` | Validação da estrutura |
+| `execute-database-setup.ps1` | Script PowerShell automatizado |
+| `scripts/setup-database-structure.js` | Script Node.js alternativo |
 
-- **Unitários**: Jest + React Testing Library
-- **E2E**: Testes de fluxo completo de auth
-- **Performance**: Métricas de decision engine
-- **Coverage**: Minimum 90% em módulos críticos
-
-### Estrutura de Testes
-
-```
-src/__tests__/
-├── auth-flow-e2e.test.tsx         # Fluxos completos
-├── auth-decision-engine.test.ts   # Motor de decisão
-├── authCache.test.ts             # Sistema de cache
-├── retryUtils.test.ts            # Utilitários de retry
-├── AuthGuard.test.tsx            # Componente guard
-└── NavigationContext.test.tsx    # Contexto navegação
-```
-
-### Comandos de Teste
+### Execução Automatizada
 
 ```bash
-npm test                          # Executar todos os testes
-npm run test:auth                # Testar fluxo de auth
-npm run test:policies            # Testar políticas RLS
-npm run test:user                # Testar criação de usuário
-npm run test:db                  # Testes básicos de banco
-node supabase/seed/test_basic_functionality.js  # Executar testes direto
+# Windows PowerShell
+powershell -ExecutionPolicy Bypass -File execute-database-setup.ps1
+
+# Node.js
+node scripts/setup-database-structure.js
+
+# Com opções
+node scripts/setup-database-structure.js --dry-run
+node scripts/setup-database-structure.js --verify
+node scripts/setup-database-structure.js --force
 ```
 
-### ✅ Checklist RLS (Row Level Security)
+### Tabelas Críticas para Onboarding
 
-**Tabelas com RLS Obrigatório:**
-- [ ] `profiles` - Usuários veem apenas seus dados
-- [ ] `user_roles` - Acesso baseado em organização/clínica
-- [ ] `clinicas` - Isolamento por organização
-- [ ] `organizacoes` - Acesso baseado em roles
-- [ ] `prontuarios` - Isolamento por clínica
-- [ ] `sessoes_atendimento` - Via prontuários
-- [ ] `imagens_medicas` - Via prontuários
-- [ ] `equipamentos` - Por clínica
-- [ ] `produtos` - Por clínica
-- [ ] `auditoria_medica` - Por clínica (apenas INSERT)
+1. **`profissionais`** - Informações dos profissionais
+2. **`clinica_profissionais`** ⚠️ **CRÍTICA** - Vínculo many-to-many
+3. **`templates_procedimentos`** ⚠️ **CRÍTICA** - Templates de procedimentos
 
-**Tabelas de Acesso Público (usuários autenticados):**
-- [ ] `especialidades_medicas` - Leitura livre
-- [ ] `categorias_procedimento` - Leitura livre
-- [ ] `fabricantes_equipamento` - Leitura livre
-
-**Cenários de Teste RLS:**
-1. **Super Admin**: Acessa todos os dados
-2. **Proprietária**: Acessa apenas sua organização/clínica
-3. **Profissional**: Acessa apenas clínicas onde trabalha
-4. **Recepcionista**: Acesso limitado à sua clínica
-5. **Usuário não autenticado**: Sem acesso a dados sensíveis
-
-### Mocking Supabase
-
-```typescript
-// Mock padrão para testes
-jest.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    auth: {
-      getSession: jest.fn(),
-      getUser: jest.fn(),
-      onAuthStateChange: jest.fn(() => ({
-        data: { subscription: { unsubscribe: jest.fn() } }
-      }))
-    },
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          maybeSingle: jest.fn(),
-          single: jest.fn()
-        }))
-      }))
-    }))
-  }
-}));
-```
-
-### Metas de Qualidade
-
-```javascript
-// jest.config.js
-coverageThreshold: {
-  global: {
-    branches: 90,
-    functions: 90,
-    lines: 90,
-    statements: 90
-  }
-}
-```
-
----
-
-## ⚙️ Scripts e DevOps
-
-### Utilitários de Banco
-
-```bash
-# Diagnóstico e verificação
-npm run check:db                 # Verificar estrutura do banco
-npm run check:profiles          # Verificar tabela profiles  
-npm run check:roles             # Verificar tabela user_roles
-npm run debug:user              # Debug dados de usuário
-
-# Correções automáticas
-npm run fix:profiles            # Corrigir estrutura profiles
-npm run complete:onboarding     # Completar onboarding forçado
-npm run create:roles            # Criar roles faltantes
-
-# Backup e restauração
-npm run backup                  # Backup completo
-npm run backup:schema           # Apenas schema
-npm run backup:data             # Apenas dados
-npm run restore                 # Restaurar backup
-```
-
-### Variáveis de Ambiente
+### Variáveis de Ambiente Necessárias
 
 ```env
-# Supabase
-VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=xxx
-SUPABASE_SERVICE_ROLE_KEY=xxx   # Para scripts admin
-
-# Auth V2 (opcional)
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
-AUTH_V2_ENABLED=true
-
-# Development
-NODE_ENV=development
-VITE_APP_ENV=development
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_ANON_KEY=sua-chave-anonima
+SUPABASE_SERVICE_ROLE_KEY=sua-chave-service-role
 ```
 
-### Deploy (Vercel + Supabase)
+### Status de Verificação
 
-1. **Build de Produção**:
-   ```bash
-   npm run build:validate       # Build + validação
-   ```
+Após execução dos scripts, verifique:
 
-2. **Deploy Vercel**:
-   - Conectar repositório GitHub
-   - Configurar variáveis de ambiente
-   - Deploy automático em push para `main`
+- ✅ **READY**: Tudo configurado corretamente
+- ⚠️ **NEEDS_COMPLETION**: Algumas partes faltando
+- ❌ **CRITICAL_ISSUES**: Problemas graves encontrados
 
-3. **Migração de Banco**:
-   - Use interface Supabase para aplicar `REBUILD_DATABASE_COMPLETE.sql`
-   - Ou execute scripts de migração individuais
+## 🧪 Estratégia de Testes
 
-### CI/CD Pipeline
-
-```yaml
-# .github/workflows/ci.yml (sugestão)
-name: CI
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test
-      - run: npm run build
-```
-
----
-
-## 🤝 Guia de Desenvolvimento
-
-### Convenções de Código
-
-1. **TypeScript**: Estritamente tipado, interfaces explícitas
-2. **React**: Hooks funcionais, evitar class components
-3. **Styling**: Tailwind + shadcn/ui, evitar CSS custom
-4. **Auth**: Sempre use hooks otimizados (`useFastAuth`, `useOptimizedAuth`)
-
-### Padrões de Commit
+### Testes Unitários
 
 ```bash
-feat: add new authentication system
-fix: resolve infinite redirect loop  
-refactor: optimize auth decision engine
-docs: update WARP.md with new patterns
-test: add e2e tests for onboarding flow
+# Executar todos os testes
+npm test
+
+# Testes em modo watch
+npm run test:watch
+
+# Cobertura de testes
+npm run test:coverage
 ```
 
-### Fluxo de Desenvolvimento
+### Testes de Integração
 
-1. **Feature Branch**: `git checkout -b feature/nova-funcionalidade`
-2. **Development**: Implementar + testes
-3. **Quality Check**: `npm run lint && npm test && npm run build`
-4. **Pull Request**: Revisão de código obrigatória
-5. **Deploy**: Merge para `main` = deploy automático
+```bash
+# Testar fluxo de autenticação
+npm run test:auth
 
-### Debugging Auth
+# Testar criação de usuário
+npm run test:user
+
+# Testar políticas de banco
+npm run test:policies
+```
+
+### Validação de Banco de Dados
+
+```bash
+# Verificar estrutura do banco
+npm run check:db
+
+# Executar script de verificação SQL
+# (executar verify-database-setup.sql no Supabase Dashboard)
+```
+
+### Testes de Performance
+
+- Use `EXPLAIN ANALYZE` para queries lentas
+- Monitore uso de índices no Supabase Dashboard
+- Verifique métricas de cache com `window.healthCheck.runAll()`
+
+## 🐞 Debug e Troubleshooting
+
+### Componente de Debug
+
+Acesse o componente de debug em `/debug` ou use:
 
 ```typescript
-// Hook para diagnóstico completo
-const diagnostics = useAuthDiagnostics();
-console.log('Auth Diagnostics:', {
-  state: diagnostics.state,
-  decision: diagnostics.decision,
-  performance: diagnostics.performanceMs,
-  flights: diagnostics.flightStatus
-});
+// Importar o componente de debug
+import { AuthDebug } from '@/components/debug/AuthDebug';
 
-// Controles de emergência  
-const emergency = useAuthEmergencyControls();
-emergency.cancelAllFlights();  // Cancelar requests pendentes
-emergency.forceRefresh();      // Forçar reload da página
-emergency.forceLogout();       // Logout completo + limpeza
+// Renderizar em qualquer página para debugar auth
+<AuthDebug />
 ```
 
-### Resolução de Problemas Comuns
+### Health Check
 
-| Problema | Causa Provável | Solução |
-|----------|----------------|---------|
-| Loop infinito de redirect | Race condition entre guards | Usar `useOptimizedAuth()` V2 |
-| Dados de usuário faltando | Trigger de criação falhou | `npm run fix:profiles` |
-| RLS negando acesso | Role não configurado | `npm run check:roles` |
-| Loading infinito | Timeout de requisição | `useOptimizedLoading()` com timeout |
+No console do navegador (desenvolvimento):
 
-### 🔄 Como Regenerar Dados
+```javascript
+// Executar health check completo
+await window.healthCheck.runAll()
 
-**Para Desenvolvimento:**
-```bash
-# 1. Limpar dados existentes (opcional)
-# DELETE FROM todas as tabelas de dados (mantém estrutura)
+// Verificação rápida
+await window.healthCheck.runQuick()
 
-# 2. Executar seeds de referência
-psql -f supabase/seed/reference-data/00_execute_all_reference_seeds.sql
-# OU usar via JavaScript:
-node -e "/* script de inserção via Supabase client */"
-
-# 3. Executar dados de desenvolvimento  
-psql -f supabase/seed/dev-sample/dev_sample_data.sql
-
-# 4. Configurar RLS
-psql -f supabase/seed/rls-audit-and-setup.sql
-
-# 5. Validar integridade
-psql -f supabase/seed/validate_database_integrity.sql
+// Verificação específica
+await window.healthCheck.runSpecific('supabase-connection')
 ```
 
-**Para Produção:**
-```bash
-# APENAS dados essenciais - sem dados fictícios
-psql -f supabase/seed/production/production_seeds.sql
-psql -f supabase/seed/rls-audit-and-setup.sql
+### Erros Comuns
+
+| Erro | Causa | Solução |
+|------|-------|---------|
+| "Tabela já existe" | Script executado múltiplas vezes | Normal, scripts são idempotentes |
+| "Permissão negada" | SERVICE_ROLE_KEY incorreta | Verificar `.env` |
+| "Função não encontrada" | Migrações base não aplicadas | Executar migrações do Supabase |
+| "Conexão falhou" | URL incorreta ou projeto inativo | Verificar SUPABASE_URL |
+
+### Cache e Performance
+
+```javascript
+// Limpar cache de auth
+authCache.clear()
+
+// Verificar stats do cache
+getAuthCacheStats()
+
+// Invalidar cache específico
+authCache.invalidate('profile_user_id')
 ```
 
-**Teste Rápido:**
-```bash
-# Executar testes básicos para validar funcionamento
-node supabase/seed/test_basic_functionality.js
-```
+## ❓ FAQ / Dúvidas Comuns
 
-### Roadmap Futuro
+### Q: Como funciona o sistema de onboarding?
+**R:** O sistema detecta `primeiro_acesso = true` e redireciona para `/onboarding`. O wizard guia na criação da clínica, perfil profissional e configurações iniciais.
 
-- [ ] **Módulo Financeiro**: Faturamento de procedimentos
-- [ ] **Relatórios Avançados**: Analytics e KPIs
-- [ ] **Integração WhatsApp**: Comunicação com pacientes  
-- [ ] **Mobile App**: React Native + Expo
-- [ ] **API Pública**: REST API para integrações
-- [ ] **Multi-idioma**: i18n completo
-- [ ] **Testes E2E Automatizados**: Cypress/Playwright completo
-- [ ] **Pipeline CI/CD**: Testes automáticos em PR
+### Q: Posso testar sem configurar o banco?
+**R:** Sim, execute `npm run dev` e use as funcionalidades que não dependem de banco. Para funcionalidade completa, configure o Supabase.
+
+### Q: Como alternar entre clínicas?
+**R:** Use o switcher no header da aplicação ou programaticamente com `switchClinic(clinicId)`.
+
+### Q: Por que há dois contextos de autenticação?
+**R:** `UnifiedAuthContext` é o sistema V2 moderno, `SecureAuthContext` mantém compatibilidade com código legado.
+
+### Q: O que são políticas RLS temporárias?
+**R:** Políticas permissivas criadas para permitir onboarding. Devem ser restringidas após estabilização.
+
+### Q: Como fazer backup dos dados?
+**R:** Use `npm run backup` para backup completo ou `npm run backup:data` apenas para dados.
+
+## 📚 Referências e Links
+
+### Documentação
+
+- [Supabase Documentation](https://supabase.com/docs)
+- [React Router v6](https://reactrouter.com/en/main)
+- [shadcn/ui Components](https://ui.shadcn.com/)
+- [TailwindCSS](https://tailwindcss.com/docs)
+- [Vite](https://vitejs.dev/guide/)
+
+### Ferramentas de Desenvolvimento
+
+- [Mermaid Diagrams](https://mermaid.js.org/) - Para diagramas nos docs
+- [Supabase CLI](https://supabase.com/docs/reference/cli) - Para gerenciar projeto
+- [VSCode Extension: Mermaid Preview](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid)
+
+### Monitoramento e Debug
+
+- Supabase Dashboard → SQL Editor (executar queries manuais)
+- Supabase Dashboard → Logs (monitorar erros)
+- Browser DevTools → Console (health checks e cache stats)
+- Network Tab (monitorar API calls para Supabase)
 
 ---
 
-## 📚 Recursos Adicionais
-
-- **Documentação Supabase**: https://supabase.com/docs
-- **shadcn/ui Components**: https://ui.shadcn.com
-- **React Router v6**: https://reactrouter.com
-- **Tailwind CSS**: https://tailwindcss.com
-
----
-
-**Última atualização**: Janeiro 2025  
-**Versão do sistema**: v2.0 (Auth otimizado)  
-**Status**: 🟢 Produção estável
+Para mais informações ou dúvidas específicas, consulte o código-fonte ou abra uma issue no repositório.

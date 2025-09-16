@@ -9,15 +9,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Shield, Info, CheckCircle, AlertTriangle, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Shield, Info, AlertTriangle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SecureLoginForm } from '@/components/auth/SecureLoginForm';
 import { ClinicSelector } from '@/components/auth/ClinicSelector';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { toast } from '@/hooks/use-toast';
 
 // ============================================================================
@@ -37,7 +36,7 @@ interface LocationState {
 export default function SecureAuth() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, currentClinic, availableClinics, user, profile, register, isLoading, error } = useSecureAuth();
+  const { isAuthenticated, user, profile, signUp, isInitializing, error } = useUnifiedAuth();
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [showClinicSelection, setShowClinicSelection] = useState(false);
@@ -106,11 +105,8 @@ export default function SecureAuth() {
     }
 
     try {
-      const result = await register({
-        email: registerData.email,
-        password: registerData.password,
-        name: registerData.email.split('@')[0], // Nome temporário baseado no email
-        acceptTerms: registerData.acceptTerms
+      const result = await signUp(registerData.email, registerData.password, {
+        nome_completo: registerData.email.split('@')[0] // Nome temporário baseado no email
       });
 
       if (result.success) {
@@ -198,61 +194,8 @@ export default function SecureAuth() {
   // Página principal de autenticação
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        
-        {/* Lado esquerdo - Informações */}
-        <div className="hidden lg:block space-y-6">
-          <div className="space-y-4">
-            <h1 className="text-4xl font-bold text-gray-900">
-              Luxe Flow
-            </h1>
-            <p className="text-xl text-gray-600">
-              Sistema de gestão para clínicas de estética
-            </p>
-            <p className="text-gray-500">
-              Plataforma segura e completa para gerenciar sua clínica com máxima eficiência.
-            </p>
-          </div>
-
-          {/* Features de Segurança */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Shield className="w-5 h-5 mr-2 text-green-600" />
-              Segurança Máxima
-            </h3>
-            
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-gray-600">Criptografia de ponta a ponta</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-gray-600">Isolamento completo entre clínicas</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-gray-600">Auditoria completa de acessos</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-gray-600">Conformidade LGPD</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Badges de Confiança */}
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="flex items-center space-x-1">
-              <Shield className="w-3 h-3" />
-              <span>SSL Seguro</span>
-            </Badge>
-            <Badge variant="secondary">LGPD Compliant</Badge>
-            <Badge variant="secondary">ISO 27001</Badge>
-          </div>
-        </div>
-
-        {/* Lado direito - Formulário */}
+      <div className="w-full max-w-md">
+        {/* Formulário centralizado */}
         <Card className="w-full">
           <CardHeader>
             <div className="flex justify-center lg:hidden mb-4">
@@ -382,8 +325,8 @@ export default function SecureAuth() {
                   )}
 
                   {/* Botão de Submit */}
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
+                  <Button type="submit" className="w-full" disabled={isInitializing}>
+                    {isInitializing ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Criando conta...
@@ -397,11 +340,9 @@ export default function SecureAuth() {
             </Tabs>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Footer de Segurança */}
-      <div className="absolute bottom-4 left-4 right-4">
-        <div className="text-center text-xs text-gray-500 space-y-1">
+        {/* Footer de Segurança */}
+        <div className="mt-8 text-center text-xs text-gray-500 space-y-1">
           <p>🔒 Conexão segura protegida por SSL</p>
           <p>Seus dados são criptografados e protegidos</p>
         </div>

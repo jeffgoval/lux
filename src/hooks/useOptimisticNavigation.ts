@@ -1,7 +1,7 @@
 ﻿import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 
 export interface OptimisticNavigationState {
   isNavigating: boolean;
@@ -29,7 +29,7 @@ export function useOptimisticNavigation(options: OptimisticNavigationOptions = {
   const navigate = useNavigate();
   const location = useLocation();
   const { recordNavigation, setNavigationError } = useNavigation();
-  const { currentRole, hasRole } = useSecureAuth();
+  const { currentRole, hasRole } = useUnifiedAuth();
   
   const [state, setState] = useState<OptimisticNavigationState>({
     isNavigating: false,

@@ -196,7 +196,7 @@ async function testBasicOperations(userId: string, results: SignupTestResult[]) 
  * Clean up test user (for development only)
  */
 export async function cleanupTestUser(userId: string): Promise<boolean> {
-  if (process.env.NODE_ENV !== 'development') {
+  if (!import.meta.env.DEV) {
 
     return false;
   }
@@ -241,7 +241,7 @@ export async function runSignupTest(email?: string): Promise<void> {
 }
 
 // Development helper
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).signupTester = {
     runTest: runSignupTest,
     testFlow: testSignupFlow,

@@ -104,7 +104,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       // Log do erro apenas no console (desenvolvimento)
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.error('Error Boundary capturou erro:', this.state.error);
         console.error('Component Stack:', this.state.errorInfo?.componentStack);
       }

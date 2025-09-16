@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { LoadingFallback } from '@/components/LoadingFallback';
 
 export default function Perfil() {
-  const { user, profile, roles, currentRole, isLoading } = useSecureAuth();
+  const { user, profile, roles, currentRole, isInitializing } = useUnifiedAuth();
   const { getRoleDisplayName, getRoleColor } = useSystemRoles();
   const navigate = useNavigate();
 
@@ -30,7 +30,7 @@ export default function Perfil() {
     telefone: profile?.telefone || '',
   });
 
-  if (isLoading) {
+  if (isInitializing) {
     return (
       <LoadingFallback 
         message="Carregando perfil..."

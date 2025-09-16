@@ -14,9 +14,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { LoginCredentials } from '@/types/auth.types';
 import { AUTH_CONFIG } from '@/config/auth.config';
+import { formatErrorForDisplay } from '@/utils/error-display';
 
 // ============================================================================
 // SCHEMA DE VALIDAÇÃO
@@ -66,7 +67,7 @@ export function SecureLoginForm({
   showClinicSelector = false,
   availableClinics = []
 }: SecureLoginFormProps) {
-  const { login, isLoading, error, clearError } = useSecureAuth();
+  const { signIn, isInitializing, error, clearError } = useUnifiedAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
@@ -161,9 +162,9 @@ export function SecureLoginForm({
         clinicId: data.clinicId || undefined
       };
 
-      const result = await login(credentials);
+      const result = await signIn(credentials.email, credentials.password);
 
-      if (result.success) {
+      if (!result.error) {
         // Login bem-sucedido - limpar tentativas
         localStorage.removeItem('login_attempts');
         localStorage.removeItem('login_lockout');
@@ -191,7 +192,7 @@ export function SecureLoginForm({
     } catch (error) {
       console.error('Login error:', error);
     }
-  }, [login, isLocked, loginAttempts, clearError, reset, onSuccess]);
+  }, [signIn, isLocked, loginAttempts, clearError, reset, onSuccess]);
 
   const handleForgotPassword = useCallback(() => {
     const email = watchedEmail;
@@ -259,7 +260,7 @@ export function SecureLoginForm({
       {error && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{formatErrorForDisplay(error)}</AlertDescription>
         </Alert>
       )}
 
@@ -272,7 +273,7 @@ export function SecureLoginForm({
             id="email"
             type="email"
             autoComplete="email"
-            disabled={isLocked || isLoading}
+            disabled={isLocked || isInitializing}
             {...register('email')}
             className={errors.email ? 'border-red-500' : ''}
           />
@@ -289,7 +290,7 @@ export function SecureLoginForm({
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              disabled={isLocked || isLoading}
+              disabled={isLocked || isInitializing}
               {...register('password')}
               className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
             />
@@ -299,7 +300,7 @@ export function SecureLoginForm({
               size="icon"
               className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
               onClick={togglePasswordVisibility}
-              disabled={isLocked || isLoading}
+              disabled={isLocked || isInitializing}
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4 text-gray-400" />
@@ -319,7 +320,7 @@ export function SecureLoginForm({
             <Label htmlFor="clinicId">Clínica (Opcional)</Label>
             <select
               id="clinicId"
-              disabled={isLocked || isLoading}
+              disabled={isLocked || isInitializing}
               {...register('clinicId')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             >
@@ -337,7 +338,7 @@ export function SecureLoginForm({
         <div className="flex items-center space-x-2">
           <Checkbox
             id="rememberMe"
-            disabled={isLocked || isLoading}
+            disabled={isLocked || isInitializing}
             {...register('rememberMe')}
           />
           <Label htmlFor="rememberMe" className="text-sm">
@@ -349,9 +350,9 @@ export function SecureLoginForm({
         <Button
           type="submit"
           className="w-full"
-          disabled={isLocked || isLoading || isSubmitting}
+          disabled={isLocked || isInitializing || isSubmitting}
         >
-          {isLoading || isSubmitting ? (
+          {isInitializing || isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Entrando...
@@ -370,7 +371,7 @@ export function SecureLoginForm({
             variant="link"
             className="text-sm"
             onClick={handleForgotPassword}
-            disabled={isLocked || isLoading}
+            disabled={isLocked || isInitializing}
           >
             Esqueceu sua senha?
           </Button>
@@ -384,7 +385,7 @@ export function SecureLoginForm({
               variant="link"
               className="p-0 h-auto text-primary"
               onClick={onRegister}
-              disabled={isLocked || isLoading}
+              disabled={isLocked || isInitializing}
             >
               Cadastre-se
             </Button>

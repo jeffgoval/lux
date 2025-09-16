@@ -352,7 +352,7 @@ export const runQuickHealthCheck = () => healthCheckManager.runQuickHealthCheck(
 export const runSpecificHealthCheck = (name: string) => healthCheckManager.runCheck(name);
 
 // Auto health check on app start (development only)
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   // Run health check after a short delay to allow app to initialize
   setTimeout(async () => {
     try {

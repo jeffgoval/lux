@@ -2,12 +2,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SecureAuthProvider } from "@/contexts/SecureAuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
+
 import { NavigationProvider } from "@/contexts/NavigationContext";
-import { SecureAuthGuard } from "./components/SecureAuthGuard";
+import { PostAuthRedirectHandler } from "@/components/auth/PostAuthRedirectHandler";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { LogoutHandler } from "@/components/auth/LogoutHandler";
+// Guards removidos - sistema sem autenticação
 import { GlobalErrorBoundary } from "./components/GlobalErrorBoundary";
 import { AppLayout } from "./components/AppLayout";
+import { LandingPage } from "./components/LandingPage";
+import { FEATURE_FLAGS, logFeatureFlags } from "@/config/feature-flags";
+import { NotificationProvider, GlobalLoadingIndicator } from "./components/notifications/NotificationSystem";
 import Dashboard from "./pages/Dashboard";
 import Index from "./pages/Index";
 import Clientes from "./pages/Clientes";
@@ -26,170 +33,126 @@ import Landing from "./pages/Landing";
 import { DashboardExecutivo } from "./components/executive/DashboardExecutivo";
 import { AlertsDashboard } from "./components/alerts/AlertsDashboard";
 import { OnboardingWizard } from "./components/OnboardingWizard";
+import TestAuthPage from "./pages/TestAuth";
+import NotificationTest from "./pages/NotificationTest";
 const queryClient = new QueryClient();
 
-const App = () => (
-  <GlobalErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <SecureAuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <NavigationProvider>
-              <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<SecureAuth />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
+const App = () => {
+  // Log feature flags on app start
+  logFeatureFlags();
+
+  // Validate that we're using the unified auth system
+  if (!FEATURE_FLAGS.USE_UNIFIED_AUTH) {
+    console.error('❌ Unified auth system is disabled. This version requires unified auth.');
+    throw new Error('Unified auth system is required');
+  }
+
+  return (
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <GlobalLoadingIndicator />
+              <BrowserRouter>
+                <PostAuthRedirectHandler>
+                  <LogoutHandler />
+                  <NavigationProvider>
+                    <Routes>
+            {/* Protected Routes - Require Authentication */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <AppLayout><Dashboard /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/agendamento" element={
+              <ProtectedRoute>
+                <AppLayout><Index /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/clientes" element={
+              <ProtectedRoute>
+                <AppLayout><Clientes /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/clientes/:id" element={
+              <ProtectedRoute>
+                <AppLayout><ClienteDetalhes /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/servicos" element={
+              <ProtectedRoute>
+                <AppLayout><Servicos /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/produtos" element={
+              <ProtectedRoute>
+                <AppLayout><Produtos /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/equipamentos" element={
+              <ProtectedRoute>
+                <AppLayout><Equipamentos /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/financeiro" element={
+              <ProtectedRoute>
+                <AppLayout><Financeiro /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/comunicacao" element={
+              <ProtectedRoute>
+                <AppLayout><Comunicacao /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/prontuarios" element={
+              <ProtectedRoute>
+                <AppLayout><Prontuarios /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/executivo" element={
+              <ProtectedRoute>
+                <AppLayout title="Dashboard Executivo"><DashboardExecutivo /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/alertas" element={
+              <ProtectedRoute>
+                <AppLayout title="Alertas Inteligentes"><AlertsDashboard /></AppLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/perfil" element={
+              <ProtectedRoute>
+                <Perfil />
+              </ProtectedRoute>
+            } />
             
-            {/* Protected routes */}
-            <Route
-              path="/onboarding"
-              element={
-                <SecureAuthGuard allowOnboarding={true}>
-                  <OnboardingWizard />
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/perfil"
-              element={
-                <SecureAuthGuard>
-                  <Perfil />
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <SecureAuthGuard>
-                  <AppLayout>
-                    <Dashboard />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/agendamento"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'receptionist']}>
-                  <AppLayout>
-                    <Index />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/clientes"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'professional', 'receptionist']}>
-                  <AppLayout>
-                    <Clientes />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/clientes/:id"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'professional', 'receptionist']}>
-                  <AppLayout>
-                    <ClienteDetalhes />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/servicos"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'professional']}>
-                  <AppLayout>
-                    <Servicos />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/produtos"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
-                  <AppLayout>
-                    <Produtos />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/equipamentos"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
-                  <AppLayout>
-                    <Equipamentos />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/financeiro"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
-                  <AppLayout>
-                    <Financeiro />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/comunicacao"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'receptionist']}>
-                  <AppLayout>
-                    <Comunicacao />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/prontuarios"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager', 'professional']}>
-                  <AppLayout>
-                    <Prontuarios />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/executivo"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
-                  <AppLayout title="Dashboard Executivo">
-                    <DashboardExecutivo />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
-            <Route
-              path="/alertas"
-              element={
-                <SecureAuthGuard requiredRoles={['super_admin', 'clinic_owner', 'clinic_manager']}>
-                  <AppLayout title="Alertas Inteligentes">
-                    <AlertsDashboard />
-                  </AppLayout>
-                </SecureAuthGuard>
-              }
-            />
+            {/* Test routes - Protected */}
+            <Route path="/test-auth" element={
+              <ProtectedRoute>
+                <TestAuthPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/test-notifications" element={
+              <ProtectedRoute>
+                <NotificationTest />
+              </ProtectedRoute>
+            } />
+            
+            {/* Public Routes - Landing page for unauthenticated users */}
+            <Route path="/" element={<LandingPage />} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-            </NavigationProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </SecureAuthProvider>
-    </QueryClientProvider>
-  </GlobalErrorBoundary>
-);
+                    </Routes>
+                  </NavigationProvider>
+                </PostAuthRedirectHandler>
+              </BrowserRouter>
+            </TooltipProvider>
+        </NotificationProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
+  );
+};
 
 export default App;

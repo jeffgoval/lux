@@ -5,30 +5,34 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// MIGRADO PARA APPWRITE - Este cliente não é mais usado
+// Comentando o erro para evitar quebrar a aplicação durante a migração
+/*
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error('Missing Supabase environment variables. Please check your .env file.');
 }
+*/
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+// CLIENTE MOCK TEMPORÁRIO - MIGRADO PARA APPWRITE
+// Este é um mock temporário para evitar erros durante a migração
+export const supabase = {
   auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+    getUser: () => Promise.resolve({ data: { user: null }, error: new Error('Migrated to Appwrite') }),
+    signUp: () => Promise.resolve({ data: null, error: new Error('Migrated to Appwrite') }),
+    signInWithPassword: () => Promise.resolve({ data: null, error: new Error('Migrated to Appwrite') }),
+    signOut: () => Promise.resolve({ error: new Error('Migrated to Appwrite') }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
   },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-web'
-    }
-  },
-  db: {
-    schema: 'public'
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  }
-});
+  from: () => ({
+    select: () => Promise.resolve({ data: [], error: new Error('Migrated to Appwrite') }),
+    insert: () => Promise.resolve({ data: null, error: new Error('Migrated to Appwrite') }),
+    update: () => Promise.resolve({ data: null, error: new Error('Migrated to Appwrite') }),
+    delete: () => Promise.resolve({ data: null, error: new Error('Migrated to Appwrite') })
+  })
+};
+
+// USAR APPWRITE EM VEZ DISSO:
+// import { databases, account, DATABASE_ID, COLLECTIONS } from '@/lib/appwrite';

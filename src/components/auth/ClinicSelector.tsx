@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { UserClinicAccess, UserRole } from '@/types/auth.types';
 import { AuthorizationService } from '@/services/authorization.service';
 
@@ -90,11 +90,17 @@ export function ClinicSelector({
   onClinicChange
 }: ClinicSelectorProps) {
   const { 
-    currentClinic, 
-    availableClinics, 
-    switchClinic, 
-    isLoading 
-  } = useSecureAuth();
+    roles,
+    isInitializing 
+  } = useUnifiedAuth();
+  
+  // Extract clinic information from roles
+  const currentClinic = roles.find(r => r.clinica_id)?.clinica_id || null;
+  const availableClinics = roles.filter(r => r.clinica_id).map(r => ({ id: r.clinica_id, name: `Clínica ${r.clinica_id}` }));
+  const switchClinic = async (clinicId: string) => {
+    // TODO: Implement clinic switching in unified auth
+    console.log('Switching to clinic:', clinicId);
+  };
   
   const [isSwitching, setIsSwitching] = useState(false);
   const [switchError, setSwitchError] = useState<string | null>(null);
@@ -317,7 +323,8 @@ export function ClinicSelector({
 // ============================================================================
 
 export function CompactClinicSelector({ className = '' }: { className?: string }) {
-  const { currentClinic } = useSecureAuth();
+  const { roles } = useUnifiedAuth();
+  const currentClinic = roles.find(r => r.clinica_id)?.clinica_id || null;
 
   if (!currentClinic) {
     return null;

@@ -1,6 +1,7 @@
 import { CalendarDays, Users, Briefcase, Package, Wrench, DollarSign, MessageSquare, FileText, Home, Search, Settings, LogOut, Loader2, BarChart3, Bell, Zap } from "lucide-react"
 import { useLocation } from "react-router-dom"
-import { useSecureAuth } from "@/contexts/SecureAuthContext"
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth"
+import { useNavigation } from "@/contexts/NavigationContext"
 import { useClinica } from "@/hooks/useClinica"
 import { Database } from "@/integrations/supabase/types"
 import { useMemo } from "react"
@@ -110,29 +111,41 @@ const allNavItems = [
 export function AppSidebar() {
   const { state } = useSidebar()
   const collapsed = state === "collapsed"
-  const { currentRole, logout, isLoading, isAuthenticated, profile } = useSecureAuth()
+  const { currentRole, signOut, isInitializing, isAuthenticated, profile } = useUnifiedAuth()
+  const { isAuthenticated: navIsAuthenticated, isAuthLoaded, canAccessRoute } = useNavigation()
   const { clinica } = useClinica()
   const location = useLocation()
   const currentPath = location.pathname
 
-  // Memoized navigation items filtering with progressive disclosure
+  // Memoized navigation items filtering with progressive disclosure and authentication awareness
   const mainNavItems = useMemo(() => {
-    // If roles are still loading, show basic items only
-    if (isLoading || !currentRole) {
-      return allNavItems.filter(item => item.alwaysShow || item.priority <= 2);
+    // Don't show navigation items if not authenticated
+    if (!navIsAuthenticated && isAuthLoaded) {
+      return [];
     }
 
-    // Filter based on current role and sort by priority
+    // If roles are still loading, show basic items only
+    if (isInitializing || !currentRole) {
+      return allNavItems
+        .filter(item => (item.alwaysShow || item.priority <= 2) && canAccessRoute(item.url))
+        .sort((a, b) => a.priority - b.priority);
+    }
+
+    // Filter based on current role, authentication, and route access
     return allNavItems
-      .filter(item => item.alwaysShow || (currentRole && item.roles.includes(currentRole)))
+      .filter(item => {
+        const hasRoleAccess = item.alwaysShow || (currentRole && item.roles.includes(currentRole));
+        const hasRouteAccess = canAccessRoute(item.url);
+        return hasRoleAccess && hasRouteAccess;
+      })
       .sort((a, b) => a.priority - b.priority);
-  }, [currentRole, isLoading])
+  }, [currentRole, isInitializing, navIsAuthenticated, isAuthLoaded, canAccessRoute])
 
   // Loading state for menu items
-  const isMenuLoading = isLoading && isAuthenticated && !!profile
+  const isMenuLoading = isInitializing && isAuthenticated && !!profile
 
   const handleSignOut = async () => {
-    await logout()
+    await signOut()
   }
 
   const isActive = (path: string) => {
@@ -146,6 +159,11 @@ export function AppSidebar() {
     return isActive(path) 
       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
       : "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+  }
+
+  // Don't render sidebar if not authenticated
+  if (!navIsAuthenticated && isAuthLoaded) {
+    return null;
   }
 
   return (

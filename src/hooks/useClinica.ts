@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { Database } from '@/integrations/supabase/types';
 
 type Clinica = Database['public']['Tables']['clinicas']['Row'];
@@ -9,7 +9,7 @@ export function useClinica() {
   const [clinica, setClinica] = useState<Clinica | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { profile, user } = useSecureAuth();
+  const { profile, user } = useUnifiedAuth();
 
   useEffect(() => {
     const fetchClinica = async () => {

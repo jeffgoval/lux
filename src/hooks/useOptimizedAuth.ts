@@ -10,7 +10,7 @@
 
 import { useContext, useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { determineAuthRoute, measureAuthDecisionPerformance } from '@/utils/auth-decision-engine';
 import { AuthStateContext, AUTH_V2_ENABLED } from '@/types/auth-state';
 import { authFlightManager } from '@/utils/single-flight-manager';
@@ -20,7 +20,7 @@ import { authFlightManager } from '@/utils/single-flight-manager';
  */
 export function useOptimizedAuth() {
   const location = useLocation();
-  const legacyAuth = useSecureAuth(); // Mantém compatibilidade
+  const legacyAuth = useUnifiedAuth(); // Mantém compatibilidade
   
   // Se feature flag não estiver ativa, usar sistema legado
   if (!AUTH_V2_ENABLED) {
@@ -36,7 +36,7 @@ export function useOptimizedAuth() {
  */
 function useNewAuthSystem() {
   const location = useLocation();
-  const legacyAuth = useSecureAuth();
+  const legacyAuth = useUnifiedAuth();
   const [isOptimizing, setIsOptimizing] = useState(false);
   
   // Construir contexto para decisão
@@ -158,7 +158,7 @@ export function useAuthRoute() {
  */
 export function useAuthDiagnostics() {
   const location = useLocation();
-  const legacyAuth = useSecureAuth();
+  const legacyAuth = useUnifiedAuth();
   
   const context: AuthStateContext = useMemo(() => ({
     hasValidToken: !!legacyAuth.session?.access_token,

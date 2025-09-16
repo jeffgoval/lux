@@ -1,0 +1,284 @@
+/**
+ * 🎨 ESTILOS PARA SISTEMA DE NOTIFICAÇÕES
+ * 
+ * Estilos customizados para toasts, alertas e feedback visual
+ */
+
+/* Animações para toasts */
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Classes para toasts */
+.notification-success {
+  @apply border-green-200 bg-green-50 text-green-800;
+}
+
+.notification-error {
+  @apply border-red-200 bg-red-50 text-red-800;
+}
+
+.notification-warning {
+  @apply border-yellow-200 bg-yellow-50 text-yellow-800;
+}
+
+.notification-info {
+  @apply border-blue-200 bg-blue-50 text-blue-800;
+}
+
+.notification-loading {
+  @apply border-blue-200 bg-blue-50 text-blue-800;
+}
+
+/* Dark mode variants */
+.dark .notification-success {
+  @apply border-green-800 bg-green-900/20 text-green-200;
+}
+
+.dark .notification-error {
+  @apply border-red-800 bg-red-900/20 text-red-200;
+}
+
+.dark .notification-warning {
+  @apply border-yellow-800 bg-yellow-900/20 text-yellow-200;
+}
+
+.dark .notification-info {
+  @apply border-blue-800 bg-blue-900/20 text-blue-200;
+}
+
+.dark .notification-loading {
+  @apply border-blue-800 bg-blue-900/20 text-blue-200;
+}
+
+/* Animação de shimmer para loading */
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Animação de delay para elementos */
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Estilos para alertas contextuais */
+.contextual-alert {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.contextual-alert.dismissing {
+  animation: slideOutToRight 0.3s ease-in;
+}
+
+/* Estilos para feedback inline */
+.inline-feedback {
+  animation: fadeInUp 0.2s ease-out;
+}
+
+/* Estilos para loading states */
+.loading-overlay {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Estilos para botões com loading */
+.button-loading {
+  @apply relative overflow-hidden;
+}
+
+.button-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+/* Estilos para progress indicators */
+.progress-bar {
+  @apply relative overflow-hidden bg-gray-200 rounded-full;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* Estilos para status badges */
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-badge.success {
+  @apply bg-green-100 text-green-800 border border-green-200;
+}
+
+.status-badge.error {
+  @apply bg-red-100 text-red-800 border border-red-200;
+}
+
+.status-badge.warning {
+  @apply bg-yellow-100 text-yellow-800 border border-yellow-200;
+}
+
+.status-badge.info {
+  @apply bg-blue-100 text-blue-800 border border-blue-200;
+}
+
+.status-badge.loading {
+  @apply bg-blue-100 text-blue-800 border border-blue-200;
+}
+
+/* Dark mode para status badges */
+.dark .status-badge.success {
+  @apply bg-green-900/20 text-green-200 border-green-800;
+}
+
+.dark .status-badge.error {
+  @apply bg-red-900/20 text-red-200 border-red-800;
+}
+
+.dark .status-badge.warning {
+  @apply bg-yellow-900/20 text-yellow-200 border-yellow-800;
+}
+
+.dark .status-badge.info {
+  @apply bg-blue-900/20 text-blue-200 border-blue-800;
+}
+
+.dark .status-badge.loading {
+  @apply bg-blue-900/20 text-blue-200 border-blue-800;
+}
+
+/* Estilos para empty states */
+.empty-state {
+  @apply flex flex-col items-center justify-center py-12 px-4 text-center;
+}
+
+.empty-state-icon {
+  @apply w-16 h-16 text-gray-400 mb-4;
+}
+
+.empty-state-title {
+  @apply text-lg font-semibold text-gray-900 mb-2;
+}
+
+.empty-state-description {
+  @apply text-gray-500 mb-6 max-w-md;
+}
+
+/* Dark mode para empty states */
+.dark .empty-state-icon {
+  @apply text-gray-600;
+}
+
+.dark .empty-state-title {
+  @apply text-gray-100;
+}
+
+.dark .empty-state-description {
+  @apply text-gray-400;
+}
+
+/* Responsividade para notificações */
+@media (max-width: 640px) {
+  .notification-container {
+    @apply left-4 right-4 max-w-none;
+  }
+  
+  .contextual-alert {
+    @apply text-sm p-3;
+  }
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .notification-success,
+  .notification-error,
+  .notification-warning,
+  .notification-info,
+  .notification-loading,
+  .contextual-alert,
+  .inline-feedback {
+    animation: none;
+  }
+  
+  .animate-spin,
+  .animate-pulse,
+  .animate-shimmer {
+    animation: none;
+  }
+}
+
+/* Focus states para acessibilidade */
+.notification-dismiss:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-blue-500;
+}
+
+.alert-dismiss:focus {
+  @apply outline-none ring-2 ring-offset-2 ring-blue-500;
+}

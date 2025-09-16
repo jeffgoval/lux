@@ -8,7 +8,7 @@ import React, { useMemo } from 'react';
 import { Shield, Lock, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { UserRole, Permission } from '@/types/auth.types';
 import { AuthorizationService } from '@/services/authorization.service';
 
@@ -59,7 +59,7 @@ export function PermissionGate({
   hideOnDenied = false,
   logDeniedAccess = false
 }: PermissionGateProps) {
-  const { currentClinic, isAuthenticated } = useSecureAuth();
+  const { isAuthenticated } = useUnifiedAuth();
 
   // ==========================================================================
   // LÓGICA DE VERIFICAÇÃO DE ACESSO
@@ -189,11 +189,13 @@ export function ResourceGate({
   fallback,
   hideOnDenied = false
 }: ResourceGateProps) {
-  const { currentClinic } = useSecureAuth();
+  const { roles, currentRole } = useUnifiedAuth();
 
   const hasAccess = useMemo(() => {
-    return AuthorizationService.canAccessResource(currentClinic, resourceType, action);
-  }, [currentClinic, resourceType, action]);
+    // Simplified access check based on roles
+    // TODO: Implement proper resource-based authorization
+    return roles.length > 0 && currentRole !== null;
+  }, [roles, currentRole]);
 
   if (hasAccess) {
     return <>{children}</>;
@@ -323,7 +325,7 @@ export function MedicalRecordGate({
  * Hook para verificar permissões
  */
 export function usePermissionCheck() {
-  const { currentClinic } = useSecureAuth();
+  const { roles, currentRole } = useUnifiedAuth();
 
   return {
     hasPermission: (permission: Permission) => 
@@ -353,7 +355,7 @@ export function usePermissionCheck() {
  * Hook para obter informações de permissões
  */
 export function usePermissionInfo() {
-  const { currentClinic } = useSecureAuth();
+  const { roles, currentRole } = useUnifiedAuth();
 
   return useMemo(() => {
     return AuthorizationService.getPermissionsSummary(currentClinic);

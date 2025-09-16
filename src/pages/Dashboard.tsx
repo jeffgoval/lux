@@ -1,15 +1,15 @@
-import { useSecureAuth } from "@/contexts/SecureAuthContext";
+import { useUnifiedAuth } from "@/hooks/useUnifiedAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, FileText, Settings } from "lucide-react";
 
 import { LoadingFallback } from '@/components/LoadingFallback';
 
 export default function Dashboard() {
-  const { currentRole, isLoading } = useSecureAuth();
+  const { currentRole, isInitializing } = useUnifiedAuth();
 
   // DESABILITADO: useAuthLoadingDetector causava loops infinitos
 
-  if (isLoading) {
+  if (isInitializing) {
     return (
       <LoadingFallback 
         message="Carregando dashboard..."

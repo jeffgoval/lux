@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from "@/hooks/use-toast";
+import { formatErrorForDisplay } from "@/utils/error-display";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,7 +24,7 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login, register, isAuthenticated } = useSecureAuth();
+  const { signIn, signUp, isAuthenticated } = useUnifiedAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -42,7 +43,7 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await login({ email, password });
+        const { error } = await signIn(email, password);
         if (error) {
           setError(error.message);
         } else {
@@ -68,7 +69,7 @@ export default function Auth() {
           return;
         }
 
-        const { error } = await register({ email, password });
+        const { error } = await signUp(email, password);
 
         if (error) {
           setError(error.message);

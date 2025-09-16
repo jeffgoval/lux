@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useForceProfile } from '@/hooks/useForceProfile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,7 +82,7 @@ export function OnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [sessionValid, setSessionValid] = useState(true);
-  const { user, refreshProfile } = useSecureAuth();
+  const { user, refreshProfile } = useUnifiedAuth();
   const navigate = useNavigate();
   const { creating } = useForceProfile();
 
@@ -192,6 +192,277 @@ export function OnboardingWizard() {
       default:
         return false;
     }
+  };
+
+  // Method to create template with validation
+  const createTemplate = async (clinicaId: string): Promise<void> => {
+    authLogger.info('Creating procedure template', { 
+      serviceName: data.nomeServico,
+      clinicaId 
+    });
+
+    // Validate template data
+    if (!data.nomeServico || data.nomeServico.trim().length < 2) {
+      throw new Error('Nome do serviço deve ter pelo menos 2 caracteres');
+    }
+
+    if (!data.duracaoServico || data.duracaoServico <= 0) {
+      throw new Error('Duração do serviço deve ser maior que zero');
+    }
+
+    if (!data.precoServico || data.precoServico.trim().length === 0) {
+      throw new Error('Preço do serviço é obrigatório');
+    }
+
+    // Parse and validate price
+    const precoNumerico = parseFloat(data.precoServico.replace(/[^\d,]/g, '').replace(',', '.'));
+    if (isNaN(precoNumerico) || precoNumerico <= 0) {
+      throw new Error('Preço do serviço deve ser um valor válido maior que zero');
+    }
+
+    // Determine procedure type based on service name
+    let tipoProcedimento: string = 'outro'; // Default fallback
+    const serviceName = data.nomeServico.toLowerCase();
+    
+    if (serviceName.includes('botox') || serviceName.includes('toxina')) {
+      tipoProcedimento = 'botox_toxina';
+    } else if (serviceName.includes('preenchimento') || serviceName.includes('ácido hialurônico')) {
+      tipoProcedimento = 'preenchimento';
+    } else if (serviceName.includes('harmonização') || serviceName.includes('harmonizacao')) {
+      tipoProcedimento = 'harmonizacao_facial';
+    } else if (serviceName.includes('laser') || serviceName.includes('ipl')) {
+      tipoProcedimento = 'laser_ipl';
+    } else if (serviceName.includes('peeling')) {
+      tipoProcedimento = 'peeling';
+    } else if (serviceName.includes('corporal') || serviceName.includes('corpo')) {
+      tipoProcedimento = 'tratamento_corporal';
+    } else if (serviceName.includes('skincare') || serviceName.includes('limpeza')) {
+      tipoProcedimento = 'skincare_avancado';
+    }
+
+    // Create template with comprehensive validation
+    const templatePayload = {
+      clinica_id: clinicaId,
+      tipo_procedimento: tipoProcedimento,
+      nome_template: data.nomeServico.trim(),
+      descricao: data.descricaoServico?.trim() || null,
+      duracao_padrao_minutos: data.duracaoServico,
+      valor_base: precoNumerico,
+      campos_obrigatorios: {
+        duracao_minutos: { 
+          type: "number", 
+          required: true, 
+          default: data.duracaoServico,
+          min: 15,
+          max: 480
+        },
+        valor_procedimento: { 
+          type: "number", 
+          required: true, 
+          default: precoNumerico,
+          min: 0.01
+        }
+      },
+      campos_opcionais: {
+        observacoes: { 
+          type: "text",
+          maxLength: 1000
+        },
+        retorno_recomendado: { 
+          type: "date"
+        },
+        materiais_utilizados: {
+          type: "text",
+          maxLength: 500
+        }
+      },
+      instrucoes_pre_procedimento: 'Orientações serão definidas pelo profissional',
+      instrucoes_pos_procedimento: 'Cuidados pós-procedimento serão orientados',
+      permite_agendamento_online: true,
+      requer_avaliacao_previa: false,
+      criado_por: user.id
+    };
+
+    const { error: templateError } = await supabase
+      .from('templates_procedimentos')
+      .insert(templatePayload);
+
+    if (templateError) {
+      authLogger.error('Template creation failed', { 
+        error: templateError,
+        payload: templatePayload 
+      });
+
+      if (templateError.code === '23505') {
+        throw new Error('Um template com este nome já existe nesta clínica');
+      } else if (templateError.code === '42501') {
+        throw new Error('Erro de permissão ao criar template. Verifique suas credenciais');
+      } else if (templateError.code === '23503') {
+        throw new Error('Erro de referência: clínica não encontrada');
+      }
+      throw new Error(`Erro ao criar template de procedimento: ${templateError.message}`);
+    }
+
+    authLogger.info('Template created successfully', { 
+      templateName: data.nomeServico,
+      type: tipoProcedimento 
+    });
+  };
+
+  // Method to mark onboarding as complete with integrity verification
+  const markOnboardingComplete = async (): Promise<void> => {
+    authLogger.info('Marking onboarding as complete', { userId: user.id });
+
+    // Update primeiro_acesso flag
+    const { data: updateData, error: completeOnboardingError } = await supabase
+      .from('profiles')
+      .update({ primeiro_acesso: false })
+      .eq('id', user.id)
+      .select();
+
+    if (completeOnboardingError) {
+      authLogger.error('Failed to mark onboarding complete', { 
+        error: completeOnboardingError 
+      });
+      throw new Error(`Erro ao finalizar onboarding: ${completeOnboardingError.message}`);
+    }
+
+    // Verify the update was successful
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('profiles')
+      .select('primeiro_acesso')
+      .eq('id', user.id)
+      .single();
+
+    if (verifyError) {
+      authLogger.warn('Error verifying onboarding completion', { error: verifyError });
+      throw new Error('Erro ao verificar finalização do onboarding');
+    }
+
+    if (verifyData.primeiro_acesso !== false) {
+      authLogger.error('Onboarding completion verification failed', { 
+        expected: false,
+        actual: verifyData.primeiro_acesso 
+      });
+      throw new Error('Falha ao marcar onboarding como completo - verificação falhou');
+    }
+
+    authLogger.info('Onboarding marked as complete successfully');
+  };
+
+  // Method to verify final data integrity
+  const verifyDataIntegrity = async (clinicaId: string): Promise<void> => {
+    authLogger.info('Verifying data integrity', { userId: user.id, clinicaId });
+
+    const verificationErrors: string[] = [];
+
+    try {
+      // Verify profile exists and is complete
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, nome_completo, primeiro_acesso')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profileData) {
+        verificationErrors.push('Profile não encontrado ou incompleto');
+      } else if (!profileData.nome_completo) {
+        verificationErrors.push('Nome completo não definido no profile');
+      }
+
+      // Verify user role exists and is linked to clinic
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('id, role, clinica_id, ativo')
+        .eq('user_id', user.id)
+        .eq('role', 'proprietaria')
+        .eq('ativo', true)
+        .single();
+
+      if (roleError || !roleData) {
+        verificationErrors.push('Role de proprietária não encontrado');
+      } else if (roleData.clinica_id !== clinicaId) {
+        verificationErrors.push('Role não está vinculado à clínica correta');
+      }
+
+      // Verify clinic exists and is complete
+      const { data: clinicData, error: clinicError } = await supabase
+        .from('clinicas')
+        .select('id, nome')
+        .eq('id', clinicaId)
+        .single();
+
+      if (clinicError || !clinicData) {
+        verificationErrors.push('Clínica não encontrada');
+      }
+
+      // Verify professional link exists (if user is professional)
+      if (data.souEuMesma) {
+        const { data: linkData, error: linkError } = await supabase
+          .from('clinica_profissionais')
+          .select('id, ativo')
+          .eq('clinica_id', clinicaId)
+          .eq('user_id', user.id)
+          .eq('ativo', true)
+          .single();
+
+        if (linkError || !linkData) {
+          verificationErrors.push('Vínculo profissional não encontrado');
+        }
+      }
+
+      // Verify template was created
+      const { data: templateData, error: templateError } = await supabase
+        .from('templates_procedimentos')
+        .select('id, nome_template')
+        .eq('clinica_id', clinicaId)
+        .eq('criado_por', user.id)
+        .single();
+
+      if (templateError || !templateData) {
+        verificationErrors.push('Template de procedimento não foi criado');
+      }
+
+      if (verificationErrors.length > 0) {
+        authLogger.error('Data integrity verification failed', { 
+          errors: verificationErrors 
+        });
+        throw new Error(`Verificação de integridade falhou: ${verificationErrors.join(', ')}`);
+      }
+
+      authLogger.info('Data integrity verification passed');
+    } catch (error) {
+      authLogger.error('Data integrity verification error', { error });
+      throw error;
+    }
+  };
+
+  // Method for deterministic dashboard redirection
+  const redirectToDashboard = async (): Promise<void> => {
+    authLogger.info('Initiating dashboard redirection');
+
+    // Show success message
+    toast.success('Configuração inicial concluída com sucesso!');
+
+    // Wait for data to be fully persisted
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Force profile refresh in auth context
+    if (typeof refreshProfile === 'function') {
+      try {
+        await refreshProfile();
+        authLogger.info('Profile refreshed successfully');
+      } catch (error) {
+        authLogger.warn('Profile refresh failed, continuing with redirect', { error });
+      }
+    }
+
+    // Additional wait for context update
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Deterministic navigation to dashboard
+    authLogger.info('Redirecting to dashboard');
+    navigate('/dashboard', { replace: true });
   };
 
   const finishOnboarding = async () => {
@@ -381,77 +652,18 @@ export function OnboardingWizard() {
         }
       }
       
-      // 5. Criar template de procedimento
+      // 5. Create template with validation (Task 4.4)
+      await createTemplate(clinicaId);
 
-      const precoNumerico = parseFloat(data.precoServico.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
-      
-      const { error: templateError } = await supabase
-        .from('templates_procedimentos')
-        .insert({
-          tipo_procedimento: 'consulta', // Padrão para onboarding
-          nome_template: data.nomeServico,
-          descricao: data.descricaoServico || null,
-          duracao_padrao_minutos: data.duracaoServico,
-          valor_base: precoNumerico,
-          campos_obrigatorios: {
-            duracao_minutos: { type: "number", required: true, default: data.duracaoServico },
-            valor_procedimento: { type: "number", required: true, default: precoNumerico }
-          },
-          campos_opcionais: {
-            observacoes: { type: "text" },
-            retorno_recomendado: { type: "date" }
-          }
-        });
+      // 6. Mark onboarding as complete with verification (Task 4.4)
+      await markOnboardingComplete();
 
-      if (templateError) {
+      // 7. Verify final data integrity (Task 4.4)
+      await verifyDataIntegrity(clinicaId);
 
-        if (templateError.code === '23505') {
-          throw new Error('Um template com este nome já existe.');
-        } else if (templateError.code === '42501') {
-          throw new Error('Erro de permissão ao criar template.');
-        }
-        throw new Error(`Erro ao criar template de procedimento: ${templateError.message}`);
-      }
+      // 8. Deterministic dashboard redirection (Task 4.4)
+      await redirectToDashboard();
 
-      // 6. Marcar onboarding como completo - OBRIGATÓRIO
-      const { data: updateData, error: completeOnboardingError } = await supabase
-        .from('profiles')
-        .update({ primeiro_acesso: false })
-        .eq('id', user.id)
-        .select();
-
-      if (completeOnboardingError) {
-        throw new Error(`Erro ao finalizar onboarding: ${completeOnboardingError.message}`);
-      }
-
-      // Verificar se realmente atualizou
-      const { data: verifyData, error: verifyError } = await supabase
-        .from('profiles')
-        .select('primeiro_acesso')
-        .eq('id', user.id)
-        .single();
-
-      if (verifyError) {
-        authLogger.warn('Erro ao verificar atualização:', verifyError);
-      } else if (verifyData.primeiro_acesso !== false) {
-        throw new Error('Falha ao marcar onboarding como completo');
-      }
-
-      toast.success('Configuração inicial concluída com sucesso!');
-
-      // Aguardar um pouco para garantir que os dados foram salvos
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Forçar atualização do contexto
-      if (typeof refreshProfile === 'function') {
-        await refreshProfile();
-      }
-
-      // Aguardar um pouco para o contexto ser atualizado
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Navegação simples para dashboard
-      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       // Usar sistema de tratamento de erros robusto
       const appError = handleError(error, {

@@ -1,68 +1,44 @@
 /**
- * 🔐 TIPOS DE AUTENTICAÇÃO - SISTEMA SEGURO V2
+ * 🔐 TIPOS DE AUTENTICAÇÃO
  * 
- * Definições de tipos para máxima type safety e segurança
+ * Definições de tipos para sistema de autenticação unificado
  */
 
-// ============================================================================
-// ENUMS E CONSTANTES
-// ============================================================================
-
 export enum UserRole {
-  SUPER_ADMIN = 'super_admin',
   PROPRIETARIA = 'proprietaria',
   GERENTE = 'gerente',
-  PROFISSIONAIS = 'profissionais',
-  RECEPCIONISTAS = 'recepcionistas',
-  VISITANTE = 'visitante',
-  CLIENTE = 'cliente'
+  RECEPCIONISTAS = 'recepcionista',
+  SUPER_ADMIN = 'super_admin'
 }
 
 export enum Permission {
-  // Clínica
-  CREATE_CLINIC = 'create_clinic',
   VIEW_CLINIC = 'view_clinic',
   EDIT_CLINIC = 'edit_clinic',
   DELETE_CLINIC = 'delete_clinic',
-  
-  // Usuários
-  INVITE_USER = 'invite_user',
   MANAGE_USERS = 'manage_users',
-  VIEW_USERS = 'view_users',
-  
-  // Prontuários
-  CREATE_MEDICAL_RECORD = 'create_medical_record',
-  VIEW_MEDICAL_RECORD = 'view_medical_record',
-  EDIT_MEDICAL_RECORD = 'edit_medical_record',
-  DELETE_MEDICAL_RECORD = 'delete_medical_record',
-  
-  // Financeiro
-  VIEW_FINANCIAL = 'view_financial',
-  MANAGE_FINANCIAL = 'manage_financial',
-  
-  // Relatórios
   VIEW_REPORTS = 'view_reports',
-  EXPORT_DATA = 'export_data',
-  
-  // Sistema
-  VIEW_AUDIT_LOGS = 'view_audit_logs',
-  MANAGE_SYSTEM = 'manage_system'
+  MANAGE_APPOINTMENTS = 'manage_appointments',
+  VIEW_FINANCIAL = 'view_financial',
+  EDIT_FINANCIAL = 'edit_financial'
 }
 
-export enum AuthEventType {
-  LOGIN_SUCCESS = 'login_success',
-  LOGIN_FAILED = 'login_failed',
-  LOGOUT = 'logout',
-  TOKEN_REFRESH = 'token_refresh',
-  PASSWORD_CHANGE = 'password_change',
-  PERMISSION_DENIED = 'permission_denied',
-  CLINIC_SWITCH = 'clinic_switch',
-  ACCOUNT_LOCKED = 'account_locked'
+export enum TipoProcedimento {
+  LIMPEZA_PELE = 'limpeza_pele',
+  PEELING = 'peeling',
+  HIDRATACAO = 'hidratacao',
+  MICROAGULHAMENTO = 'microagulhamento',
+  RADIOFREQUENCIA = 'radiofrequencia',
+  LASER = 'laser'
 }
 
-// ============================================================================
-// INTERFACES PRINCIPAIS
-// ============================================================================
+export enum AuthErrorType {
+  AUTHENTICATION = 'authentication',
+  AUTHORIZATION = 'authorization',
+  VALIDATION = 'validation',
+  DATABASE = 'database',
+  NETWORK = 'network',
+  TIMEOUT = 'timeout'
+}
 
 export interface User {
   id: string;
@@ -72,66 +48,33 @@ export interface User {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
-  lastLoginAt?: Date;
   loginAttempts: number;
-  lockedUntil?: Date;
 }
 
-export interface Clinic {
+export interface UserProfile {
   id: string;
-  name: string;
-  cnpj?: string;
-  ownerId: string;
-  active: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  settings: ClinicSettings;
+  email: string;
+  nome_completo: string;
+  telefone?: string;
+  avatar_url?: string;
+  primeiro_acesso: boolean;
+  onboarding_step?: string;
+  onboarding_completed_at?: Date;
+  ativo: boolean;
+  criado_em: Date;
+  atualizado_em: Date;
 }
 
-export interface ClinicSettings {
-  timezone: string;
-  currency: string;
-  language: string;
-  features: string[];
-  branding?: {
-    logo?: string;
-    primaryColor?: string;
-    secondaryColor?: string;
-  };
-}
-
-export interface UserClinicRole {
+export interface UserRoleData {
   id: string;
-  userId: string;
-  clinicId: string;
+  user_id: string;
   role: UserRole;
-  permissions: Permission[];
-  active: boolean;
-  expiresAt?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  clinica_id?: string;
+  ativo: boolean;
+  criado_em: Date;
 }
 
-// ============================================================================
-// AUTENTICAÇÃO E AUTORIZAÇÃO
-// ============================================================================
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-  rememberMe?: boolean;
-  clinicId?: string; // Para login direto em clínica específica
-}
-
-export interface RegisterData {
-  email: string;
-  password: string;
-  name: string;
-  acceptTerms: boolean;
-  clinicName?: string; // Para registro com clínica
-}
-
-export interface AuthTokens {
+export interface Tokens {
   accessToken: string;
   refreshToken: string;
   expiresAt: Date;
@@ -142,167 +85,158 @@ export interface AuthResult {
   success: boolean;
   user?: User;
   profile?: UserProfile;
-  roles?: UserRoleContext[];
-  tokens?: AuthTokens;
-  clinics?: UserClinicAccess[];
-  currentClinic?: UserClinicAccess;
+  roles?: UserRoleData[];
+  tokens?: Tokens;
+  clinics?: ClinicAccess[];
+  currentClinic?: ClinicAccess;
   error?: string;
-  requiresEmailVerification?: boolean;
-  requiresOnboarding?: boolean;
 }
 
-export interface UserClinicAccess {
+export interface Clinic {
+  id: string;
+  name: string;
+  ownerId: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  settings: {
+    timezone: string;
+    currency: string;
+    language: string;
+    features: string[];
+  };
+}
+
+export interface ClinicAccess {
   clinic: Clinic;
   role: UserRole;
   permissions: Permission[];
   active: boolean;
-  expiresAt?: Date;
 }
 
-// ============================================================================
-// CONTEXTO DE AUTENTICAÇÃO
-// ============================================================================
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  nome_completo: string;
-  telefone?: string;
-  primeiro_acesso: boolean;
-  ativo: boolean;
-  criado_em: Date;
-  atualizado_em?: Date;
+export interface AuthError {
+  type: AuthErrorType;
+  message: string;
+  code?: string;
+  recoverable: boolean;
+  retryAfter?: number;
+  context?: Record<string, any>;
 }
 
-export interface UserRoleContext {
-  role: UserRole;
-  clinica_id?: string;
-  ativo: boolean;
+export interface RecoveryStrategy {
+  canRecover(error: AuthError): boolean;
+  recover(error: AuthError): Promise<boolean>;
+  maxAttempts: number;
+  backoffMs: number;
 }
 
-export interface AuthState {
-  // Estado básico
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  user: User | null;
-
-  // Compatibilidade com sistema antigo
-  profile: UserProfile | null;
-  roles: UserRoleContext[];
-  currentRole: UserRole | null;
-  isProfileLoading: boolean;
-  isRolesLoading: boolean;
-
-  // Multi-tenant
-  currentClinic: UserClinicAccess | null;
-  availableClinics: UserClinicAccess[];
-
-  // Tokens
-  tokens: AuthTokens | null;
-
-  // Estado de UI
-  isInitialized: boolean;
-  error: string | null;
-}
-
-export interface AuthContextValue extends AuthState {
-  // Métodos de autenticação
-  login: (credentials: LoginCredentials) => Promise<AuthResult>;
-  logout: () => Promise<void>;
-  register: (data: RegisterData) => Promise<AuthResult>;
-  refreshAuth: () => Promise<boolean>;
-
-  // Multi-tenant
-  switchClinic: (clinicId: string) => Promise<boolean>;
-
-  // Autorização
-  hasPermission: (permission: Permission) => boolean;
-  hasRole: (role: UserRole) => boolean;
-  hasAnyRole: (roles: UserRole[]) => boolean;
-
-  // Compatibilidade com sistema antigo
-  refreshProfile: () => Promise<void>;
-  refreshUserData: () => Promise<void>;
-  getCurrentRole: () => UserRole | null;
-  isOnboardingComplete: boolean;
-
-  // Utilitários
-  clearError: () => void;
-  isTokenExpired: () => boolean;
-}
-
-// ============================================================================
-// AUDITORIA E LOGS
-// ============================================================================
-
-export interface AuthAuditLog {
-  id: string;
-  userId?: string;
-  clinicId?: string;
-  eventType: AuthEventType;
-  ipAddress: string;
-  userAgent: string;
+export interface RecoveryResult {
   success: boolean;
-  errorMessage?: string;
-  metadata?: Record<string, any>;
+  strategy?: string;
+  attemptsUsed?: number;
+  error?: string;
+  suggestions?: string[];
+}
+
+export interface FallbackStrategy {
+  action: 'redirect' | 'retry' | 'show_error';
+  to?: string;
+  message?: string;
+  userMessage?: string;
+  canRetry?: boolean;
+  retryAfter?: number;
+}
+
+export interface ErrorStats {
+  total: number;
+  network: number;
+  database: number;
+  authentication: number;
+  authorization: number;
+  validation: number;
+  timeout: number;
+  mostFrequent: AuthErrorType;
+}
+
+export interface ErrorReport {
+  totalErrors: number;
+  recoverableErrors: number;
+  successfulRecoveries: number;
+  errorsByType: Record<AuthErrorType, number>;
   timestamp: Date;
 }
 
-// ============================================================================
-// VALIDAÇÃO E SEGURANÇA
-// ============================================================================
-
-export interface PasswordValidation {
-  isValid: boolean;
-  errors: string[];
-  strength: 'weak' | 'medium' | 'strong' | 'very_strong';
+export interface LoginCredentials {
+  email: string;
+  password: string;
 }
 
-export interface SecurityContext {
-  ipAddress: string;
-  userAgent: string;
-  sessionId: string;
+export interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+  acceptTerms: boolean;
+}
+
+export interface OnboardingData {
+  profile: {
+    nome_completo: string;
+    telefone?: string;
+    email: string;
+  };
+  clinic: {
+    nome: string;
+    endereco: string;
+    telefone: string;
+    email: string;
+  };
+  professional: {
+    especialidades: string[];
+    registro_profissional?: string;
+  };
+}
+
+export interface TransactionResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
   clinicId?: string;
-  permissions: Permission[];
-  rateLimitRemaining: number;
 }
 
-// ============================================================================
-// UTILITÁRIOS DE TIPO
-// ============================================================================
-
-export type AuthAction = 
-  | { type: 'LOGIN_START' }
-  | { type: 'LOGIN_SUCCESS'; payload: AuthResult }
-  | { type: 'LOGIN_FAILURE'; payload: string }
-  | { type: 'LOGOUT' }
-  | { type: 'REFRESH_SUCCESS'; payload: AuthTokens }
-  | { type: 'SWITCH_CLINIC'; payload: UserClinicAccess }
-  | { type: 'SET_ERROR'; payload: string }
-  | { type: 'CLEAR_ERROR' };
-
-export type ProtectedRouteProps = {
-  children: React.ReactNode;
-  requiredPermissions?: Permission[];
-  requiredRoles?: UserRole[];
-  fallback?: React.ReactNode;
-  requireAll?: boolean; // Se true, requer TODAS as permissões/roles
-};
-
-// ============================================================================
-// GUARDS DE TIPO
-// ============================================================================
-
-export function isValidUserRole(role: string): role is UserRole {
-  return Object.values(UserRole).includes(role as UserRole);
+export interface IntegrityCheck {
+  profile: boolean;
+  role: boolean;
+  clinic: boolean;
+  professional: boolean;
+  clinicLink: boolean;
+  templates: boolean;
+  onboardingComplete: boolean;
 }
 
-export function isValidPermission(permission: string): permission is Permission {
-  return Object.values(Permission).includes(permission as Permission);
+export interface IntegrityResult {
+  success: boolean;
+  checks: IntegrityCheck;
+  missingRelationships?: string[];
+  repairSuggestions?: string[];
 }
 
-export function hasValidTokens(tokens: AuthTokens | null): tokens is AuthTokens {
-  return tokens !== null && 
-         tokens.accessToken.length > 0 && 
-         tokens.expiresAt > new Date();
+export interface IntegrityReport {
+  timestamp: Date;
+  userId: string;
+  clinicId: string;
+  checks: IntegrityCheck;
+  summary: {
+    totalChecks: number;
+    passedChecks: number;
+    failedChecks: number;
+    overallStatus: 'PASS' | 'FAIL';
+  };
+}
+
+export interface ProgressCallback {
+  (progress: {
+    step: string;
+    progress: number;
+    message: string;
+  }): void;
 }

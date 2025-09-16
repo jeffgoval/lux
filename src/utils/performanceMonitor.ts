@@ -142,7 +142,7 @@ class PerformanceMonitor {
     }
 
     // Log slow operations in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       const benchmark = this.benchmarks.get(name);
       if (benchmark && value > benchmark.warning) {
 
@@ -350,7 +350,7 @@ export function usePerformanceMonitor() {
 }
 
 // Development helper
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).performanceMonitor = {
     monitor: performanceMonitor,
     getReport: getPerformanceReport,

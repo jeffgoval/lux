@@ -1,5 +1,6 @@
 ﻿import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import { performanceMonitor } from '@/utils/performanceMonitor';
 
 export interface NavigationState {
@@ -19,6 +20,10 @@ export interface NavigationStateManager {
   isNavigating: boolean;
   navigationState: NavigationState;
   
+  // Authentication-aware properties
+  isAuthenticated: boolean;
+  isAuthLoaded: boolean;
+  
   setNavigating: (navigating: boolean) => void;
   recordNavigation: (route: string) => void;
   canNavigateBack: () => boolean;
@@ -26,6 +31,10 @@ export interface NavigationStateManager {
   setNavigationError: (error: string | undefined) => void;
   retryNavigation: () => void;
   getNavigationStats: () => NavigationStats;
+  
+  // Authentication-aware methods
+  canAccessRoute: (route: string) => boolean;
+  getAccessibleRoutes: () => string[];
 }
 
 export interface NavigationStats {
@@ -46,6 +55,7 @@ const MAX_RETRY_COUNT = 3;
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isSignedIn, isLoaded } = useAuth();
   
   const [navigationState, setNavigationState] = useState<NavigationState>({
     currentPath: location.pathname,
@@ -71,15 +81,24 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     routeCounts: {}
   });
 
-  // Track route changes
+  // Track route changes with authentication awareness
   useEffect(() => {
     const newPath = location.pathname;
+    
+    // Only track navigation for authenticated users or public routes
+    const isPublicRoute = newPath === '/' || newPath.includes('/sign-in') || newPath.includes('/sign-up');
+    const shouldTrackNavigation = isSignedIn || isPublicRoute;
+    
+    if (!shouldTrackNavigation && isLoaded) {
+      // Don't track navigation for unauthenticated users on protected routes
+      return;
+    }
     
     setNavigationState(prev => {
       const newHistory = [...prev.navigationHistory];
       
-      // Only add to history if it's a different route
-      if (newPath !== prev.currentPath) {
+      // Only add to history if it's a different route and should be tracked
+      if (newPath !== prev.currentPath && shouldTrackNavigation) {
         newHistory.push(newPath);
         
         // Limit history size
@@ -92,27 +111,29 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         ...prev,
         previousPath: prev.currentPath,
         currentPath: newPath,
-        navigationHistory: newHistory,
-        lastSuccessfulNavigation: newPath,
+        navigationHistory: shouldTrackNavigation ? newHistory : prev.navigationHistory,
+        lastSuccessfulNavigation: shouldTrackNavigation ? newPath : prev.lastSuccessfulNavigation,
         retryCount: 0, // Reset retry count on successful navigation
         error: undefined // Clear any previous errors
       };
     });
 
-    // Update stats
-    setNavigationStats(prev => ({
-      ...prev,
-      totalNavigations: prev.totalNavigations + 1,
-      successfulNavigations: prev.successfulNavigations + 1,
-      routeCounts: {
-        ...prev.routeCounts,
-        [newPath]: (prev.routeCounts[newPath] || 0) + 1
-      }
-    }));
+    // Update stats only for tracked navigation
+    if (shouldTrackNavigation) {
+      setNavigationStats(prev => ({
+        ...prev,
+        totalNavigations: prev.totalNavigations + 1,
+        successfulNavigations: prev.successfulNavigations + 1,
+        routeCounts: {
+          ...prev.routeCounts,
+          [newPath]: (prev.routeCounts[newPath] || 0) + 1
+        }
+      }));
+    }
 
     // Clear navigating state
     setIsNavigating(false);
-  }, [location.pathname]);
+  }, [location.pathname, isSignedIn, isLoaded]);
 
   const setNavigating = (navigating: boolean) => {
     setIsNavigating(navigating);
@@ -223,19 +244,61 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     };
   };
 
+  // Authentication-aware route access control
+  const canAccessRoute = (route: string): boolean => {
+    // Public routes that don't require authentication
+    const publicRoutes = ['/', '/sign-in', '/sign-up'];
+    
+    if (publicRoutes.includes(route)) {
+      return true;
+    }
+    
+    // Protected routes require authentication
+    return isSignedIn;
+  };
+
+  const getAccessibleRoutes = (): string[] => {
+    const allRoutes = [
+      '/',
+      '/dashboard',
+      '/agendamento',
+      '/clientes',
+      '/servicos',
+      '/produtos',
+      '/equipamentos',
+      '/financeiro',
+      '/comunicacao',
+      '/prontuarios',
+      '/executivo',
+      '/alertas',
+      '/perfil'
+    ];
+    
+    return allRoutes.filter(route => canAccessRoute(route));
+  };
+
   const value: NavigationContextType = {
     currentRoute: navigationState.currentPath,
     previousRoute: navigationState.previousPath,
     navigationHistory: navigationState.navigationHistory,
     isNavigating,
     navigationState,
+    
+    // Authentication state
+    isAuthenticated: isSignedIn,
+    isAuthLoaded: isLoaded,
+    
     setNavigating,
     recordNavigation,
     canNavigateBack,
     clearHistory,
     setNavigationError,
     retryNavigation,
-    getNavigationStats
+    getNavigationStats,
+    
+    // Authentication-aware methods
+    canAccessRoute,
+    getAccessibleRoutes
   };
 
   return (

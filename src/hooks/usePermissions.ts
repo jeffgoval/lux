@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useSecureAuth } from '@/contexts/SecureAuthContext';
+import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { Database } from '@/integrations/supabase/types';
 
 type UserRole = Database['public']['Enums']['user_role_type'];
@@ -20,7 +20,7 @@ interface PermissionCheck {
  * Cacheia resultados e evita re-computações desnecessárias
  */
 export function usePermissions(): PermissionCheck {
-  const { currentRole, roles, isAuthenticated } = useSecureAuth();
+  const { currentRole, roles, isAuthenticated } = useUnifiedAuth();
 
   return useMemo(() => {
     if (!isAuthenticated || !currentRole) {
