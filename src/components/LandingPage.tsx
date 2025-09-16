@@ -1,3 +1,11 @@
+/**
+ * 🏠 LANDING PAGE COMPONENT
+ * 
+ * This component serves as the public landing page for unauthenticated users.
+ * It uses Clerk's SignedOut wrapper to ensure it only shows to users who
+ * are not logged in, and provides SignInButton and SignUpButton for authentication.
+ */
+
 import { SignedOut, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

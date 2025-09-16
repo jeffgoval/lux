@@ -4,13 +4,21 @@ import App from "./App.tsx";
 import "./index.css";
 import { getClerkPublishableKey } from "./config/clerk.ts";
 
+/**
+ * 🔐 CLERK AUTHENTICATION SETUP
+ * 
+ * This is the main entry point where we configure Clerk authentication
+ * for the entire application. The ClerkProvider wraps the app and provides
+ * authentication context to all components.
+ */
+
 // Get and validate Clerk configuration on application startup
 let publishableKey: string;
 try {
   publishableKey = getClerkPublishableKey();
 } catch (error) {
   console.error('❌ Clerk Configuration Error:', error);
-  // Show error message and prevent app from loading if key is missing
+  // Show user-friendly error message and prevent app from loading if key is missing
   document.getElementById("root")!.innerHTML = `
     <div style="
       display: flex; 
@@ -36,14 +44,14 @@ try {
   throw error;
 }
 
+// Initialize React app with Clerk authentication provider
 createRoot(document.getElementById("root")!).render(
   <ClerkProvider 
     publishableKey={publishableKey}
-    afterSignOutUrl="/"
-    signInUrl="/sign-in"
-    signUpUrl="/sign-up"
-    afterSignInUrl="/dashboard"
-    afterSignUpUrl="/dashboard"
+    // Redirect URLs for different authentication flows
+    afterSignOutUrl="/"              // Landing page after logout
+    afterSignInUrl="/dashboard"      // Dashboard after successful login
+    afterSignUpUrl="/dashboard"      // Dashboard after successful registration
   >
     <App />
   </ClerkProvider>

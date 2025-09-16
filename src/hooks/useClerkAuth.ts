@@ -1,8 +1,16 @@
 /**
  * 🔐 CLERK AUTHENTICATION HOOK
  * 
- * Hook personalizado que encapsula useAuth e useUser do Clerk
- * mantendo interface similar ao useNoAuth existente para compatibilidade
+ * This hook provides a unified interface for Clerk authentication that maintains
+ * compatibility with the previous authentication system. It encapsulates Clerk's
+ * useAuth and useUser hooks and provides additional functionality like error handling
+ * and loading states.
+ * 
+ * Key features:
+ * - Compatible interface with previous useNoAuth hook
+ * - Comprehensive error handling and retry logic
+ * - Loading states for better UX
+ * - Type-safe authentication state management
  */
 
 import { useAuth, useUser } from '@clerk/clerk-react';

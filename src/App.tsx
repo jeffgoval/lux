@@ -140,7 +140,7 @@ const App = () => {
             } />
             
             {/* Public Routes - Landing page for unauthenticated users */}
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<Landing />} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

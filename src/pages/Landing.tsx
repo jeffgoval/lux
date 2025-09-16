@@ -5,6 +5,8 @@ import { ArrowRight, Calendar, Shield, Star, Users, Award, Phone, MapPin, Instag
 import { Link } from "react-router-dom";
 import suavizarLogo from "@/assets/suavizar-logo.png";
 import { useEffect, useState } from "react";
+import { PremiumContact } from "@/components/premium";
+import { sampleContactInfo } from "@/components/premium/sampleData";
 
 export default function Landing() {
   const [scrollY, setScrollY] = useState(0);
@@ -592,61 +594,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-16 border-t border-border/20 bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary/20 via-transparent to-primary-light/20"></div>
-        </div>
-
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Logo and Brand */}
-            <div className="mb-8 animate-fade-in">
-              <img
-                src={suavizarLogo}
-                alt="Suavizar"
-                className="h-12 w-auto mx-auto mb-4 hover-lift transition-spring"
-              />
-              <h3 className="heading-premium text-2xl mb-2 text-gradient">SUAVIZAR</h3>
-              <p className="text-premium">Estética Especializada</p>
-            </div>
-
-            {/* Divider */}
-            <div className="w-32 h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mb-8"></div>
-
-            {/* Links */}
-            <div className="flex flex-wrap justify-center gap-8 mb-8 animate-fade-in animate-delay-200">
-              <a href="#services" className="text-muted-foreground hover:text-primary transition-smooth hover-fade">
-                Serviços
-              </a>
-              <a href="#about" className="text-muted-foreground hover:text-primary transition-smooth hover-fade">
-                Sobre
-              </a>
-              <a href="#contact" className="text-muted-foreground hover:text-primary transition-smooth hover-fade">
-                Contato
-              </a>
-              <Link to="/auth" className="text-muted-foreground hover:text-primary transition-smooth hover-fade">
-                Área do Profissional
-              </Link>
-            </div>
-
-            {/* Copyright */}
-            <div className="pt-8 border-t border-border/20 animate-fade-in animate-delay-400">
-              <p className="text-muted-foreground text-sm">
-                © 2024 Suavizar Clínica Estética. Todos os direitos reservados.
-              </p>
-              <p className="text-muted-foreground/60 text-xs mt-2">
-                Desenvolvido com ❤️ para transformar vidas através da beleza
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Floating Elements */}
-        <div className="absolute bottom-10 left-10 w-16 h-16 bg-primary/5 rounded-full blur-xl animate-pulse-soft"></div>
-        <div className="absolute top-10 right-10 w-20 h-20 bg-primary-light/5 rounded-full blur-2xl animate-pulse-soft" style={{ animationDelay: '1s' }}></div>
-      </footer>
+      {/* Premium Contact Footer */}
+      <PremiumContact contactInfo={sampleContactInfo} />
     </div>
   );
 }
